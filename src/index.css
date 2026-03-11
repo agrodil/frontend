@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #245c37;
+  --color-primary-hover: #153d25;
+  --color-background: #f4efe4;
+  --font-avant: "AvantGarde", system-ui, Avenir, Helvetica, Arial, sans-serif;
+}
+
+@font-face {
+  font-family: "AvantGarde";
+  src: url("/fonts/ITC Avant Garde Gothic PRO/ITC Avant Garde Gothic PRO-Bold.otf")
+    format("opentype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: #1a1a1a;
+  background-color: #f4efe4;
+}
+
+.hero-bg {
+  background-image: url("https://picsum.photos/id/107/1200/400");
+  background-size: cover;
+  background-position: center;
+}
