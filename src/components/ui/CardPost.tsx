@@ -1,13 +1,23 @@
-import type { FC } from "react";
+import { useState, type FC } from "react";
 import { motion } from "framer-motion";
 import type { CardPostProps } from "../../interfaces/components/CardPostProps";
 
+const SHADOW_DEFAULT = "0 4px 6px rgba(0,0,0,0.10)";
+const SHADOW_HOVER = "0 20px 40px rgba(0,0,0,0.18)";
+
 const CardPost: FC<CardPostProps> = ({ img, title, weight, price }) => {
+  const [hovered, setHovered] = useState(false);
+
   return (
     <motion.div
-      className="relative rounded-2xl overflow-hidden shadow-md cursor-pointer aspect-3/4 max-h-112"
-      whileHover={{ scale: 1.02, boxShadow: "0 20px 40px rgba(0,0,0,0.18)" }}
+      className="relative rounded-2xl overflow-hidden cursor-pointer w-full aspect-4/3 lg:aspect-7/8 lg:w-auto lg:h-96 xl:h-112"
+      animate={{
+        scale: hovered ? 1.02 : 1,
+        boxShadow: hovered ? SHADOW_HOVER : SHADOW_DEFAULT,
+      }}
       transition={{ duration: 0.5, ease: "easeOut" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
       <img
         src={img}
@@ -15,13 +25,15 @@ const CardPost: FC<CardPostProps> = ({ img, title, weight, price }) => {
         className="absolute inset-0 w-full h-full object-cover"
       />
       <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-        <p className="font-bold text-sm uppercase leading-snug">
-          {title}
-          <br />
-          {weight}KG
-        </p>
-        <p className="font-black text-xl mt-1">${price.toFixed(0)}</p>
+      <div className="absolute bottom-0 left-0 right-0 backdrop-blur-sm">
+        <div className="p-4 text-white">
+          <p className="font-bold text-sm uppercase leading-snug">
+            {title}
+            <br />
+            {weight}KG
+          </p>
+          <p className="font-black text-xl mt-1">${price.toFixed(0)}</p>
+        </div>
       </div>
     </motion.div>
   );

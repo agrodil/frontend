@@ -41,7 +41,7 @@ const SearchInput: FC<SearchInputProps> = ({
         onKeyDown={handleKeyDown}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        className="flex-1 outline-none text-gray-700 bg-transparent placeholder-gray-400 text-sm"
+        className="flex-1 outline-none text-gray-700 bg-transparent placeholder-gray-400 text-sm placeholder:italic"
       />
     </motion.div>
   );

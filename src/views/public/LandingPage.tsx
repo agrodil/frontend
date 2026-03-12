@@ -72,16 +72,15 @@ const LandingPage: FC = () => {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
       >
-        {/* Background image with overlay */}
         <div className="hero-bg absolute inset-0" />
-        <div className="absolute inset-0 bg-background/60" />
+        <div className="absolute inset-0 bg-background/40" />
 
         <SearchInput
           placeholder="Buscar"
           value={search}
           onChange={setSearch}
           onSearch={(val) => console.log("Search:", val)}
-          className="relative z-10 w-1/2 mx-auto mt-12"
+          className="relative z-10 mt-12 w-[calc(100%-2rem)] mx-auto hidden lg:flex"
         />
 
         {/* Centered logo */}
@@ -91,7 +90,8 @@ const LandingPage: FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
         >
-          <div className="flex flex-col items-center">
+          <div className="flex flex-col items-center max-lg:mx-auto max-lg:w-fit">
+            {" "}
             <img
               src="/AGRODIL ENTREGA_ICONO PINCIPAL  PNG.png"
               alt="Agrodil logo"
@@ -111,7 +111,7 @@ const LandingPage: FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut", delay: 0.4 }}
       >
-        <PostsCarousel posts={MOCK_POSTS} visibleCount={4} />
+        <PostsCarousel posts={MOCK_POSTS} visibleCount={3} />
       </motion.section>
     </main>
   );
