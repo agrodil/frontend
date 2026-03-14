@@ -106,7 +106,7 @@ const LandingPage: FC = () => {
               alt="Agrodil logo"
               className="h-80 -m-16 object-contain"
             />
-            <h1 className="text-primary font-avant font-bold text-6xl tracking-widest">
+            <h1 className="text-primary font-avant font-bold text-5xl md:text-6xl tracking-widest">
               AGRODIL
             </h1>
           </div>

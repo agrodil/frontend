@@ -150,7 +150,7 @@ const AuthPage: FC = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: isRegistering ? -40 : 40 }}
             transition={{ duration: 0.28, ease: "easeInOut" }}
-            className={`bg-white rounded-3xl p-8 w-full overflow-y-auto max-h-[85vh] shadow-2xl`}
+            className={`bg-white rounded-3xl border border-gray-200 p-8 w-full overflow-y-auto max-h-[85vh] shadow-2xl`}
           >
             <Form
               title={isRegistering ? "Registrarse" : "Iniciar Sesión"}
