@@ -3,7 +3,8 @@
 @theme {
   --color-primary: #1d4a37;
   --color-primary-hover: #356834;
-  --color-background: #ece3d6;
+  --color-background: #fbfaf2;
+  --color-white: #f2f6fc;
   --font-avant: "AvantGarde", system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 

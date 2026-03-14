@@ -1,29 +1,19 @@
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  type ReactNode,
-} from "react";
+import React, { useState, type ReactNode } from "react";
 import type { AuthContextType, User } from "../interfaces/auth/AuthProps";
+import { AuthContext } from "./AuthContext";
 
 interface Props {
   children: ReactNode;
 }
 
-export const AuthContext = createContext<AuthContextType | null>(null);
-
 export const AuthProvider: React.FC<Props> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    const savedToken = localStorage.getItem("token");
-    const savedUser = localStorage.getItem("user");
-    if (savedToken && savedUser) {
-      setToken(savedToken);
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = localStorage.getItem("user");
+    return saved ? (JSON.parse(saved) as User) : null;
+  });
+  const [token, setToken] = useState<string | null>(() =>
+    localStorage.getItem("token"),
+  );
 
   const login = (data: { user: User; token: string }) => {
     setUser(data.user);
@@ -39,11 +29,19 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     localStorage.removeItem("user");
   };
 
+  const updateUser = (data: Partial<User>) => {
+    if (!user) return;
+    const updated = { ...user, ...data };
+    setUser(updated);
+    localStorage.setItem("user", JSON.stringify(updated));
+  };
+
   const value: AuthContextType = {
     user,
     token,
     login,
     logout,
+    updateUser,
     isAuthenticated: !!user && !!token,
   };
 

@@ -4,12 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LuX } from "react-icons/lu";
 import type { NavItem } from "../../interfaces/components/NavbarProps";
 import Button from "../ui/Button";
+import UserMenu from "../ui/UserMenu";
+import { useAuth } from "../../hooks/useAuth";
 
 interface MobileSidebarProps {
   isOpen: boolean;
   onClose: () => void;
   sections: NavItem[];
-  isAuthenticated?: boolean;
   onLoginClick?: () => void;
 }
 
@@ -17,9 +18,10 @@ const MobileSidebar: FC<MobileSidebarProps> = ({
   isOpen,
   onClose,
   sections,
-  isAuthenticated = false,
   onLoginClick,
 }) => {
+  const { user, isAuthenticated } = useAuth();
+
   const handleLoginClick = () => {
     onClose();
     onLoginClick?.();
@@ -94,9 +96,11 @@ const MobileSidebar: FC<MobileSidebarProps> = ({
               </ul>
             </nav>
 
-            {/* Login button */}
-            {!isAuthenticated && (
-              <div className="px-6 py-5 border-t border-gray-100">
+            {/* Auth section */}
+            <div className="px-6 py-5 border-t border-gray-100">
+              {isAuthenticated && user ? (
+                <UserMenu user={user} />
+              ) : (
                 <Button
                   label="Iniciar Sesión"
                   variant="primary"
@@ -104,8 +108,8 @@ const MobileSidebar: FC<MobileSidebarProps> = ({
                   onClick={handleLoginClick}
                   className="w-full"
                 />
-              </div>
-            )}
+              )}
+            </div>
           </motion.aside>
         </>
       )}

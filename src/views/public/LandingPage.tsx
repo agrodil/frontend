@@ -67,7 +67,7 @@ const LandingPage: FC = () => {
     <main className="min-h-screen flex-1 bg-background">
       {/* Hero */}
       <motion.section
-        className="relative mt-8 mb-4 rounded-2xl overflow-hidden min-h-[75vh] max-w-[90vw] mx-auto"
+        className="relative my-8 lg:my-2 rounded-2xl overflow-hidden min-h-[75vh] max-w-[90vw] mx-auto"
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
@@ -106,7 +106,7 @@ const LandingPage: FC = () => {
 
       {/* Posts carousel */}
       <motion.section
-        className="py-6 max-w-[90vw] mx-auto"
+        className="py-8 max-w-[90vw] mx-auto"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut", delay: 0.4 }}

@@ -1,5 +1,5 @@
 import { useState, type FC } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LuMenu } from "react-icons/lu";
 import Navbar from "./Navbar";
@@ -17,12 +17,16 @@ const NAV_SECTIONS: NavItem[] = [
 
 const RootLayout: FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const goToLogin = () => navigate("/login", { state: { from: location } });
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Desktop navbar */}
-      <div className="hidden lg:block pt-8">
-        <Navbar sections={NAV_SECTIONS} />
+      <div className="hidden lg:block sticky top-0 z-50 pt-4">
+        <Navbar sections={NAV_SECTIONS} onLoginClick={() => goToLogin()} />
       </div>
 
       {/* Mobile top bar with hamburger + search */}
@@ -31,7 +35,7 @@ const RootLayout: FC = () => {
           type="button"
           onClick={() => setSidebarOpen(true)}
           aria-label="Abrir menú"
-          className="shrink-0 p-4 rounded-2xl bg-white shadow-sm border border-gray-100 text-primary cursor-pointer"
+          className="shrink-0 p-2 rounded-2xl bg-white shadow-sm border border-gray-100 text-primary cursor-pointer"
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}
@@ -52,6 +56,7 @@ const RootLayout: FC = () => {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
         sections={NAV_SECTIONS}
+        onLoginClick={() => goToLogin()}
       />
 
       <Outlet />

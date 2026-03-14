@@ -3,16 +3,16 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import type { NavbarProps } from "../../interfaces/components/NavbarProps";
 import Button from "../ui/Button";
+import UserMenu from "../ui/UserMenu";
+import { useAuth } from "../../hooks/useAuth";
 
-const Navbar: FC<NavbarProps> = ({
-  sections,
-  isAuthenticated = false,
-  onLoginClick,
-}) => {
+const Navbar: FC<NavbarProps> = ({ sections, onLoginClick }) => {
+  const { user, isAuthenticated } = useAuth();
+
   return (
-    <div className="sticky top-4 z-50 flex items-center gap-4 w-[90vw] mx-auto">
+    <div className="flex items-center gap-4 w-[90vw] mx-auto pb-4">
       <motion.nav
-        className="bg-white border-b border-gray-100 px-8 py-1.5 flex items-center justify-between flex-1 rounded-2xl shadow-sm text-primary w-[85%]"
+        className="bg-white border-b border-gray-100 px-8 py-2 flex items-center justify-between flex-1 rounded-2xl shadow-sm text-primary w-[80%]"
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
@@ -42,13 +42,15 @@ const Navbar: FC<NavbarProps> = ({
         </ul>
       </motion.nav>
 
-      {!isAuthenticated && (
-        <motion.div
-          initial={{ opacity: 0, y: -16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut" }}
-          className="w-[15%]"
-        >
+      <motion.div
+        initial={{ opacity: 0, y: -16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="w-[20%]"
+      >
+        {isAuthenticated && user ? (
+          <UserMenu user={user} />
+        ) : (
           <Button
             label="Iniciar Sesión"
             variant="primary"
@@ -56,8 +58,8 @@ const Navbar: FC<NavbarProps> = ({
             onClick={onLoginClick}
             className="w-full py-1.5 rounded-2xl shadow-sm"
           />
-        </motion.div>
-      )}
+        )}
+      </motion.div>
     </div>
   );
 };
