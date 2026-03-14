@@ -65,7 +65,7 @@ const PostsCarousel: FC<PostsCarouselProps> = ({ posts, visibleCount = 3 }) => {
           {posts.map((post, i) => (
             <div
               key={i}
-              className="snap-start shrink-0 w-[75vw] sm:w-[45vw] md:w-[38vw]"
+              className="snap-start shrink-0 w-[75vw] sm:w-[45vw] md:w-[38vw] p-8"
             >
               <CardPost {...post} />
             </div>
@@ -104,7 +104,7 @@ const PostsCarousel: FC<PostsCarouselProps> = ({ posts, visibleCount = 3 }) => {
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.35, ease: "easeInOut" }}
-                className="flex justify-between gap-8"
+                className="flex justify-between gap-8 p-8"
               >
                 {currentPosts.map((post, i) => (
                   <CardPost key={i} {...post} />

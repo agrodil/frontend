@@ -9,54 +9,63 @@ const MOCK_POSTS = [
     title: "Novilla Brahman",
     weight: 250,
     price: 580,
+    owner: "Juan Pérez",
   },
   {
     img: "https://picsum.photos/seed/cow2/400/550",
     title: "Toro Cebú",
     weight: 420,
     price: 1200,
+    owner: "María Gómez",
   },
   {
     img: "https://picsum.photos/seed/cow3/400/550",
     title: "Novilla Brahman",
     weight: 230,
     price: 540,
+    owner: "Carlos Rodríguez",
   },
   {
     img: "https://picsum.photos/seed/cow4/400/550",
     title: "Ternero Angus",
     weight: 180,
     price: 390,
+    owner: "Ana Martínez",
   },
   {
     img: "https://picsum.photos/seed/cow5/400/550",
     title: "Vaca Lechera",
     weight: 380,
     price: 950,
+    owner: "Luis Fernández",
   },
   {
     img: "https://picsum.photos/seed/cow6/400/550",
     title: "Toro Brahman",
     weight: 510,
     price: 1450,
+    owner: "Sofía López",
   },
   {
     img: "https://picsum.photos/seed/cow7/400/550",
     title: "Novilla Angus",
     weight: 270,
     price: 620,
+    owner: "Agropecuaria El Campo S.A.",
   },
   {
     img: "https://picsum.photos/seed/cow8/400/550",
     title: "Becerro Cebú",
     weight: 150,
     price: 310,
+    owner: "Granja Los Pinos",
   },
   {
     img: "https://picsum.photos/seed/cow9/400/550",
     title: "Vaca Brahman",
     weight: 360,
     price: 870,
+    owner: "Distribuidora Mayor de Alimentos del Zulia",
   },
 ];
 
@@ -106,7 +115,7 @@ const LandingPage: FC = () => {
 
       {/* Posts carousel */}
       <motion.section
-        className="py-8 max-w-[90vw] mx-auto"
+        className="py-0 max-w-[90vw] mx-auto"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut", delay: 0.4 }}

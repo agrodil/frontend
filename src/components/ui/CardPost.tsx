@@ -3,9 +3,9 @@ import { motion } from "framer-motion";
 import type { CardPostProps } from "../../interfaces/components/CardPostProps";
 
 const SHADOW_DEFAULT = "0 4px 6px rgba(0,0,0,0.10)";
-const SHADOW_HOVER = "0 20px 40px rgba(0,0,0,0.18)";
+const SHADOW_HOVER = "0 10px 20px rgba(0,0,0,0.18)";
 
-const CardPost: FC<CardPostProps> = ({ img, title, weight, price }) => {
+const CardPost: FC<CardPostProps> = ({ img, title, weight, price, owner }) => {
   const [hovered, setHovered] = useState(false);
 
   return (
@@ -25,14 +25,17 @@ const CardPost: FC<CardPostProps> = ({ img, title, weight, price }) => {
         className="absolute inset-0 w-full h-full object-cover"
       />
       <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 backdrop-blur-sm">
-        <div className="p-4 text-white">
-          <p className="font-bold text-sm uppercase leading-snug">
+      <div className="absolute bottom-0 left-0 right-0 backdrop-blur-xs">
+        <div className="p-2 text-white">
+          <p className="font-bold text-xs uppercase leading-snug">
             {title}
             <br />
             {weight}KG
           </p>
           <p className="font-black text-xl mt-1">${price.toFixed(0)}</p>
+          <p>
+            <span className="text-xs">{owner}</span>
+          </p>
         </div>
       </div>
     </motion.div>

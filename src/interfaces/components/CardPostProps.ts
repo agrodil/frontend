@@ -3,4 +3,5 @@ export interface CardPostProps {
   title: string;
   weight: number;
   price: number;
+  owner: string;
 }
