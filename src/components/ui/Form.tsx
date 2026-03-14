@@ -4,7 +4,7 @@ import Button from "./Button";
 import type { FormProps } from "../../interfaces/components/Form";
 
 const baseInput =
-  "w-full bg-gray-100 rounded-full px-4 py-2.5 text-sm outline-none border border-transparent focus:border-primary/40 transition-colors placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed";
+  "w-full bg-gray-100 rounded-full px-4 py-2.5 text-sm outline-none border border-gray-200 focus:border-primary/40 transition-colors placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed";
 
 const Form: FC<FormProps> = ({
   fields,
@@ -16,7 +16,7 @@ const Form: FC<FormProps> = ({
   footer,
 }) => {
   const [values, setValues] = useState<Record<string, string>>(() =>
-    Object.fromEntries(fields.map((f) => [f.name, f.defaultValue ?? ""]))
+    Object.fromEntries(fields.map((f) => [f.name, f.defaultValue ?? ""])),
   );
   const [files, setFiles] = useState<Record<string, File>>({});
   const [previews, setPreviews] = useState<Record<string, string>>({});
@@ -128,7 +128,10 @@ const Form: FC<FormProps> = ({
 
         if (field.type === "password") {
           return (
-            <div key={field.name} className={`relative ${field.className ?? ""}`}>
+            <div
+              key={field.name}
+              className={`relative ${field.className ?? ""}`}
+            >
               <input
                 type={visible[field.name] ? "text" : "password"}
                 name={field.name}

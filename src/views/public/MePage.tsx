@@ -135,14 +135,14 @@ const buildProfileFields = (user: User): FormField[] => [
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const MePage: FC = () => {
-  const { user, updateUser } = useAuth();
-  const [isEditing, setIsEditing] = useState(false);
+  const { user, updateUser, logout } = useAuth(),
+    [isEditing, setIsEditing] = useState(false);
 
   if (!user) return null;
 
-  const displayName = user.firstName + " " + user.lastName;
-  const initials = getInitials(user.firstName + " " + user.lastName);
-  const avatarColor = getAvatarColor(user.email);
+  const displayName = user.firstName + " " + user.lastName,
+    initials = getInitials(user.firstName + " " + user.lastName),
+    avatarColor = getAvatarColor(user.email);
 
   const handleSave = (data: Record<string, string | File>) => {
     updateUser({
@@ -157,6 +157,10 @@ const MePage: FC = () => {
       email: data.email as string,
     });
     setIsEditing(false);
+  };
+
+  const handleLogout = () => {
+    logout();
   };
 
   return (
@@ -179,7 +183,7 @@ const MePage: FC = () => {
         </div>
 
         {/* Name + actions */}
-        <div className="flex flex-col min-w-0 flex-1 gap-[clamp(0.35rem,1vw,0.6rem)]">
+        <div className="flex flex-col min-w-0 flex-1 gap-[clamp(0.35rem,1vw,0.6rem)] sm:items-start items-center">
           <h1 className="text-primary font-bold capitalize truncate text-[clamp(1.1rem,2.5vw,2rem)]">
             {displayName}
           </h1>
@@ -187,7 +191,7 @@ const MePage: FC = () => {
             <Button
               label="Editar Perfil"
               variant="primary"
-              size="md"
+              size="sm"
               onClick={() => setIsEditing((v) => !v)}
               className="shrink-0 text-[clamp(0.7rem,1.2vw,0.875rem)] px-[clamp(1rem,2vw,2rem)]"
             />
@@ -200,6 +204,13 @@ const MePage: FC = () => {
             >
               <LuMessageCircle className="w-[clamp(1rem,1.8vw,1.35rem)] h-[clamp(1rem,1.8vw,1.35rem)]" />
             </button>
+            <Button
+              label="Cerrar sesión"
+              variant="secondary"
+              size="sm"
+              onClick={handleLogout}
+              className="shrink-0 text-[clamp(0.7rem,1.2vw,0.875rem)] px-[clamp(1rem,2vw,2rem)]"
+            />
           </div>
         </div>
 
@@ -230,11 +241,11 @@ const MePage: FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.28, ease: "easeInOut" }}
-            className="bg-white rounded-2xl shadow-sm px-[clamp(1.25rem,4vw,2.5rem)] py-[clamp(1rem,2.5vw,1.75rem)]"
+            className="bg-white rounded-2xl border border-gray-200 shadow-sm px-[clamp(1.25rem,4vw,2.5rem)] py-[clamp(1rem,2.5vw,1.75rem)]"
           >
             {/* Header */}
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-primary font-bold text-[clamp(1rem,1.8vw,1.25rem)]">
+              <h2 className="text-primary font-bold text-[clamp(2rem,1.8vw,2.5rem)]">
                 Perfil de usuario
               </h2>
               <button
@@ -260,7 +271,7 @@ const MePage: FC = () => {
       </AnimatePresence>
 
       {/* ── Recent posts ──────────────────────────────────────────────── */}
-      <h2 className="text-primary font-bold text-[clamp(1.25rem,2vw,1.5rem)]">
+      <h2 className="text-primary font-bold text-[clamp(2rem,1.8vw,2.5rem)]">
         Publicaciones recientes
       </h2>
       <motion.div
@@ -271,7 +282,7 @@ const MePage: FC = () => {
         className="flex-1 flex flex-col sm:flex-row justify-around gap-4"
       >
         {MOCK_POSTS.map((post, i) => (
-          <CardPost key={i} {...post} />
+          <CardPost key={i} {...post} owner={displayName} />
         ))}
       </motion.div>
     </main>

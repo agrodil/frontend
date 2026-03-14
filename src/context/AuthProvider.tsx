@@ -1,6 +1,7 @@
 import React, { useState, type ReactNode } from "react";
 import type { AuthContextType, User } from "../interfaces/auth/AuthProps";
 import { AuthContext } from "./AuthContext";
+import { useNavigate } from "react-router";
 
 interface Props {
   children: ReactNode;
@@ -8,12 +9,14 @@ interface Props {
 
 export const AuthProvider: React.FC<Props> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem("user");
-    return saved ? (JSON.parse(saved) as User) : null;
-  });
-  const [token, setToken] = useState<string | null>(() =>
-    localStorage.getItem("token"),
-  );
+      const saved = localStorage.getItem("user");
+      return saved ? (JSON.parse(saved) as User) : null;
+    }),
+    [token, setToken] = useState<string | null>(() =>
+      localStorage.getItem("token"),
+    );
+
+  const navigate = useNavigate();
 
   const login = (data: { user: User; token: string }) => {
     setUser(data.user);
@@ -27,6 +30,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     setToken(null);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    navigate("/");
   };
 
   const updateUser = (data: Partial<User>) => {
