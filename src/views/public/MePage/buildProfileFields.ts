@@ -1,4 +1,4 @@
-import { townships } from "../../../constants/townships";
+// import { townships } from "../../../constants/townships";
 import type { User } from "../../../interfaces/auth/AuthProps";
 import type { FormField } from "../../../interfaces/components/FormProps";
 
@@ -29,17 +29,17 @@ export const buildProfileFields = (user: User): FormField[] => [
     placeholder: "Segundo Apellido",
     defaultValue: user.secondLastName ?? "",
   },
-  {
-    name: "municipality",
-    type: "select",
-    placeholder: "Municipio",
-    options: townships.map((t) => ({
-      label: t.label,
-      value: t.value.toString(),
-    })),
-    required: true,
-    defaultValue: user.municipality ?? "",
-  },
+  // {
+  //   name: "municipality",
+  //   type: "select",
+  //   placeholder: "Municipio",
+  //   options: townships.map((t) => ({
+  //     label: t.label,
+  //     value: t.value.toString(),
+  //   })),
+  //   required: true,
+  //   defaultValue: user.municipality ?? "",
+  // },
   {
     name: "phone",
     type: "tel",

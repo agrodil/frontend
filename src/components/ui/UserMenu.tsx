@@ -1,34 +1,18 @@
 import type { FC } from "react";
 import { useNavigate } from "react-router-dom";
+
 import type { User } from "../../interfaces/auth/AuthProps";
+
+import { getInitials } from "../../utils/getInitials";
+import { getAvatarColor } from "../../utils/getAvatarColor";
 
 interface UserMenuProps {
   user: User;
 }
 
-const getInitials = (email: string): string => {
-  const username = email.split("@")[0];
-  return username.slice(0, 2).toUpperCase();
-};
-
-const getAvatarColor = (email: string): string => {
-  const colors = [
-    "bg-emerald-500",
-    "bg-blue-500",
-    "bg-violet-500",
-    "bg-orange-500",
-    "bg-rose-500",
-    "bg-teal-500",
-  ];
-  const index =
-    email.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0) %
-    colors.length;
-  return colors[index];
-};
-
 const UserMenu: FC<UserMenuProps> = ({ user }) => {
-  const displayName = user.email.split("@")[0];
-  const initials = getInitials(user.email);
+  const displayName = user.email;
+  const initials = getInitials(user.firstName + " " + user.lastName);
   const avatarColor = getAvatarColor(user.email);
   const navigate = useNavigate();
 

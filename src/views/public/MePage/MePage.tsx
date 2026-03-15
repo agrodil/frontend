@@ -78,6 +78,9 @@ const MePage: FC = () => {
             <h1 className="text-primary font-bold capitalize truncate text-[clamp(1.1rem,2.5vw,2rem)]">
               {displayName}
             </h1>
+            <p className="text-gray-500 text-[clamp(0.8rem,1.2vw,1rem)] text-center md:text-start -my-1">
+              {`${user.documentType} - ${user.documentNumber}`}
+            </p>
             <div className="flex items-center gap-[clamp(0.5rem,1.2vw,0.75rem)]">
               <Button
                 label="Editar Perfil"
