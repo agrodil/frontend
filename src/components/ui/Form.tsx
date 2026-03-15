@@ -1,7 +1,9 @@
 import { useState, type FC, type SyntheticEvent } from "react";
 import { LuEye, LuEyeOff, LuImagePlus } from "react-icons/lu";
+
 import Button from "./Button";
-import type { FormProps } from "../../interfaces/components/Form";
+
+import type { FormProps } from "../../interfaces/components/FormProps";
 
 const baseInput =
   "w-full bg-gray-100 rounded-full px-4 py-2.5 text-sm outline-none border border-gray-200 focus:border-primary/40 transition-colors placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed";
@@ -21,6 +23,13 @@ const Form: FC<FormProps> = ({
   const [files, setFiles] = useState<Record<string, File>>({});
   const [previews, setPreviews] = useState<Record<string, string>>({});
   const [visible, setVisible] = useState<Record<string, boolean>>({});
+  const [booleans, setBooleans] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(
+      fields
+        .filter((f) => f.type === "checkbox")
+        .map((f) => [f.name, f.defaultValue === "true"]),
+    ),
+  );
 
   const handleChange = (name: string, value: string) =>
     setValues((prev) => ({ ...prev, [name]: value }));
@@ -32,7 +41,7 @@ const Form: FC<FormProps> = ({
 
   const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit({ ...values, ...files });
+    onSubmit({ ...values, ...files, ...booleans });
   };
 
   const toggleVisible = (name: string) =>
@@ -159,6 +168,30 @@ const Form: FC<FormProps> = ({
           );
         }
 
+        if (field.type === "checkbox") {
+          return (
+            <label
+              key={field.name}
+              className={`flex items-center gap-2 cursor-pointer select-none text-sm text-gray-600 ${field.className ?? ""}`}
+            >
+              <input
+                type="checkbox"
+                name={field.name}
+                checked={booleans[field.name] ?? false}
+                disabled={field.disabled}
+                onChange={(e) =>
+                  setBooleans((prev) => ({
+                    ...prev,
+                    [field.name]: e.target.checked,
+                  }))
+                }
+                className="w-4 h-4 accent-primary rounded cursor-pointer"
+              />
+              {field.checkboxLabel ?? field.label ?? field.placeholder}
+            </label>
+          );
+        }
+
         // text | email | tel | number
         return (
           <input
@@ -174,14 +207,14 @@ const Form: FC<FormProps> = ({
         );
       })}
 
-      {footer && <div className="mt-1 text-center">{footer}</div>}
-
       <Button
         label={isLoading ? "Cargando..." : submitLabel}
         type="submit"
         disabled={isLoading}
         className="mt-2 w-full"
       />
+
+      {footer && <div className="mt-1 text-center">{footer}</div>}
     </form>
   );
 };

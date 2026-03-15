@@ -1,52 +1,66 @@
-import React, { useState, type ReactNode } from "react";
+import React, { useState, useEffect, useCallback, type ReactNode } from "react";
 import type { AuthContextType, User } from "../interfaces/auth/AuthProps";
 import { AuthContext } from "./AuthContext";
-import { useNavigate } from "react-router";
+import { authApi } from "../services";
 
 interface Props {
   children: ReactNode;
 }
 
 export const AuthProvider: React.FC<Props> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-      const saved = localStorage.getItem("user");
-      return saved ? (JSON.parse(saved) as User) : null;
-    }),
-    [token, setToken] = useState<string | null>(() =>
-      localStorage.getItem("token"),
-    );
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const navigate = useNavigate();
+  const fetchMe = useCallback(async (): Promise<User | null> => {
+    try {
+      return await authApi.getMe();
+    } catch {
+      return null;
+    }
+  }, []);
 
-  const login = (data: { user: User; token: string }) => {
-    setUser(data.user);
-    setToken(data.token);
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
+  useEffect(() => {
+    const init = async () => {
+      let currentUser = await fetchMe();
+      if (!currentUser) {
+        try {
+          await authApi.refresh();
+          currentUser = await fetchMe();
+        } catch {
+          // session expired
+        }
+      }
+      setUser(currentUser);
+      setLoading(false);
+    };
+    init();
+  }, [fetchMe]);
+
+  const login = (user: User) => {
+    setUser(user);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await authApi.logout();
+    } catch {
+      // ignore
+    }
     setUser(null);
-    setToken(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    navigate("/");
   };
 
   const updateUser = (data: Partial<User>) => {
     if (!user) return;
-    const updated = { ...user, ...data };
-    setUser(updated);
-    localStorage.setItem("user", JSON.stringify(updated));
+    setUser({ ...user, ...data });
   };
 
   const value: AuthContextType = {
     user,
-    token,
     login,
     logout,
     updateUser,
-    isAuthenticated: !!user && !!token,
+    isAuthenticated: !!user,
+    loading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

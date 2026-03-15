@@ -1,10 +1,16 @@
 import { useState, type FC } from "react";
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import {
+  Outlet,
+  useNavigate,
+  useLocation,
+  useNavigation,
+} from "react-router-dom";
 import { motion } from "framer-motion";
 import { LuMenu } from "react-icons/lu";
 import Navbar from "./Navbar";
 import MobileSidebar from "./MobileSidebar";
 import Footer from "./Footer";
+import Loader from "./Loader";
 import SearchInput from "../ui/SearchInput";
 import type { NavItem } from "../../interfaces/components/NavbarProps";
 
@@ -19,11 +25,15 @@ const RootLayout: FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const navigation = useNavigation();
+  const isRouteLoading = navigation.state !== "idle";
 
   const goToLogin = () => navigate("/login", { state: { from: location } });
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <Loader visible={isRouteLoading} />
+
       {/* Desktop navbar */}
       <div className="hidden lg:block sticky top-0 z-50 pt-4">
         <Navbar sections={NAV_SECTIONS} onLoginClick={() => goToLogin()} />

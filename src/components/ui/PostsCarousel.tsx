@@ -60,7 +60,7 @@ const PostsCarousel: FC<PostsCarouselProps> = ({ posts, visibleCount = 3 }) => {
         <div
           ref={scrollRef}
           onScroll={handleScroll}
-          className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth gap-8 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex overflow-x-auto snap-x snap-mandatory scroll-smooth gap-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {posts.map((post, i) => (
             <div

@@ -8,7 +8,8 @@ export type FieldType =
   | "tel"
   | "number"
   | "textarea"
-  | "image";
+  | "image"
+  | "checkbox";
 
 export interface SelectOption {
   label: string;
@@ -27,11 +28,12 @@ export interface FormField {
   disabled?: boolean;
   className?: string;
   canUpdate?: boolean;
+  checkboxLabel?: string;
 }
 
 export interface FormProps {
   fields: FormField[];
-  onSubmit: (data: Record<string, string | File>) => void;
+  onSubmit: (data: Record<string, string | File | boolean>) => void;
   submitLabel?: string;
   title?: string;
   isLoading?: boolean;

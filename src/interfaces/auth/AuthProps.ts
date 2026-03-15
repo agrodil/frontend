@@ -14,9 +14,9 @@ export interface User {
 
 export interface AuthContextType {
   user: User | null;
-  token: string | null;
-  login: (data: { user: User; token: string }) => void;
+  login: (user: User) => void;
   logout: () => void;
   updateUser: (data: Partial<User>) => void;
   isAuthenticated: boolean;
+  loading: boolean;
 }

@@ -10,7 +10,7 @@ const CardPost: FC<CardPostProps> = ({ img, title, weight, price, owner }) => {
 
   return (
     <motion.div
-      className="relative rounded-2xl overflow-hidden cursor-pointer w-full aspect-4/3 lg:aspect-7/8 lg:w-auto lg:h-96 xl:h-112"
+      className="relative rounded-2xl overflow-hidden cursor-pointer aspect-2/3 md:aspect-4/3 lg:aspect-7/8 w-auto lg:h-96 xl:h-112"
       animate={{
         scale: hovered ? 1.02 : 1,
         boxShadow: hovered ? SHADOW_HOVER : SHADOW_DEFAULT,
