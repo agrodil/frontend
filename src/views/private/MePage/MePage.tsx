@@ -3,13 +3,21 @@ import { useLoaderData, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth.tsx";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { LuMessageCircle, LuX, LuClipboardList, LuLoader } from "react-icons/lu";
+import {
+  LuMessageCircle,
+  LuX,
+  LuClipboardList,
+  LuLoader,
+} from "react-icons/lu";
 import CardPost from "../../../components/ui/CardPost.tsx";
 import Button from "../../../components/ui/Button.tsx";
 import Form from "../../../components/ui/Form.tsx";
 
 import type { MePageLoaderData } from "../../../routes/loaders/me.loader.ts";
-import type { MePost, MyPostsPagination } from "../../../services/api/me.api.ts";
+import type {
+  MePost,
+  MyPostsPagination,
+} from "../../../services/api/me.api.ts";
 import { meApi } from "../../../services/api/me.api.ts";
 import { getAvatarColor } from "../../../utils/getAvatarColor.ts";
 import { getInitials } from "../../../utils/getInitials.ts";
@@ -33,7 +41,9 @@ const MePage: FC = () => {
   const navigate = useNavigate();
 
   const [posts, setPosts] = useState<MePost[]>(loaderData.posts);
-  const [pagination, setPagination] = useState<MyPostsPagination>(loaderData.pagination);
+  const [pagination, setPagination] = useState<MyPostsPagination>(
+    loaderData.pagination,
+  );
   const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
@@ -84,7 +94,10 @@ const MePage: FC = () => {
   };
 
   const stats = [
-    { value: String(pagination.total).padStart(2, "0"), label: "publicaciones" },
+    {
+      value: String(pagination.total).padStart(2, "0"),
+      label: "publicaciones",
+    },
     ...loaderData.stats.slice(1),
   ];
 
@@ -191,6 +204,7 @@ const MePage: FC = () => {
 
               <Form
                 key={user.email}
+                singleColumn
                 fields={buildProfileFields(user)}
                 onSubmit={handleSave}
                 submitLabel="Guardar cambios"
@@ -212,8 +226,12 @@ const MePage: FC = () => {
             className="flex flex-col items-center justify-center gap-3 py-16 text-gray-400"
           >
             <LuClipboardList size={48} strokeWidth={1.2} />
-            <p className="text-base font-medium">No tienes publicaciones recientes</p>
-            <p className="text-sm">Tus publicaciones aparecerán aquí una vez que las crees.</p>
+            <p className="text-base font-medium">
+              No tienes publicaciones recientes
+            </p>
+            <p className="text-sm">
+              Tus publicaciones aparecerán aquí una vez que las crees.
+            </p>
           </motion.div>
         ) : (
           <>
@@ -244,7 +262,10 @@ const MePage: FC = () => {
                   className="gap-2"
                 />
                 {loadingMore && (
-                  <LuLoader size={16} className="animate-spin text-primary ml-2 self-center" />
+                  <LuLoader
+                    size={16}
+                    className="animate-spin text-primary ml-2 self-center"
+                  />
                 )}
               </div>
             )}

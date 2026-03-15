@@ -28,7 +28,7 @@ const router = createBrowserRouter([
         path: "/me",
         loader: getMeData,
         lazy: async () => {
-          const module = await import("./views/public/MePage/MePage.tsx");
+          const module = await import("./views/private/MePage/MePage.tsx");
 
           return {
             Component: module.default,
