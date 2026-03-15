@@ -211,6 +211,7 @@ const AuthPage: FC = () => {
                 onSubmit={current.onSubmit}
                 isLoading={isLoading}
                 footer={current.footer}
+                singleColumn
               />
             </motion.div>
           </AnimatePresence>

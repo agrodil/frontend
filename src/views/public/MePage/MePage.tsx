@@ -3,23 +3,38 @@ import { useLoaderData, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth.tsx";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { LuMessageCircle, LuX } from "react-icons/lu";
+import { LuMessageCircle, LuX, LuClipboardList, LuLoader } from "react-icons/lu";
 import CardPost from "../../../components/ui/CardPost.tsx";
 import Button from "../../../components/ui/Button.tsx";
 import Form from "../../../components/ui/Form.tsx";
 
 import type { MePageLoaderData } from "../../../routes/loaders/me.loader.ts";
+import type { MePost, MyPostsPagination } from "../../../services/api/me.api.ts";
+import { meApi } from "../../../services/api/me.api.ts";
 import { getAvatarColor } from "../../../utils/getAvatarColor.ts";
 import { getInitials } from "../../../utils/getInitials.ts";
 import { buildProfileFields } from "./buildProfileFields.ts";
+
+const PLACEHOLDER_IMG = "https://picsum.photos/seed/post/400/550";
+
+const mapToCardPost = (post: MePost) => ({
+  img: post.main_image_url ?? PLACEHOLDER_IMG,
+  title: post.livestock_post_name,
+  weight: Number(post.avg_weight_kg ?? 0),
+  price: Number(post.price_per_kg ?? post.price_per_unit ?? 0),
+});
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const MePage: FC = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const { posts, stats } = useLoaderData() as MePageLoaderData;
+  const loaderData = useLoaderData() as MePageLoaderData;
   const { user, updateUser, logout, loading } = useAuth();
   const navigate = useNavigate();
+
+  const [posts, setPosts] = useState<MePost[]>(loaderData.posts);
+  const [pagination, setPagination] = useState<MyPostsPagination>(loaderData.pagination);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate("/login", { replace: true });
@@ -50,6 +65,28 @@ const MePage: FC = () => {
     logout();
     navigate("/");
   };
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true);
+    try {
+      const nextOffset = pagination.offset + pagination.limit;
+      const { items, pagination: newPagination } = await meApi.getMyPosts(
+        pagination.limit,
+        nextOffset,
+      );
+      setPosts((prev) => [...prev, ...items]);
+      setPagination(newPagination);
+    } catch {
+      // silently ignore
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  const stats = [
+    { value: String(pagination.total).padStart(2, "0"), label: "publicaciones" },
+    ...loaderData.stats.slice(1),
+  ];
 
   return (
     <>
@@ -166,17 +203,53 @@ const MePage: FC = () => {
         <h2 className="text-primary font-bold text-[clamp(2rem,1.8vw,2.5rem)]">
           Publicaciones recientes
         </h2>
-        <motion.div
-          layout
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, ease: "easeOut", delay: 0.15 }}
-          className="flex-1 flex flex-col sm:flex-row justify-around gap-4"
-        >
-          {posts.map((post, i) => (
-            <CardPost key={i} {...post} owner={displayName} />
-          ))}
-        </motion.div>
+
+        {posts.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+            className="flex flex-col items-center justify-center gap-3 py-16 text-gray-400"
+          >
+            <LuClipboardList size={48} strokeWidth={1.2} />
+            <p className="text-base font-medium">No tienes publicaciones recientes</p>
+            <p className="text-sm">Tus publicaciones aparecerán aquí una vez que las crees.</p>
+          </motion.div>
+        ) : (
+          <>
+            <motion.div
+              layout
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: "easeOut", delay: 0.15 }}
+              className="flex-1 flex flex-col sm:flex-row flex-wrap gap-4"
+            >
+              {posts.map((post) => (
+                <CardPost
+                  key={post.livestock_post_id}
+                  {...mapToCardPost(post)}
+                  owner={displayName}
+                />
+              ))}
+            </motion.div>
+
+            {pagination.hasMore && (
+              <div className="flex justify-center mt-2">
+                <Button
+                  label={loadingMore ? "Cargando..." : "Ver más publicaciones"}
+                  variant="secondary"
+                  size="sm"
+                  disabled={loadingMore}
+                  onClick={handleLoadMore}
+                  className="gap-2"
+                />
+                {loadingMore && (
+                  <LuLoader size={16} className="animate-spin text-primary ml-2 self-center" />
+                )}
+              </div>
+            )}
+          </>
+        )}
       </main>
     </>
   );

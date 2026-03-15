@@ -45,4 +45,5 @@ export interface FormProps {
   isLoading?: boolean;
   className?: string;
   footer?: ReactNode;
+  singleColumn?: boolean;
 }

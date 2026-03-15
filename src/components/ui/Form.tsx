@@ -23,6 +23,7 @@ const Form: FC<FormProps> = ({
   isLoading = false,
   className = "",
   footer,
+  singleColumn = false,
 }) => {
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(fields.map((f) => [f.name, f.defaultValue ?? ""])),
@@ -83,7 +84,7 @@ const Form: FC<FormProps> = ({
         </h2>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+      <div className={`grid grid-cols-1 gap-4 ${singleColumn ? "" : "lg:grid-cols-2 lg:gap-6"}`}>
         {fields.map((field) => {
           if (field.dependsOn) {
             const shouldShow =
