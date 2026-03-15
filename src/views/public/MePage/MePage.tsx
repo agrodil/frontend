@@ -1,4 +1,4 @@
-import { useState, type FC } from "react";
+import { useState, useEffect, type FC } from "react";
 import { useLoaderData, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth.tsx";
 
@@ -17,17 +17,15 @@ import { buildProfileFields } from "./buildProfileFields.ts";
 
 const MePage: FC = () => {
   const [isEditing, setIsEditing] = useState(false);
-  const {
-    user: loaderUser,
-    posts,
-    stats,
-  } = useLoaderData() as MePageLoaderData;
-  const { updateUser, logout } = useAuth();
+  const { posts, stats } = useLoaderData() as MePageLoaderData;
+  const { user, updateUser, logout, loading } = useAuth();
   const navigate = useNavigate();
 
-  if (!loaderUser) return null;
+  useEffect(() => {
+    if (!loading && !user) navigate("/login", { replace: true });
+  }, [loading, user, navigate]);
 
-  const user = loaderUser;
+  if (loading || !user) return null;
 
   const displayName = user.firstName + " " + user.lastName,
     initials = getInitials(user.firstName + " " + user.lastName),

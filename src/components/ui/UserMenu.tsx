@@ -10,9 +10,15 @@ interface UserMenuProps {
   user: User;
 }
 
+const fullName = (user: User) => {
+  const firstName = user.firstName ?? "";
+  const lastName = user.lastName ?? "";
+  return `${firstName} ${lastName}`.trim() || user.email;
+};
+
 const UserMenu: FC<UserMenuProps> = ({ user }) => {
-  const displayName = user.email;
-  const initials = getInitials(user.firstName + " " + user.lastName);
+  const displayName = fullName(user);
+  const initials = getInitials(displayName);
   const avatarColor = getAvatarColor(user.email);
   const navigate = useNavigate();
 
