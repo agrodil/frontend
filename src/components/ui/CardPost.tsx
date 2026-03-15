@@ -10,7 +10,7 @@ const CardPost: FC<CardPostProps> = ({ img, title, weight, price, owner }) => {
 
   return (
     <motion.div
-      className="relative rounded-2xl overflow-hidden cursor-pointer aspect-2/3 md:aspect-4/3 lg:aspect-7/8 w-auto lg:h-96 xl:h-112"
+      className="relative rounded-2xl overflow-hidden cursor-pointer aspect-3/4 lg:aspect-7/8 w-full lg:h-96 xl:h-112"
       animate={{
         scale: hovered ? 1.02 : 1,
         boxShadow: hovered ? SHADOW_HOVER : SHADOW_DEFAULT,
@@ -27,14 +27,14 @@ const CardPost: FC<CardPostProps> = ({ img, title, weight, price, owner }) => {
       <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
       <div className="absolute bottom-0 left-0 right-0 backdrop-blur-xs">
         <div className="p-2 text-white">
-          <p className="font-bold text-xs uppercase leading-snug">
+          <p className="font-bold text-[10px] text-xs uppercase leading-snug truncate">
             {title}
             <br />
             {weight}KG
           </p>
-          <p className="font-black text-xl mt-1">${price.toFixed(0)}</p>
+          <p className="font-black text-xs lg:text-lg">${price.toFixed(0)}</p>
           <p>
-            <span className="text-xs">{owner}</span>
+            <span className="text-xs leading-snug truncate">{owner}</span>
           </p>
         </div>
       </div>
