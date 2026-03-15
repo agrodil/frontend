@@ -16,9 +16,9 @@ import type { NavItem } from "../../interfaces/components/NavbarProps";
 
 const NAV_SECTIONS: NavItem[] = [
   { label: "Inicio", path: "/" },
-  { label: "Categorías", path: "/categorias" },
-  { label: "Vender", path: "/vender" },
-  { label: "Notificaciones", path: "/notificaciones" },
+  { label: "Categorías", path: "/categories" },
+  { label: "Vender", path: "/new-post" },
+  { label: "Notificaciones", path: "/notifications" },
 ];
 
 const RootLayout: FC = () => {

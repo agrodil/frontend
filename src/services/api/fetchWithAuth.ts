@@ -7,12 +7,14 @@ export async function fetchWithAuth(
   endpoint: string,
   options: RequestInit = {},
 ): Promise<Response> {
+  const isFormData = options.body instanceof FormData;
+
   const doFetch = () =>
     fetch(`${url}${endpoint}`, {
       ...options,
       credentials: "include",
       headers: {
-        "Content-Type": "application/json",
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...options.headers,
       },
     });

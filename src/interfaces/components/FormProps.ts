@@ -9,11 +9,12 @@ export type FieldType =
   | "number"
   | "textarea"
   | "image"
+  | "media"
   | "checkbox";
 
 export interface SelectOption {
   label: string;
-  value: string;
+  value: string | number;
 }
 
 export interface FormField {
@@ -23,17 +24,22 @@ export interface FormField {
   label?: string;
   required?: boolean;
   options?: SelectOption[]; // for select fields
-  accept?: string; // for image fields (e.g. "image/png,image/jpeg")
+  accept?: string; // for image/media fields (e.g. "image/*,video/*")
+  maxFiles?: number; // for media fields
   defaultValue?: string;
   disabled?: boolean;
   className?: string;
   canUpdate?: boolean;
   checkboxLabel?: string;
+  dependsOn?: {
+    fieldName: string;
+    value: string | number;
+  };
 }
 
 export interface FormProps {
   fields: FormField[];
-  onSubmit: (data: Record<string, string | File | boolean>) => void;
+  onSubmit: (data: Record<string, string | File | File[] | boolean>) => void;
   submitLabel?: string;
   title?: string;
   isLoading?: boolean;

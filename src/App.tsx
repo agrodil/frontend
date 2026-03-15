@@ -1,7 +1,10 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { AuthProvider } from "./context/AuthProvider";
+
 import LandingPage from "./views/public/LandingPage";
 import AuthPage from "./views/public/AuthPage/AuthPage.tsx";
+
+import NewPostPage from "./views/private/NewPostPage/NewPostPage.tsx";
 
 import RootLayout from "./components/layout/RootLayout";
 
@@ -31,6 +34,20 @@ const router = createBrowserRouter([
             Component: module.default,
           };
         },
+      },
+
+      {
+        path: "/new-post",
+        element: <NewPostPage />,
+      },
+
+      {
+        path: "*",
+        element: (
+          <h1 className="text-center mt-20 text-2xl">
+            404 - Página no encontrada
+          </h1>
+        ),
       },
     ],
   },

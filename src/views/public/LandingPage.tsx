@@ -61,6 +61,9 @@ const LandingPage: FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.4 }}
         >
+          <h2 className="text-primary font-avant font-bold text-lg md:text-4xl">
+            Publicaciones destacadas
+          </h2>
           <PostsCarousel posts={posts} visibleCount={3} />
         </motion.section>
       </main>
