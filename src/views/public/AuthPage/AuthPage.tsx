@@ -44,7 +44,7 @@ const AuthPage: FC = () => {
         remember_me: !!data.remember_me,
       };
       const { user } = await loginAction(payload);
-      login(user);
+      login(user, !!data.remember_me);
       navigate(from, { replace: true });
     } catch (error) {
       console.error("Error during login:", error);
@@ -85,7 +85,7 @@ const AuthPage: FC = () => {
         data.code as string,
         pendingRememberMe,
       );
-      login(user);
+      login(user, pendingRememberMe);
       navigate(from, { replace: true });
     } catch (error) {
       console.error("Error during verification:", error);

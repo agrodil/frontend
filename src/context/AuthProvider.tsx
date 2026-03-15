@@ -7,6 +7,15 @@ interface Props {
   children: ReactNode;
 }
 
+const SESSION_KEY = "has_session";
+
+const getSessionStorage = () =>
+  localStorage.getItem(SESSION_KEY)
+    ? localStorage
+    : sessionStorage.getItem(SESSION_KEY)
+      ? sessionStorage
+      : null;
+
 export const AuthProvider: React.FC<Props> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,6 +30,11 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     const init = async () => {
+      if (!getSessionStorage()) {
+        setLoading(false);
+        return;
+      }
+
       let currentUser = await fetchMe();
       if (!currentUser) {
         try {
@@ -30,13 +44,24 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
           // session expired
         }
       }
+
+      if (!currentUser) {
+        localStorage.removeItem(SESSION_KEY);
+        sessionStorage.removeItem(SESSION_KEY);
+      }
+
       setUser(currentUser);
       setLoading(false);
     };
     init();
   }, [fetchMe]);
 
-  const login = (user: User) => {
+  const login = (user: User, rememberMe = false) => {
+    if (rememberMe) {
+      localStorage.setItem(SESSION_KEY, "1");
+    } else {
+      sessionStorage.setItem(SESSION_KEY, "1");
+    }
     setUser(user);
   };
 
@@ -46,6 +71,8 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     } catch {
       // ignore
     }
+    localStorage.removeItem(SESSION_KEY);
+    sessionStorage.removeItem(SESSION_KEY);
     setUser(null);
   };
 

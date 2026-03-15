@@ -14,7 +14,7 @@ export interface User {
 
 export interface AuthContextType {
   user: User | null;
-  login: (user: User) => void;
+  login: (user: User, rememberMe?: boolean) => void;
   logout: () => void;
   updateUser: (data: Partial<User>) => void;
   isAuthenticated: boolean;
