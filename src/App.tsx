@@ -1,10 +1,12 @@
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import RootLayout from "./components/layout/RootLayout";
-import LandingPage from "./views/public/LandingPage";
 import { AuthProvider } from "./context/AuthProvider";
+import LandingPage from "./views/public/LandingPage";
 import AuthPage from "./views/public/AuthPage/AuthPage.tsx";
-import { landingLoader } from "./views/public/LandingPage";
+
+import RootLayout from "./components/layout/RootLayout";
+
 import { getMeData } from "./routes/loaders/me.loader";
+import { getLandingData } from "./routes/loaders/landing.loader.ts";
 
 const router = createBrowserRouter([
   {
@@ -12,7 +14,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/",
-        loader: landingLoader,
+        loader: getLandingData,
         element: <LandingPage />,
       },
       {

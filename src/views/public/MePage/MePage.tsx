@@ -1,8 +1,9 @@
 import { useState, type FC } from "react";
 import { useLoaderData, useNavigate } from "react-router-dom";
+import { useAuth } from "../../../hooks/useAuth.tsx";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { LuMessageCircle, LuX } from "react-icons/lu";
-import { useAuth } from "../../../hooks/useAuth.tsx";
 import CardPost from "../../../components/ui/CardPost.tsx";
 import Button from "../../../components/ui/Button.tsx";
 import Form from "../../../components/ui/Form.tsx";
@@ -32,7 +33,7 @@ const MePage: FC = () => {
     initials = getInitials(user.firstName + " " + user.lastName),
     avatarColor = getAvatarColor(user.email);
 
-  const handleSave = (data: Record<string, string | File>) => {
+  const handleSave = (data: Record<string, string | File | boolean>) => {
     updateUser({
       firstName: data.firstName as string,
       middleName: data.middleName as string,
