@@ -53,7 +53,9 @@ const AuthPage: FC = () => {
     }
   };
 
-  const handleRegister = async (data: Record<string, string | File | boolean>) => {
+  const handleRegister = async (
+    data: Record<string, string | File | boolean>,
+  ) => {
     setIsLoading(true);
     try {
       const rememberMe = !!data.remember_me;
@@ -77,7 +79,9 @@ const AuthPage: FC = () => {
     }
   };
 
-  const handleVerify = async (data: Record<string, string | File | boolean>) => {
+  const handleVerify = async (
+    data: Record<string, string | File | boolean>,
+  ) => {
     setIsLoading(true);
     try {
       const { user } = await verifyEmail(
@@ -202,7 +206,7 @@ const AuthPage: FC = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.28, ease: "easeInOut" }}
-              className="bg-white rounded-3xl border border-gray-200 p-8 w-full overflow-y-auto max-h-[65vh] shadow-2xl"
+              className="bg-white rounded-3xl border border-gray-200 p-8 w-full overflow-y-auto max-h-[75vh] shadow-2xl"
             >
               <Form
                 title={current.title}

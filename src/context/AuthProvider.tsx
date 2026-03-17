@@ -8,7 +8,7 @@ interface Props {
   children: ReactNode;
 }
 
-const SESSION_KEY = "has_session";
+const SESSION_KEY = import.meta.env.VITE_SESSION_KEY;
 
 const getSessionStorage = () =>
   localStorage.getItem(SESSION_KEY)
@@ -16,6 +16,11 @@ const getSessionStorage = () =>
     : sessionStorage.getItem(SESSION_KEY)
       ? sessionStorage
       : null;
+
+const removeSessionStorage = () => {
+  localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
+};
 
 export const AuthProvider: React.FC<Props> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -37,7 +42,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
         return;
       }
 
-      let currentUser = await fetchMe();
+      let currentUser: User | null = await fetchMe();
       if (!currentUser) {
         try {
           await authApi.refresh();
@@ -48,8 +53,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
       }
 
       if (!currentUser) {
-        localStorage.removeItem(SESSION_KEY);
-        sessionStorage.removeItem(SESSION_KEY);
+        removeSessionStorage();
       }
 
       setUser(currentUser);
@@ -74,8 +78,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     } catch {
       // ignore
     }
-    localStorage.removeItem(SESSION_KEY);
-    sessionStorage.removeItem(SESSION_KEY);
+    removeSessionStorage();
     setUser(null);
   };
 
@@ -84,11 +87,36 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     setUser({ ...user, ...data });
   };
 
+  const checkSession = useCallback(async (): Promise<boolean> => {
+    if (!getSessionStorage()) return false;
+
+    let currentUser = await fetchMe();
+
+    if (!currentUser) {
+      try {
+        await authApi.refresh();
+        currentUser = await fetchMe();
+      } catch {
+        // refresh failed, currentUser stays null
+      }
+    }
+
+    if (currentUser) {
+      setUser(currentUser);
+      return true;
+    }
+
+    removeSessionStorage();
+    setUser(null);
+    return false;
+  }, [fetchMe]);
+
   const value: AuthContextType = {
     user,
     login,
     logout,
     updateUser,
+    checkSession,
     isAuthenticated: !!user,
     loading,
   };

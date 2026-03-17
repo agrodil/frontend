@@ -17,6 +17,7 @@ export interface AuthContextType {
   login: (user: User, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
   updateUser: (data: Partial<User>) => void;
+  checkSession: () => Promise<boolean>;
   isAuthenticated: boolean;
   loading: boolean;
 }
