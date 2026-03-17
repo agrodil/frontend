@@ -35,7 +35,7 @@ const AuthPage: FC = () => {
     location = useLocation(),
     from = (location.state as { from?: Location })?.from?.pathname ?? "/";
 
-  const handleLogin = async (data: Record<string, string | File | boolean>) => {
+  const handleLogin = async (data: Record<string, string | File | File[] | boolean>) => {
     setIsLoading(true);
     try {
       const payload: Login = {
@@ -54,7 +54,7 @@ const AuthPage: FC = () => {
   };
 
   const handleRegister = async (
-    data: Record<string, string | File | boolean>,
+    data: Record<string, string | File | File[] | boolean>,
   ) => {
     setIsLoading(true);
     try {
@@ -80,7 +80,7 @@ const AuthPage: FC = () => {
   };
 
   const handleVerify = async (
-    data: Record<string, string | File | boolean>,
+    data: Record<string, string | File | File[] | boolean>,
   ) => {
     setIsLoading(true);
     try {
