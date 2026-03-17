@@ -1,5 +1,5 @@
 import { useState, type FC } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LuCircleCheck, LuCircleX, LuLoader } from "react-icons/lu";
 import Form from "../../../components/ui/Form";
@@ -75,33 +75,6 @@ const NewPostPage: FC = () => {
   const handleRetry = () => {
     if (pendingFormData) submit(pendingFormData);
   };
-
-  if (!user) {
-    return (
-      <section className="flex items-center justify-center min-h-screen w-full px-4">
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-3xl border border-gray-200 p-8 w-[90vw] max-w-lg shadow-2xl">
-            <h2 className="text-2xl font-bold text-primary mb-4 text-center">
-              Inicia sesión
-            </h2>
-            <p className="text-gray-600 text-center mb-6">
-              Para crear una publicación, debes estar registrado e iniciar
-              sesión en tu cuenta.
-            </p>
-            <button
-              onClick={() => navigate("/login")}
-              className="w-full px-6 py-3 mb-4 bg-primary text-white rounded-full font-medium hover:bg-primary/90 transition-colors"
-            >
-              Ir a iniciar sesión
-            </button>
-            <Link to="/" className="text-primary hover:underline">
-              Volver a inicio
-            </Link>
-          </div>
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section className="flex flex-col min-h-screen w-[90vw] mx-auto">

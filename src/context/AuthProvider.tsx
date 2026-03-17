@@ -3,6 +3,7 @@ import type { AuthContextType, User } from "../interfaces/auth/AuthProps";
 import { AuthContext } from "./AuthContext";
 import { authApi } from "../services";
 import { mapUser } from "../utils/mapUser";
+import { notificationsSocket } from "../services/api/NotificationsSocket";
 
 interface Props {
   children: ReactNode;
@@ -54,6 +55,8 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
 
       if (!currentUser) {
         removeSessionStorage();
+      } else {
+        notificationsSocket.connect();
       }
 
       setUser(currentUser);
@@ -70,6 +73,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     }
     const fullUser = await fetchMe();
     setUser(fullUser ?? user);
+    notificationsSocket.connect();
   };
 
   const logout = async () => {
@@ -78,6 +82,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     } catch {
       // ignore
     }
+    notificationsSocket.disconnect();
     removeSessionStorage();
     setUser(null);
   };
