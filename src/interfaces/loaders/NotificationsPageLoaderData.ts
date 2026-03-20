@@ -1,13 +1,15 @@
 export interface Chat {
-  purchase_notification_id: number;
+  purchase_notification_id: string;
   sent_by: string;
-  livestock_post_id: string;
+  sent_to: string;
+  livestock_post_id: string | null;
   purchase_notification_type_id: number;
   message: string;
   is_read: boolean;
   created_at: string;
-  sender_name: string;
-  livestock_post_name: string;
+  other_user_id: string;
+  other_user_name: string;
+  livestock_post_name: string | null;
 }
 
 export interface ChatPagination {

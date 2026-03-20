@@ -35,7 +35,9 @@ const AuthPage: FC = () => {
     location = useLocation(),
     from = (location.state as { from?: Location })?.from?.pathname ?? "/";
 
-  const handleLogin = async (data: Record<string, string | File | File[] | boolean>) => {
+  const handleLogin = async (
+    data: Record<string, string | File | File[] | boolean>,
+  ) => {
     setIsLoading(true);
     try {
       const payload: Login = {
@@ -44,7 +46,7 @@ const AuthPage: FC = () => {
         remember_me: !!data.remember_me,
       };
       const { user } = await loginAction(payload);
-      login(user, !!data.remember_me);
+      await login(user, !!data.remember_me);
       navigate(from, { replace: true });
     } catch (error) {
       console.error("Error during login:", error);
@@ -89,7 +91,7 @@ const AuthPage: FC = () => {
         data.code as string,
         pendingRememberMe,
       );
-      login(user, pendingRememberMe);
+      await login(user, pendingRememberMe);
       navigate(from, { replace: true });
     } catch (error) {
       console.error("Error during verification:", error);

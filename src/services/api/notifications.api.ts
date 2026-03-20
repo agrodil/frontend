@@ -22,7 +22,8 @@ export const notificationsApi = {
     return json.data;
   },
   createNotification: async (data: {
-    livestockPostId: string;
+    sentTo: string;
+    livestockPostId?: string;
     purchaseNotificationTypeId: number;
     message: string;
   }) => {
