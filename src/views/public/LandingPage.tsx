@@ -1,5 +1,5 @@
 import { useState, type FC } from "react";
-import { useLoaderData } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 
 import { motion } from "framer-motion";
 
@@ -10,6 +10,7 @@ import type { LandingPageLoaderData } from "../../routes/loaders/landing.loader"
 
 const LandingPage: FC = () => {
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
   const { posts } = useLoaderData() as LandingPageLoaderData;
 
   return (
@@ -29,7 +30,10 @@ const LandingPage: FC = () => {
             placeholder="Buscar"
             value={search}
             onChange={setSearch}
-            onSearch={(val) => console.log("Search:", val)}
+            onSearch={(val) => {
+                if (val.trim())
+                  navigate(`/posts?q=${encodeURIComponent(val.trim())}`);
+              }}
             className="relative z-10 mt-12 w-[calc(100%-2rem)] mx-auto hidden lg:flex"
           />
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, type FC } from "react";
-import { useLoaderData, useRevalidator } from "react-router-dom";
+import { useLoaderData, useRevalidator, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LuMessagesSquare } from "react-icons/lu";
 import { useAuth } from "../../../hooks/useAuth";
@@ -14,11 +14,23 @@ const NotificationsPage: FC = () => {
   const { items = [] } = (useLoaderData() as NotificationsPageLoaderData) ?? {};
   const { user } = useAuth();
   const { revalidate } = useRevalidator();
+  const location = useLocation();
   const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 
   useEffect(() => {
     return notificationsSocket.onMessage(() => revalidate());
   }, [revalidate]);
+
+  // Auto-open the chat with the seller after a purchase redirect
+  useEffect(() => {
+    const state = location.state as
+      | { openChatWith?: string }
+      | null
+      | undefined;
+    if (!state?.openChatWith || items.length === 0) return;
+    const chat = items.find((c) => c.other_user_id === state.openChatWith);
+    if (chat) setSelectedChat(chat);
+  }, [location.state, items]);
 
   const handleSelectChat = (chat: Chat) => {
     setSelectedChat(chat);

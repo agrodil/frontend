@@ -19,6 +19,29 @@ import type {
   Chat,
   Message,
 } from "../../interfaces/loaders/NotificationsPageLoaderData";
+const SALE_LABEL: Record<number, string> = {
+  1: "Por Kilo",
+  2: "Por Unidad",
+};
+
+type PurchaseCardPayload = {
+  __type: "PURCHASE_CARD";
+  title: string;
+  saleTypeId: number;
+  price: number;
+  owner: string;
+  img: string | null;
+};
+
+const parsePurchaseCard = (text: string): PurchaseCardPayload | null => {
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed.__type === "PURCHASE_CARD") return parsed as PurchaseCardPayload;
+  } catch {
+    /* not a card */
+  }
+  return null;
+};
 
 interface ChatWindowProps {
   chat: Chat;
@@ -136,6 +159,8 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
       >
         {messages.map((msg) => {
           const isOwn = msg.sent_by === user?.id;
+          const card = parsePurchaseCard(msg.message);
+
           return (
             <motion.div
               key={msg.purchase_notification_id}
@@ -144,35 +169,74 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
               transition={{ duration: 0.15 }}
               className={`flex ${isOwn ? "justify-end" : "justify-start"}`}
             >
-              <div
-                className={`max-w-[75%] rounded-2xl px-4 py-2 ${
-                  isOwn
-                    ? "bg-primary text-white rounded-br-sm"
-                    : "bg-gray-100 text-gray-800 rounded-bl-sm"
-                }`}
-              >
-                <p className="text-sm whitespace-pre-wrap wrap-break-words">
-                  {msg.message}
-                </p>
-                <div
-                  className={`flex items-center gap-1 mt-1 ${
-                    isOwn ? "justify-end" : "justify-start"
-                  }`}
-                >
+              {card ? (
+                <div className="max-w-[75%] flex flex-col gap-1">
+                  <div className="rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm">
+                    <div className="w-48 h-36 relative bg-gray-100">
+                      {card.img ? (
+                        <img
+                          src={card.img}
+                          alt={card.title}
+                          className="absolute inset-0 w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 bg-primary/10" />
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="text-[10px] text-gray-500 uppercase font-semibold">
+                        {SALE_LABEL[card.saleTypeId] ?? "—"}
+                      </p>
+                      <p className="font-bold text-xs text-gray-900 truncate">
+                        {card.title}
+                      </p>
+                      <p className="font-black text-sm text-gray-900">
+                        US ${Number(card.price).toFixed(0)}
+                      </p>
+                    </div>
+                  </div>
                   <span
-                    className={`text-[10px] ${
-                      isOwn ? "text-white/70" : "text-gray-400"
-                    }`}
+                    className={`text-[10px] text-gray-400 ${isOwn ? "text-right" : "text-left"}`}
                   >
                     {formatTime(msg.created_at)}
+                    {isOwn && (
+                      <span className="ml-1">
+                        {msg.is_read ? "✓✓" : "✓"}
+                      </span>
+                    )}
                   </span>
-                  {isOwn && (
-                    <span className="text-[10px] text-white/70">
-                      {msg.is_read ? "✓✓" : "✓"}
-                    </span>
-                  )}
                 </div>
-              </div>
+              ) : (
+                <div
+                  className={`max-w-[75%] rounded-2xl px-4 py-2 ${
+                    isOwn
+                      ? "bg-primary text-white rounded-br-sm"
+                      : "bg-gray-100 text-gray-800 rounded-bl-sm"
+                  }`}
+                >
+                  <p className="text-sm whitespace-pre-wrap wrap-break-words">
+                    {msg.message}
+                  </p>
+                  <div
+                    className={`flex items-center gap-1 mt-1 ${
+                      isOwn ? "justify-end" : "justify-start"
+                    }`}
+                  >
+                    <span
+                      className={`text-[10px] ${
+                        isOwn ? "text-white/70" : "text-gray-400"
+                      }`}
+                    >
+                      {formatTime(msg.created_at)}
+                    </span>
+                    {isOwn && (
+                      <span className="text-[10px] text-white/70">
+                        {msg.is_read ? "✓✓" : "✓"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </motion.div>
           );
         })}

@@ -6,6 +6,7 @@ export interface User {
   middleName?: string;
   lastName?: string;
   secondLastName?: string;
+  companyName?: string;
   documentType?: string;
   documentNumber?: string;
   municipality?: string;

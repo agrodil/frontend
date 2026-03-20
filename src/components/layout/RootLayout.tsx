@@ -23,6 +23,7 @@ const NAV_SECTIONS: NavItem[] = [
 
 const RootLayout: FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileSearch, setMobileSearch] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const navigation = useNavigation();
@@ -58,7 +59,15 @@ const RootLayout: FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
         >
-          <SearchInput placeholder="Buscar" />
+          <SearchInput
+              placeholder="Buscar"
+              value={mobileSearch}
+              onChange={setMobileSearch}
+              onSearch={(val) => {
+                if (val.trim())
+                  navigate(`/posts?q=${encodeURIComponent(val.trim())}`);
+              }}
+            />
         </motion.div>
       </div>
 

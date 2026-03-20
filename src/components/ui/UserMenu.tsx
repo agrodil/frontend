@@ -5,16 +5,11 @@ import type { User } from "../../interfaces/auth/AuthProps";
 
 import { getInitials } from "../../utils/getInitials";
 import { getAvatarColor } from "../../utils/getAvatarColor";
+import { fullName } from "../../utils/fullName";
 
 interface UserMenuProps {
   user: User;
 }
-
-const fullName = (user: User) => {
-  const firstName = user.firstName ?? "";
-  const lastName = user.lastName ?? "";
-  return `${firstName} ${lastName}`.trim() || user.email;
-};
 
 const UserMenu: FC<UserMenuProps> = ({ user }) => {
   const displayName = fullName(user);
