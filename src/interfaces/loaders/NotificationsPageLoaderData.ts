@@ -12,6 +12,19 @@ export interface Chat {
   livestock_post_name: string | null;
 }
 
+export interface Message {
+  purchase_notification_id: string;
+  sent_by: string;
+  sent_to: string;
+  livestock_post_id: string | null;
+  purchase_notification_type_id: number;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+  sender_name: string;
+  livestock_post_name: string | null;
+}
+
 export interface ChatPagination {
   total: number;
   limit: number;

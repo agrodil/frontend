@@ -1,8 +1,16 @@
 import { notificationsApi } from "../../services/api/notifications.api";
 
-export const uploadPost = async (
-  data: FormData,
-): Promise<{
-  livestockPostId: string;
-  filesInfo: { success: boolean; message: string; uploadedCount: number };
-}> => notificationsApi.createNotification(data);
+export const sendMessage = async (
+  sentTo: string,
+  message: string,
+  livestockPostId?: string,
+) =>
+  notificationsApi.createNotification({
+    sentTo,
+    message,
+    purchaseNotificationTypeId: 2,
+    ...(livestockPostId && { livestockPostId }),
+  });
+
+export const markChatAsRead = async (otherUserId: string) =>
+  notificationsApi.markChatAsRead(otherUserId);

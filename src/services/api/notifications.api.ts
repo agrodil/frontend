@@ -35,4 +35,13 @@ export const notificationsApi = {
     const json = await response.json();
     return json.data;
   },
+  markChatAsRead: async (otherUserId: string) => {
+    const response = await fetchWithAuth(
+      `/notifications/chats/${otherUserId}/read`,
+      { method: "PATCH" },
+    );
+    if (!response.ok) throw new Error("Failed to mark chat as read");
+    const json = await response.json();
+    return json.data;
+  },
 };
