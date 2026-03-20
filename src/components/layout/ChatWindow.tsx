@@ -8,17 +8,17 @@ import {
 } from "react";
 import { motion } from "framer-motion";
 import { LuChevronLeft } from "react-icons/lu";
-import { useAuth } from "../../../hooks/useAuth";
-import { notificationsSocket } from "../../../services/api/NotificationsSocket";
-import { notificationsApi } from "../../../services/api/notifications.api";
+import { useAuth } from "../../hooks/useAuth";
+import { notificationsSocket } from "../../services/api/NotificationsSocket";
+import { notificationsApi } from "../../services/api/notifications.api";
 import {
   sendMessage as sendMessageAction,
   markChatAsRead,
-} from "../../../routes/actions/notifications.actions";
+} from "../../routes/actions/notifications.actions";
 import type {
   Chat,
   Message,
-} from "../../../interfaces/loaders/NotificationsPageLoaderData";
+} from "../../interfaces/loaders/NotificationsPageLoaderData";
 
 interface ChatWindowProps {
   chat: Chat;
@@ -130,7 +130,10 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
       </div>
 
       {/* Messages */}
-      <div ref={messagesRef} className="flex-1 min-h-0 overflow-y-auto px-4 py-4 flex flex-col gap-2">
+      <div
+        ref={messagesRef}
+        className="flex-1 min-h-0 overflow-y-auto px-4 py-4 flex flex-col gap-2"
+      >
         {messages.map((msg) => {
           const isOwn = msg.sent_by === user?.id;
           return (

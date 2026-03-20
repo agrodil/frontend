@@ -8,7 +8,7 @@ import type {
   Chat,
   NotificationsPageLoaderData,
 } from "../../../interfaces/loaders/NotificationsPageLoaderData";
-import ChatWindow from "./ChatWindow";
+import ChatWindow from "../../../components/layout/ChatWindow";
 
 const NotificationsPage: FC = () => {
   const { items = [] } = (useLoaderData() as NotificationsPageLoaderData) ?? {};
