@@ -16,7 +16,7 @@ import type { NavItem } from "../../interfaces/components/NavbarProps";
 
 const NAV_SECTIONS: NavItem[] = [
   { label: "Inicio", path: "/" },
-  { label: "Categorías", path: "/categories" },
+  // { label: "Categorías", path: "/categories" },
   { label: "Vender", path: "/new-post" },
   { label: "Notificaciones", path: "/notifications" },
 ];
@@ -60,14 +60,14 @@ const RootLayout: FC = () => {
           transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
         >
           <SearchInput
-              placeholder="Buscar"
-              value={mobileSearch}
-              onChange={setMobileSearch}
-              onSearch={(val) => {
-                if (val.trim())
-                  navigate(`/posts?q=${encodeURIComponent(val.trim())}`);
-              }}
-            />
+            placeholder="Buscar"
+            value={mobileSearch}
+            onChange={setMobileSearch}
+            onSearch={(val) => {
+              if (val.trim())
+                navigate(`/posts?q=${encodeURIComponent(val.trim())}`);
+            }}
+          />
         </motion.div>
       </div>
 

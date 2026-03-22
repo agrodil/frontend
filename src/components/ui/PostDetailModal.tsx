@@ -47,7 +47,7 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
       navigate("/login");
       return;
     }
-    // if (isOwnPost) return;
+    if (isOwnPost) return;
 
     setBuying(true);
     try {
@@ -204,7 +204,7 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
               )}
 
               {/* Buy button */}
-              {isOwnPost && (
+              {!isOwnPost && (
                 <button
                   type="button"
                   onClick={handleBuy}

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import type { ZodTypeAny } from "zod";
 
 export type FieldType =
   | "text"
@@ -40,10 +41,12 @@ export interface FormField {
 export interface FormProps {
   fields: FormField[];
   onSubmit: (data: Record<string, string | File | File[] | boolean>) => void;
+  schema?: ZodTypeAny;
   submitLabel?: string;
   title?: string;
   isLoading?: boolean;
   className?: string;
   footer?: ReactNode;
   singleColumn?: boolean;
+  backendErrors?: Record<string, string>;
 }

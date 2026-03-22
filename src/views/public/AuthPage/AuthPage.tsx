@@ -17,6 +17,8 @@ import { useAuth } from "../../../hooks/useAuth";
 import { loginFields } from "./loginFields";
 import { registerFields } from "./registerFields";
 import { verifyFields } from "./verifyFields";
+import { loginSchema, registerSchema } from "./authSchemas";
+import { AuthError } from "../../../services/api/auth.api";
 
 import type { Login } from "../../../services/interfaces/login.interface";
 import type { Register } from "../../../services/interfaces/register.interface";
@@ -28,7 +30,10 @@ const AuthPage: FC = () => {
     [isLoading, setIsLoading] = useState(false),
     [pendingUserId, setPendingUserId] = useState(""),
     [pendingEmail, setPendingEmail] = useState(""),
-    [pendingRememberMe, setPendingRememberMe] = useState(false);
+    [pendingRememberMe, setPendingRememberMe] = useState(false),
+    [loginErrors, setLoginErrors] = useState<Record<string, string>>({}),
+    [registerErrors, setRegisterErrors] = useState<Record<string, string>>({}),
+    [verifyErrors, setVerifyErrors] = useState<Record<string, string>>({});
 
   const { login } = useAuth();
   const navigate = useNavigate(),
@@ -39,6 +44,7 @@ const AuthPage: FC = () => {
     data: Record<string, string | File | File[] | boolean>,
   ) => {
     setIsLoading(true);
+    setLoginErrors({});
     try {
       const payload: Login = {
         email: data.email as string,
@@ -49,7 +55,13 @@ const AuthPage: FC = () => {
       await login(user, !!data.remember_me);
       navigate(from, { replace: true });
     } catch (error) {
-      console.error("Error during login:", error);
+      if (error instanceof AuthError && error.fieldErrors) {
+        setLoginErrors(error.fieldErrors);
+      } else {
+        const message =
+          error instanceof Error ? error.message : "Error during login";
+        setLoginErrors({ general: message });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -59,6 +71,7 @@ const AuthPage: FC = () => {
     data: Record<string, string | File | File[] | boolean>,
   ) => {
     setIsLoading(true);
+    setRegisterErrors({});
     try {
       const rememberMe = !!data.remember_me;
       const raw = { ...(data as Record<string, string>) };
@@ -75,7 +88,13 @@ const AuthPage: FC = () => {
       setPendingRememberMe(rememberMe);
       setView("verify");
     } catch (error) {
-      console.error("Error during registration:", error);
+      if (error instanceof AuthError && error.fieldErrors) {
+        setRegisterErrors(error.fieldErrors);
+      } else {
+        const message =
+          error instanceof Error ? error.message : "Error during registration";
+        setRegisterErrors({ general: message });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -85,6 +104,7 @@ const AuthPage: FC = () => {
     data: Record<string, string | File | File[] | boolean>,
   ) => {
     setIsLoading(true);
+    setVerifyErrors({});
     try {
       const { user } = await verifyEmail(
         pendingUserId,
@@ -94,7 +114,13 @@ const AuthPage: FC = () => {
       await login(user, pendingRememberMe);
       navigate(from, { replace: true });
     } catch (error) {
-      console.error("Error during verification:", error);
+      if (error instanceof AuthError && error.fieldErrors) {
+        setVerifyErrors(error.fieldErrors);
+      } else {
+        const message =
+          error instanceof Error ? error.message : "Error during verification";
+        setVerifyErrors({ code: message });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -104,17 +130,26 @@ const AuthPage: FC = () => {
     setIsLoading(true);
     try {
       await resendVerification(pendingEmail);
+      setVerifyErrors({});
     } catch (error) {
-      console.error("Error resending code:", error);
+      const message =
+        error instanceof Error ? error.message : "Error resending code";
+      setVerifyErrors({ email: message });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleBack = () => {
-    if (view === "verify") setView("register");
-    else if (view === "register") setView("login");
-    else navigate(-1);
+    if (view === "verify") {
+      setView("register");
+      setVerifyErrors({});
+    } else if (view === "register") {
+      setView("login");
+      setRegisterErrors({});
+    } else {
+      navigate(-1);
+    }
   };
 
   const arrowBtn =
@@ -124,8 +159,10 @@ const AuthPage: FC = () => {
     login: {
       title: "Iniciar Sesión",
       fields: loginFields,
+      schema: loginSchema,
       submitLabel: "Ingresar",
       onSubmit: handleLogin,
+      backendErrors: loginErrors,
       footer: (
         <p className="text-xs text-gray-500">
           ¿Eres nuevo/a?
@@ -142,8 +179,10 @@ const AuthPage: FC = () => {
     register: {
       title: "Registrarse",
       fields: registerFields,
+      schema: registerSchema,
       submitLabel: "Crear cuenta",
       onSubmit: handleRegister,
+      backendErrors: registerErrors,
       footer: (
         <p className="text-xs text-gray-500">
           ¿Ya tienes cuenta?
@@ -162,6 +201,7 @@ const AuthPage: FC = () => {
       fields: verifyFields,
       submitLabel: "Verificar",
       onSubmit: handleVerify,
+      backendErrors: verifyErrors,
       footer: (
         <p className="text-xs text-gray-500">
           ¿No recibiste el código?
@@ -213,11 +253,13 @@ const AuthPage: FC = () => {
               <Form
                 title={current.title}
                 fields={current.fields}
+                schema={"schema" in current ? current.schema : undefined}
                 submitLabel={current.submitLabel}
                 onSubmit={current.onSubmit}
                 isLoading={isLoading}
                 footer={current.footer}
                 singleColumn
+                backendErrors={current.backendErrors}
               />
             </motion.div>
           </AnimatePresence>

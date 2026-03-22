@@ -18,12 +18,14 @@ const baseInput =
 const Form: FC<FormProps> = ({
   fields,
   onSubmit,
+  schema,
   submitLabel = "Enviar",
   title,
   isLoading = false,
   className = "",
   footer,
   singleColumn = false,
+  backendErrors = {},
 }) => {
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(fields.map((f) => [f.name, f.defaultValue ?? ""])),
@@ -39,10 +41,13 @@ const Form: FC<FormProps> = ({
     ),
   );
   const [multiFiles, setMultiFiles] = useState<Record<string, File[]>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const mediaInputRef = useRef<Record<string, HTMLInputElement | null>>({});
 
-  const handleChange = (name: string, value: string) =>
+  const handleChange = (name: string, value: string) => {
     setValues((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
 
   const handleFile = (name: string, file: File) => {
     setFiles((prev) => ({ ...prev, [name]: file }));
@@ -67,11 +72,37 @@ const Form: FC<FormProps> = ({
 
   const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit({ ...values, ...files, ...multiFiles, ...booleans });
+    const data = { ...values, ...files, ...multiFiles, ...booleans };
+
+    if (schema) {
+      const result = schema.safeParse(data);
+      if (!result.success) {
+        const fieldErrors: Record<string, string> = {};
+        for (const issue of result.error.issues) {
+          const key = issue.path[0] as string;
+          if (key && !fieldErrors[key]) fieldErrors[key] = issue.message;
+        }
+        setErrors(fieldErrors);
+        return;
+      }
+    }
+
+    setErrors({});
+    onSubmit(data);
   };
 
   const toggleVisible = (name: string) =>
     setVisible((prev) => ({ ...prev, [name]: !prev[name] }));
+
+  const FieldError = ({ name }: { name: string }) => {
+    const validationError = errors[name];
+    const apiError = backendErrors[name];
+    const errorMessage = validationError || apiError;
+
+    return errorMessage ? (
+      <p className="text-xs text-red-500 mt-0.5 pl-1">{errorMessage}</p>
+    ) : null;
+  };
 
   return (
     <form
@@ -84,7 +115,9 @@ const Form: FC<FormProps> = ({
         </h2>
       )}
 
-      <div className={`grid grid-cols-1 gap-4 ${singleColumn ? "" : "lg:grid-cols-2 lg:gap-6"}`}>
+      <div
+        className={`grid grid-cols-1 gap-4 ${singleColumn ? "" : "lg:grid-cols-2 lg:gap-6"}`}
+      >
         {fields.map((field) => {
           if (field.dependsOn) {
             const shouldShow =
@@ -129,6 +162,7 @@ const Form: FC<FormProps> = ({
                     </option>
                   ))}
                 </select>
+                <FieldError name={field.name} />
               </div>
             );
           }
@@ -161,6 +195,7 @@ const Form: FC<FormProps> = ({
                   rows={3}
                   className={`w-full bg-gray-100 rounded-2xl px-4 py-2.5 text-sm outline-none border border-transparent focus:border-primary/40 transition-colors placeholder:text-gray-400 resize-none disabled:opacity-50 disabled:cursor-not-allowed ${field.className ?? ""}`}
                 />
+                <FieldError name={field.name} />
               </div>
             );
           }
@@ -317,6 +352,7 @@ const Form: FC<FormProps> = ({
                     )}
                   </button>
                 )}
+                <FieldError name={field.name} />
               </div>
             );
           }
@@ -371,6 +407,7 @@ const Form: FC<FormProps> = ({
                 onChange={(e) => handleChange(field.name, e.target.value)}
                 className={`${baseInput} ${field.className ?? ""}`}
               />
+              <FieldError name={field.name} />
             </div>
           );
         })}

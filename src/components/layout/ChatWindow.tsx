@@ -15,14 +15,9 @@ import {
   sendMessage as sendMessageAction,
   markChatAsRead,
 } from "../../routes/actions/notifications.actions";
-import type {
-  Chat,
-  Message,
-} from "../../interfaces/loaders/NotificationsPageLoaderData";
-const SALE_LABEL: Record<number, string> = {
-  1: "Por Kilo",
-  2: "Por Unidad",
-};
+import type { Message } from "../../interfaces/loaders/NotificationsPageLoaderData";
+import { sales } from "../../constants/sale-types";
+import type { ChatWindowProps } from "../../interfaces/components/ChatWindowProps";
 
 type PurchaseCardPayload = {
   __type: "PURCHASE_CARD";
@@ -43,11 +38,6 @@ const parsePurchaseCard = (text: string): PurchaseCardPayload | null => {
   return null;
 };
 
-interface ChatWindowProps {
-  chat: Chat;
-  onBack: () => void;
-}
-
 const MESSAGES_LIMIT = 50;
 
 const formatTime = (iso: string) =>
@@ -55,11 +45,13 @@ const formatTime = (iso: string) =>
 
 const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [text, setText] = useState("");
-  const [sending, setSending] = useState(false);
-  const messagesRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const [messages, setMessages] = useState<Message[]>([]),
+    [text, setText] = useState(""),
+    [sending, setSending] = useState(false);
+
+  const messagesRef = useRef<HTMLDivElement>(null),
+    textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = useCallback(() => {
     const el = messagesRef.current;
@@ -185,7 +177,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
                     </div>
                     <div className="p-3">
                       <p className="text-[10px] text-gray-500 uppercase font-semibold">
-                        {SALE_LABEL[card.saleTypeId] ?? "—"}
+                        {sales[card.saleTypeId] ?? "—"}
                       </p>
                       <p className="font-bold text-xs text-gray-900 truncate">
                         {card.title}
@@ -200,9 +192,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
                   >
                     {formatTime(msg.created_at)}
                     {isOwn && (
-                      <span className="ml-1">
-                        {msg.is_read ? "✓✓" : "✓"}
-                      </span>
+                      <span className="ml-1">{msg.is_read ? "✓✓" : "✓"}</span>
                     )}
                   </span>
                 </div>
@@ -254,8 +244,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
           onKeyDown={handleKeyDown}
           placeholder="Escribe"
           rows={1}
-          className="flex-1 resize-none rounded-full bg-gray-100 px-4 py-2.5 text-sm outline-none border border-gray-200 focus:border-primary/40 transition-colors placeholder:text-gray-400"
-          style={{ maxHeight: 120 }}
+          className="flex-1 max-h-30 resize-none rounded-full bg-gray-100 px-4 py-2.5 text-sm outline-none border border-gray-200 focus:border-primary/40 transition-colors placeholder:text-gray-400"
         />
         <button
           aria-label="send"

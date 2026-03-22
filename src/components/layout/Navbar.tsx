@@ -12,27 +12,27 @@ const Navbar: FC<NavbarProps> = ({ sections, onLoginClick }) => {
   return (
     <div className="flex items-center gap-4 w-[90vw] mx-auto pb-4">
       <motion.nav
-        className="bg-white border border-gray-200 px-8 py-2 flex items-center justify-between flex-1 rounded-2xl shadow-sm text-primary w-[80%]"
+        className="bg-white border border-gray-200 px-8 py-1.5 flex items-center justify-between flex-1 rounded-2xl shadow-sm text-primary w-[80%]"
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
       >
-        <ul className="flex justify-around gap-12 w-full list-none m-0 p-0">
+        <ul className="flex w-full list-none m-0 p-0">
           {sections.map((section, i) => (
-            <li key={i}>
+            <li key={i} className="flex-1">
               {section.onClick ? (
                 <button
                   type="button"
                   onClick={section.onClick}
                   aria-label={section.label}
-                  className={`font-medium text-sm transition-colors bg-transparent border-0 cursor-pointer p-0 flex items-center ${section.className ?? ""}`}
+                  className={`w-full font-medium text-sm transition-colors border-0 cursor-pointer p-2 flex items-center justify-center ${section.className ?? ""}`}
                 >
                   {section.icon ?? section.label}
                 </button>
               ) : (
                 <Link
                   to={section.path ?? "/"}
-                  className={`font-medium text-sm transition-colors no-underline ${section.className ?? ""}`}
+                  className={`w-full font-medium text-sm transition-colors no-underline flex items-center justify-center p-2 ${section.className ?? ""}`}
                 >
                   {section.icon ?? section.label}
                 </Link>
