@@ -14,7 +14,7 @@ const LandingPage: FC = () => {
   const [search, setSearch] = useState("");
   const [postDetail, setPostDetail] = useState<PostDetail | null>(null);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const navigate = useNavigate();
   const { posts } = useLoaderData() as LandingPageLoaderData;
 
