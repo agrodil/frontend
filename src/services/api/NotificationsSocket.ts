@@ -22,7 +22,7 @@ class NotificationsSocket {
       reconnection: true,
     });
 
-    this.socket.on("receiveMessage", (data) => {
+    this.socket.on("receiveMessage", (data: unknown) => {
       this.handlers.forEach((h) => h(data));
     });
 
