@@ -28,6 +28,7 @@ const PLACEHOLDER_IMG = "https://picsum.photos/seed/post/400/550";
 const mapToCardPost = (post: MePost) => ({
   img: post.main_image_url ?? PLACEHOLDER_IMG,
   title: post.livestock_post_name,
+  saleTypeId: post.sale_type_id,
   weight: Number(post.avg_weight_kg ?? 0),
   price: Number(post.price_per_kg ?? post.price_per_unit ?? 0),
 });
@@ -56,7 +57,7 @@ const MePage: FC = () => {
     initials = getInitials(user.firstName + " " + user.lastName),
     avatarColor = getAvatarColor(user.email);
 
-  const handleSave = (data: Record<string, string | File | boolean>) => {
+  const handleSave = (data: Record<string, string | File | File[] | boolean>) => {
     updateUser({
       firstName: data.firstName as string,
       middleName: data.middleName as string,
