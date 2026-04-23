@@ -1,14 +1,15 @@
-import { Routes, Route } from "react-router-dom";
-import RootLayout from "./components/layout/RootLayout";
-import LandingPage from "./views/public/LandingPage";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./routes/router.tsx";
+import { AuthProvider } from "./context/AuthProvider";
+import { UnreadCountProvider } from "./context/UnreadCountProvider";
 
 function App() {
   return (
-    <Routes>
-      <Route element={<RootLayout />}>
-        <Route path="/" element={<LandingPage />} />
-      </Route>
-    </Routes>
+    <AuthProvider>
+      <UnreadCountProvider>
+        <RouterProvider router={router} />
+      </UnreadCountProvider>
+    </AuthProvider>
   );
 }
 

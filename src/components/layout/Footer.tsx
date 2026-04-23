@@ -53,7 +53,7 @@ const Footer: FC<FooterProps> = ({
       transition={{ duration: 0.5, ease: "easeOut", delay: 0.6 }}
     >
       {/* Main content */}
-      <div className="max-w-[90vw] mx-auto px-6 py-12 grid grid-cols-4 gap-8">
+      <div className="max-w-[90vw] mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
         {/* Brand column */}
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
@@ -146,7 +146,7 @@ const Footer: FC<FooterProps> = ({
 
       {/* Bottom bar */}
       <div className="border-t border-white/10">
-        <div className="max-w-[90vw] mx-auto px-6 py-4 flex items-center justify-between text-white/50 text-xs">
+        <div className="max-w-[90vw] mx-auto px-6 py-4 flex flex-col sm:flex-row items-center sm:justify-between gap-2 text-white/50 text-xs text-center">
           <span>
             © {new Date().getFullYear()} Agrodil. Todos los derechos reservados.
           </span>

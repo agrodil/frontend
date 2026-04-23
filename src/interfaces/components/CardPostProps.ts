@@ -1,6 +1,9 @@
 export interface CardPostProps {
-  img: string;
+  id?: string;
+  img?: string | null;
   title: string;
-  weight: number;
+  saleTypeId: number;
   price: number;
+  owner: string;
+  onClick?: () => void;
 }

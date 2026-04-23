@@ -1,23 +1,105 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #245c37;
-  --color-primary-hover: #153d25;
-  --color-background: #f4efe4;
+  --color-primary: #1d4a37;
+  --color-primary-hover: #356834;
+  --color-background: #fbfaf2;
+  --color-white: #fbfaf2;
   --font-avant: "AvantGarde", system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
 @font-face {
   font-family: "AvantGarde";
-  src: url("/fonts/ITC Avant Garde Gothic PRO/ITC Avant Garde Gothic PRO-Bold.otf")
+  src: url("/fonts/ITC Avant Garde Gothic PRO/ITC Avant Garde Gothic Pro-XLt.otf")
+    format("opentype");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AvantGarde";
+  src: url("/fonts/ITC Avant Garde Gothic PRO/ITC Avant Garde Gothic Pro-XLight Oblique.otf")
+    format("opentype");
+  font-weight: 200;
+  font-style: oblique;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AvantGarde";
+  src: url("/fonts/ITC Avant Garde Gothic PRO/ITC Avant Garde Gothic Pro-Book.otf")
+    format("opentype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AvantGarde";
+  src: url("/fonts/ITC Avant Garde Gothic PRO/ITC Avant Garde Gothic Pro-Book Oblique.otf")
+    format("opentype");
+  font-weight: 400;
+  font-style: oblique;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AvantGarde";
+  src: url("/fonts/ITC Avant Garde Gothic PRO/ITC Avant Garde Gothic Pro-Medium.otf")
+    format("opentype");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AvantGarde";
+  src: url("/fonts/ITC Avant Garde Gothic PRO/ITC Avant Garde Gothic Pro-Medium Oblique.otf")
+    format("opentype");
+  font-weight: 500;
+  font-style: oblique;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AvantGarde";
+  src: url("/fonts/ITC Avant Garde Gothic PRO/ITC Avant Garde Gothic Pro-Demi.otf")
+    format("opentype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AvantGarde";
+  src: url("/fonts/ITC Avant Garde Gothic PRO/ITC Avant Garde Gothic Pro-Demi Oblique.otf")
+    format("opentype");
+  font-weight: 600;
+  font-style: oblique;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "AvantGarde";
+  src: url("/fonts/ITC Avant Garde Gothic PRO/ITC Avant Garde Gothic Pro-Bold.otf")
     format("opentype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
+@font-face {
+  font-family: "AvantGarde";
+  src: url("/fonts/ITC Avant Garde Gothic PRO/ITC Avant Garde Gothic Pro-Bold Oblique.otf")
+    format("opentype");
+  font-weight: 700;
+  font-style: oblique;
+  font-display: swap;
+}
+
 :root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  font-family: AvantGarde, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
