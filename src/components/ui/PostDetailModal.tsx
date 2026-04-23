@@ -67,11 +67,20 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
         img: previewImg,
       });
 
+      // 1. Enviar la tarjeta de solicitud de compra (tipo 1)
       await notificationsApi.createNotification({
         sentTo: post.posted_by,
         livestockPostId: post.livestock_post_id,
         purchaseNotificationTypeId: 1,
         message: cardMessage,
+      });
+
+      // 2. Enviar el mensaje de texto informativo (tipo 2)
+      await notificationsApi.createNotification({
+        sentTo: post.posted_by,
+        livestockPostId: post.livestock_post_id,
+        purchaseNotificationTypeId: 2,
+        message: `Has recibido una nueva solicitud de compra de ${fullName(user!)}`,
       });
 
       navigate("/notifications", {

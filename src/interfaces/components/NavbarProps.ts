@@ -6,6 +6,7 @@ export interface NavItem {
   icon?: ReactNode;
   onClick?: () => void;
   className?: string;
+  badge?: number;
 }
 
 export interface NavbarProps {

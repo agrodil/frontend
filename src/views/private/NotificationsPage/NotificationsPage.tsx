@@ -1,9 +1,11 @@
-import { useState, useEffect, type FC } from "react";
+import { useState, useEffect, useCallback, type FC } from "react";
 import { useLoaderData, useRevalidator, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LuMessagesSquare } from "react-icons/lu";
 import { useAuth } from "../../../hooks/useAuth";
+import { useUnreadCount } from "../../../hooks/useUnreadCount";
 import { notificationsSocket } from "../../../services/api/NotificationsSocket";
+import { markChatAsRead } from "../../../routes/actions/notifications.actions";
 import type {
   Chat,
   NotificationsPageLoaderData,
@@ -13,35 +15,45 @@ import ChatWindow from "../../../components/layout/ChatWindow";
 const NotificationsPage: FC = () => {
   const { items = [] } = (useLoaderData() as NotificationsPageLoaderData) ?? {};
   const { user } = useAuth();
+  const { refresh: refreshUnreadCount } = useUnreadCount();
   const { revalidate } = useRevalidator();
   const location = useLocation();
-  const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+  const [selectedChat, setSelectedChat] = useState<Chat | null>(() => {
+    const state = location.state as
+      | { openChatWith?: string }
+      | null
+      | undefined;
+    if (!state?.openChatWith || items.length === 0) return null;
+    return items.find((c) => c.other_user_id === state.openChatWith) ?? null;
+  });
+  const [readChatIds, setReadChatIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     return notificationsSocket.onMessage(() => revalidate());
   }, [revalidate]);
 
-  // Auto-open the chat with the seller after a purchase redirect
-  useEffect(() => {
-    const state = location.state as
-      | { openChatWith?: string }
-      | null
-      | undefined;
-    if (!state?.openChatWith || items.length === 0) return;
-    const chat = items.find((c) => c.other_user_id === state.openChatWith);
-    if (chat) setSelectedChat(chat);
-  }, [location.state, items]);
-
-  const handleSelectChat = (chat: Chat) => {
-    setSelectedChat(chat);
-  };
+  const handleSelectChat = useCallback(
+    (chat: Chat) => {
+      setSelectedChat(chat);
+      if (!chat.is_read && chat.sent_by !== user?.id) {
+        setReadChatIds((prev) => new Set(prev).add(chat.other_user_id));
+        markChatAsRead(chat.other_user_id)
+          .then(() => refreshUnreadCount())
+          .catch(() => {});
+      }
+    },
+    [user?.id, refreshUnreadCount],
+  );
 
   const handleBack = () => {
     setSelectedChat(null);
     revalidate();
   };
 
-  const isUnread = (chat: Chat) => !chat.is_read && chat.sent_by !== user?.id;
+  const isUnread = (chat: Chat) =>
+    !chat.is_read &&
+    chat.sent_by !== user?.id &&
+    !readChatIds.has(chat.other_user_id);
 
   return (
     <main className="w-[90vw] mx-auto flex flex-col mt-8 lg:mt-0 h-[80vh]">

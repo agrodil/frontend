@@ -35,6 +35,12 @@ export const notificationsApi = {
     const json = await response.json();
     return json.data;
   },
+  getUnreadCount: async (): Promise<{ unreadCount: number }> => {
+    const response = await fetchWithAuth("/notifications/unread-count");
+    if (!response.ok) throw new Error("Failed to fetch unread count");
+    const json = await response.json();
+    return json.data;
+  },
   markChatAsRead: async (otherUserId: string) => {
     const response = await fetchWithAuth(
       `/notifications/chats/${otherUserId}/read`,

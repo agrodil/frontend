@@ -5,20 +5,47 @@ import { motion } from "framer-motion";
 
 import SearchInput from "../../components/ui/SearchInput";
 import PostsCarousel from "../../components/ui/PostsCarousel";
+import PostDetailModal from "../../components/ui/PostDetailModal";
+import { postApi, type PostDetail } from "../../services/api/posts.api";
 
 import type { LandingPageLoaderData } from "../../routes/loaders/landing.loader";
 
 const LandingPage: FC = () => {
   const [search, setSearch] = useState("");
+  const [postDetail, setPostDetail] = useState<PostDetail | null>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { posts } = useLoaderData() as LandingPageLoaderData;
+
+  const handleCardClick = async (postId: string) => {
+    setLoading(true);
+    try {
+      const detail = await postApi.getPostById(postId);
+      setPostDetail(detail);
+      setSelectedPostId(postId);
+    } catch (error) {
+      console.error("Error loading post detail:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleModalClose = () => {
+    setPostDetail(null);
+    setSelectedPostId(null);
+  };
+
+  const selectedCard = selectedPostId
+    ? posts.find((p) => p.id === selectedPostId)
+    : null;
 
   return (
     <>
       <main className="min-h-screen flex-1 bg-background">
         {/* Hero */}
         <motion.section
-          className="relative my-8 lg:my-2 rounded-2xl overflow-hidden min-h-[75vh] max-w-[90vw] mx-auto"
+          className="relative my-8 lg:my-2 rounded-2xl overflow-hidden min-h-[60vh] max-w-[90vw] mx-auto"
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
@@ -31,10 +58,10 @@ const LandingPage: FC = () => {
             value={search}
             onChange={setSearch}
             onSearch={(val) => {
-                if (val.trim())
-                  navigate(`/posts?q=${encodeURIComponent(val.trim())}`);
-              }}
-            className="relative z-10 mt-12 w-[calc(100%-2rem)] mx-auto hidden lg:flex"
+              if (val.trim())
+                navigate(`/posts?q=${encodeURIComponent(val.trim())}`);
+            }}
+            className="relative z-10 mt-12 w-1/2 mx-auto hidden lg:flex"
           />
 
           {/* Centered logo */}
@@ -49,7 +76,7 @@ const LandingPage: FC = () => {
               <img
                 src="/AGRODIL ENTREGA_ICONO PINCIPAL  PNG.png"
                 alt="Agrodil logo"
-                className="h-80 -m-16 object-contain"
+                className="h-96 -m-16 object-contain"
               />
               <h1 className="text-primary font-avant font-bold text-5xl md:text-6xl tracking-widest">
                 AGRODIL
@@ -65,11 +92,25 @@ const LandingPage: FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.4 }}
         >
-          <h2 className="text-primary font-avant font-bold text-lg md:text-4xl">
-            Publicaciones destacadas
+          <h2 className="text-primary my-4 font-avant font-bold text-lg md:text-4xl">
+            Publicaciones recientes
           </h2>
-          <PostsCarousel posts={posts} visibleCount={3} />
+          <p></p>
+          <PostsCarousel
+            posts={posts}
+            visibleCount={3}
+            onCardClick={handleCardClick}
+          />
         </motion.section>
+
+        {postDetail && selectedCard && (
+          <PostDetailModal
+            post={postDetail}
+            previewImg={selectedCard.img || null}
+            previewOwner={selectedCard.owner}
+            onClose={handleModalClose}
+          />
+        )}
       </main>
     </>
   );

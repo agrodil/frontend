@@ -32,9 +32,14 @@ const Navbar: FC<NavbarProps> = ({ sections, onLoginClick }) => {
               ) : (
                 <Link
                   to={section.path ?? "/"}
-                  className={`w-full font-medium text-sm transition-colors no-underline flex items-center justify-center p-2 ${section.className ?? ""}`}
+                  className={`relative w-full font-medium text-sm transition-colors no-underline flex items-center justify-center p-2 ${section.className ?? ""}`}
                 >
                   {section.icon ?? section.label}
+                  {section.badge != null && section.badge > 0 && (
+                    <span className="absolute -top-1 -right-1 min-w-6 h-6 flex items-center justify-center rounded-full bg-green-500 text-white text-[10px] px-1">
+                      {section.badge > 99 ? "99+" : section.badge}
+                    </span>
+                  )}
                 </Link>
               )}
             </li>

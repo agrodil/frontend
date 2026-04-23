@@ -7,9 +7,14 @@ import type { CardPostProps } from "../../interfaces/components/CardPostProps";
 interface PostsCarouselProps {
   posts: CardPostProps[];
   visibleCount?: number;
+  onCardClick?: (postId: string) => void;
 }
 
-const PostsCarousel: FC<PostsCarouselProps> = ({ posts, visibleCount = 3 }) => {
+const PostsCarousel: FC<PostsCarouselProps> = ({
+  posts,
+  visibleCount = 3,
+  onCardClick,
+}) => {
   const [page, setPage] = useState(0);
   const [direction, setDirection] = useState(1);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -67,7 +72,10 @@ const PostsCarousel: FC<PostsCarouselProps> = ({ posts, visibleCount = 3 }) => {
               key={i}
               className="snap-start shrink-0 w-[30vw] sm:w-[28vw] md:w-[26vw] py-4"
             >
-              <CardPost {...post} />
+              <CardPost
+                {...post}
+                onClick={() => post.id && onCardClick?.(post.id)}
+              />
             </div>
           ))}
         </div>
@@ -107,7 +115,11 @@ const PostsCarousel: FC<PostsCarouselProps> = ({ posts, visibleCount = 3 }) => {
                 className="flex justify-between gap-8 p-8"
               >
                 {currentPosts.map((post, i) => (
-                  <CardPost key={i} {...post} />
+                  <CardPost
+                    key={i}
+                    {...post}
+                    onClick={() => post.id && onCardClick?.(post.id)}
+                  />
                 ))}
               </motion.div>
             </AnimatePresence>

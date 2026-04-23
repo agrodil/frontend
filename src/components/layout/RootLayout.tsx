@@ -1,4 +1,4 @@
-import { useState, type FC } from "react";
+import { useState, useMemo, type FC } from "react";
 import {
   Outlet,
   useNavigate,
@@ -13,13 +13,7 @@ import Footer from "./Footer";
 import Loader from "./Loader";
 import SearchInput from "../ui/SearchInput";
 import type { NavItem } from "../../interfaces/components/NavbarProps";
-
-const NAV_SECTIONS: NavItem[] = [
-  { label: "Inicio", path: "/" },
-  // { label: "Categorías", path: "/categories" },
-  { label: "Vender", path: "/new-post" },
-  { label: "Notificaciones", path: "/notifications" },
-];
+import { useUnreadCount } from "../../hooks/useUnreadCount";
 
 const RootLayout: FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,6 +22,16 @@ const RootLayout: FC = () => {
   const location = useLocation();
   const navigation = useNavigation();
   const isRouteLoading = navigation.state !== "idle";
+  const { count: unreadCount } = useUnreadCount();
+
+  const navSections: NavItem[] = useMemo(
+    () => [
+      { label: "Inicio", path: "/" },
+      { label: "Vender", path: "/new-post" },
+      { label: "Notificaciones", path: "/notifications", badge: unreadCount },
+    ],
+    [unreadCount],
+  );
 
   const goToLogin = () => navigate("/login", { state: { from: location } });
 
@@ -37,7 +41,7 @@ const RootLayout: FC = () => {
 
       {/* Desktop navbar */}
       <div className="hidden lg:block sticky top-0 z-50 pt-4">
-        <Navbar sections={NAV_SECTIONS} onLoginClick={() => goToLogin()} />
+        <Navbar sections={navSections} onLoginClick={() => goToLogin()} />
       </div>
 
       {/* Mobile top bar with hamburger + search */}
@@ -74,7 +78,7 @@ const RootLayout: FC = () => {
       <MobileSidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
-        sections={NAV_SECTIONS}
+        sections={navSections}
         onLoginClick={() => goToLogin()}
       />
 

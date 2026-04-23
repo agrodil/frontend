@@ -85,10 +85,15 @@ const MobileSidebar: FC<MobileSidebarProps> = ({
                       <Link
                         to={section.path ?? "/"}
                         onClick={onClose}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-primary transition-colors hover:bg-primary/10 no-underline ${section.className ?? ""}`}
+                        className={`relative flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-sm text-primary transition-colors hover:bg-primary/10 no-underline ${section.className ?? ""}`}
                       >
                         {section.icon && <span>{section.icon}</span>}
                         {section.label}
+                        {section.badge != null && section.badge > 0 && (
+                          <span className="ml-auto min-w-5 h-5 flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1">
+                            {section.badge > 99 ? "99+" : section.badge}
+                          </span>
+                        )}
                       </Link>
                     )}
                   </li>

@@ -11,6 +11,7 @@ import { LuChevronLeft } from "react-icons/lu";
 import { useAuth } from "../../hooks/useAuth";
 import { notificationsSocket } from "../../services/api/NotificationsSocket";
 import { notificationsApi } from "../../services/api/notifications.api";
+import { useUnreadCount } from "../../hooks/useUnreadCount";
 import {
   sendMessage as sendMessageAction,
   markChatAsRead,
@@ -45,6 +46,7 @@ const formatTime = (iso: string) =>
 
 const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
   const { user } = useAuth();
+  const { refresh: refreshUnreadCount } = useUnreadCount();
 
   const [messages, setMessages] = useState<Message[]>([]),
     [text, setText] = useState(""),
@@ -73,8 +75,10 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
 
   useEffect(() => {
     loadMessages();
-    markChatAsRead(chat.other_user_id).catch(() => {});
-  }, [chat.other_user_id, loadMessages]);
+    markChatAsRead(chat.other_user_id)
+      .then(() => refreshUnreadCount())
+      .catch(() => {});
+  }, [chat.other_user_id, loadMessages, refreshUnreadCount]);
 
   useEffect(() => {
     scrollToBottom();
@@ -83,9 +87,11 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
   useEffect(() => {
     return notificationsSocket.onMessage(() => {
       loadMessages();
-      markChatAsRead(chat.other_user_id).catch(() => {});
+      markChatAsRead(chat.other_user_id)
+        .then(() => refreshUnreadCount())
+        .catch(() => {});
     });
-  }, [chat.other_user_id, loadMessages]);
+  }, [chat.other_user_id, loadMessages, refreshUnreadCount]);
 
   const handleSend = async () => {
     const trimmed = text.trim();
