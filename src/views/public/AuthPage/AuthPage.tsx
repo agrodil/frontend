@@ -17,7 +17,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { loginFields } from "./loginFields";
 import { registerFields } from "./registerFields";
 import { verifyFields } from "./verifyFields";
-import { loginSchema, registerSchema } from "./authSchemas";
+import { loginSchema, registerSchema, normalizeVenezuelanPhone } from "./authSchemas";
 import { AuthError } from "../../../services/api/auth.api";
 
 import type { Login } from "../../../services/interfaces/login.interface";
@@ -79,6 +79,7 @@ const AuthPage: FC = () => {
       delete raw.remember_me;
       const payload: Register = {
         ...raw,
+        phone: `+58${normalizeVenezuelanPhone(raw.phone)}`,
         document_number: Number(raw.document_number),
         township_id: raw.township_id ? Number(raw.township_id) : undefined,
       } as Register;

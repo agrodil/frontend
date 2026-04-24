@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export function normalizeVenezuelanPhone(raw: string): string {
+  let phone = raw.replace(/[\s\-]/g, "");
+  if (phone.startsWith("+58")) phone = phone.slice(3);
+  else if (phone.startsWith("0058")) phone = phone.slice(4);
+  else if (phone.startsWith("58") && phone.length === 12) phone = phone.slice(2);
+  if (phone.startsWith("0")) phone = phone.slice(1);
+  return phone;
+}
+
 export const loginSchema = z.object({
   email: z
     .string()
@@ -29,7 +38,10 @@ export const registerSchema = z
     phone: z
       .string()
       .min(1, "El teléfono es requerido")
-      .regex(/^\+?[\d\s\-()]{7,20}$/, "Teléfono inválido"),
+      .refine(
+        (val) => /^\d{10}$/.test(normalizeVenezuelanPhone(val)),
+        "Ingresa 10 dígitos sin código de país (ej: 4129968751)",
+      ),
     email: z
       .string()
       .min(1, "El correo es requerido")

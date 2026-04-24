@@ -39,7 +39,7 @@ export const registerFields: FormField[] = [
     options: townships,
     required: true,
   },
-  { name: "phone", type: "tel", placeholder: "Teléfono", required: true },
+  { name: "phone", type: "tel", placeholder: "Teléfono (ej: 4129968751)", required: true },
   {
     name: "email",
     type: "email",
