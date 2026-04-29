@@ -1,9 +1,10 @@
-import { useState, type FC } from "react";
+import { useState, useEffect, type FC } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LuX, LuPencil, LuTrash2 } from "react-icons/lu";
 import { useAuth } from "../../hooks/useAuth";
 import { notificationsApi } from "../../services/api/notifications.api";
+import { awsApi, type PostFile } from "../../services/api/aws.api";
 import { createPurchaseRequest } from "../../routes/actions/purchase.actions";
 import { updatePost, deactivatePost } from "../../routes/actions/post.actions";
 import type {
@@ -11,6 +12,7 @@ import type {
   UpdatePostPayload,
 } from "../../services/api/posts.api";
 import Form from "./Form";
+import MediaCarousel from "./MediaCarousel";
 import type { FormField } from "../../interfaces/components/FormProps";
 import { fullName } from "../../utils/fullName";
 
@@ -115,6 +117,22 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
   const [isDeactivating, setIsDeactivating] = useState(false);
+  const [mediaFiles, setMediaFiles] = useState<PostFile[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    awsApi
+      .getFilesByPost(currentPost.livestock_post_id)
+      .then((files) => {
+        if (!cancelled) setMediaFiles(files);
+      })
+      .catch((err) => {
+        console.error("[PostDetailModal] No se pudieron cargar los archivos", err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [currentPost.livestock_post_id]);
 
   const isOwnPost = user?.id === currentPost.posted_by;
   const price =
@@ -254,15 +272,11 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
             <div className="relative aspect-square md:aspect-auto md:min-h-80 rounded-bl-none rounded-tl-2xl overflow-hidden bg-gray-100">
-              {previewImg ? (
-                <img
-                  src={previewImg}
-                  alt={currentPost.livestock_post_name}
-                  className="absolute inset-0 w-full h-full object-cover"
-                />
-              ) : (
-                <div className="absolute inset-0 bg-primary/10" />
-              )}
+              <MediaCarousel
+                items={mediaFiles}
+                fallbackImg={previewImg}
+                alt={currentPost.livestock_post_name}
+              />
             </div>
 
             <div className="p-6 flex flex-col gap-4">
