@@ -1,4 +1,8 @@
-import { postApi } from "../../services/api/posts.api";
+import {
+  postApi,
+  type PostDetail,
+  type UpdatePostPayload,
+} from "../../services/api/posts.api";
 
 export const uploadPost = async (
   data: FormData,
@@ -6,3 +10,11 @@ export const uploadPost = async (
   livestockPostId: string;
   filesInfo: { success: boolean; message: string; uploadedCount: number };
 }> => postApi.uploadPost(data);
+
+export const updatePost = async (
+  id: string,
+  data: UpdatePostPayload,
+): Promise<PostDetail> => postApi.updatePost(id, data);
+
+export const deactivatePost = async (id: string): Promise<PostDetail> =>
+  postApi.deactivatePost(id);
