@@ -1,4 +1,3 @@
-import { breeds } from "../../../constants/breeds";
 import { sectors } from "../../../constants/sectors";
 import { sexes } from "../../../constants/sex";
 import type { FormField } from "../../../interfaces/components/FormProps";
@@ -13,8 +12,8 @@ export const newPostFormFields: FormField[] = [
   },
   {
     name: "sectorId",
-    label: "Sector",
-    placeholder: "Seleccione el sector",
+    label: "Rubro",
+    placeholder: "Seleccione el rubro",
     type: "select",
     required: true,
     options: sectors,
@@ -40,11 +39,10 @@ export const newPostFormFields: FormField[] = [
   },
   {
     name: "breed",
-    label: "Raza",
-    placeholder: "Ingrese la raza del lote",
-    type: "select",
+    label: "Raza predominante",
+    placeholder: "Ej: Brahman, Mestizo, Cruza Brahman x Cebu",
+    type: "text",
     required: true,
-    options: breeds,
   },
   {
     name: "avgWeightKg",

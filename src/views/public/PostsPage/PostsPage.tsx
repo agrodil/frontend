@@ -15,14 +15,28 @@ const isSearchResult = (
 ): item is PostsSearchResult => "posted_by_name" in item;
 
 const PostsPage: FC = () => {
-  const { items, query, postDetail, postId } =
-    useLoaderData() as PostsPageLoaderData;
+  const {
+    items: loadedItems,
+    query,
+    postDetail: loadedPostDetail,
+    postId,
+  } = useLoaderData() as PostsPageLoaderData;
   const navigate = useNavigate();
   const [search, setSearch] = useState(query);
+  const [items, setItems] = useState(loadedItems);
+  const [postDetail, setPostDetail] = useState(loadedPostDetail);
 
   useEffect(() => {
     setSearch(query);
   }, [query]);
+
+  useEffect(() => {
+    setItems(loadedItems);
+  }, [loadedItems]);
+
+  useEffect(() => {
+    setPostDetail(loadedPostDetail);
+  }, [loadedPostDetail]);
 
   const handleSearch = (val: string) => {
     if (val.trim()) {
@@ -124,6 +138,29 @@ const PostsPage: FC = () => {
           previewImg={selectedCard.img}
           previewOwner={selectedCard.owner}
           onClose={handleModalClose}
+          onUpdated={(updated) => {
+            setPostDetail(updated);
+            setItems((prev) =>
+              prev.map((item) =>
+                item.livestock_post_id === updated.livestock_post_id
+                  ? {
+                      ...item,
+                      livestock_post_name: updated.livestock_post_name,
+                      sale_type_id: updated.sale_type_id,
+                      avg_weight_kg: updated.avg_weight_kg,
+                      price_per_kg: updated.price_per_kg,
+                      price_per_unit: updated.price_per_unit,
+                    }
+                  : item,
+              ),
+            );
+          }}
+          onDeactivated={(deactivatedId) => {
+            setItems((prev) =>
+              prev.filter((item) => item.livestock_post_id !== deactivatedId),
+            );
+            setPostDetail(null);
+          }}
         />
       )}
     </main>

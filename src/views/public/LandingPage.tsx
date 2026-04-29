@@ -1,4 +1,4 @@
-import { useState, type FC } from "react";
+import { useEffect, useState, type FC } from "react";
 import { useLoaderData, useNavigate } from "react-router-dom";
 
 import { motion } from "framer-motion";
@@ -16,7 +16,12 @@ const LandingPage: FC = () => {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { posts } = useLoaderData() as LandingPageLoaderData;
+  const { posts: loadedPosts } = useLoaderData() as LandingPageLoaderData;
+  const [posts, setPosts] = useState(loadedPosts);
+
+  useEffect(() => {
+    setPosts(loadedPosts);
+  }, [loadedPosts]);
 
   const handleCardClick = async (postId: string) => {
     setLoading(true);
@@ -109,6 +114,30 @@ const LandingPage: FC = () => {
             previewImg={selectedCard.img || null}
             previewOwner={selectedCard.owner}
             onClose={handleModalClose}
+            onUpdated={(updated) => {
+              setPostDetail(updated);
+              setPosts((prev) =>
+                prev.map((p) =>
+                  p.id === updated.livestock_post_id
+                    ? {
+                        ...p,
+                        title: updated.livestock_post_name,
+                        saleTypeId: updated.sale_type_id,
+                        price: Number(
+                          updated.sale_type_id === 1
+                            ? updated.price_per_kg
+                            : updated.price_per_unit,
+                        ) || 0,
+                      }
+                    : p,
+                ),
+              );
+            }}
+            onDeactivated={(deactivatedId) => {
+              setPosts((prev) => prev.filter((p) => p.id !== deactivatedId));
+              setPostDetail(null);
+              setSelectedPostId(null);
+            }}
           />
         )}
       </main>
