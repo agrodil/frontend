@@ -1,5 +1,6 @@
 import { useState, type FC } from "react";
 import { motion } from "framer-motion";
+import { LuPlay } from "react-icons/lu";
 import type { CardPostProps } from "../../interfaces/components/CardPostProps";
 
 const SHADOW_DEFAULT = "0 4px 6px rgba(0,0,0,0.10)";
@@ -10,8 +11,16 @@ const SALE_LABEL: Record<number, string> = {
   2: "Por Unidad",
 };
 
+const isVideoUrl = (src: string) => {
+  // S3 keys are signed; the path before "?" still includes the original
+  // filename and extension (e.g. .mp4, .mov, .webm).
+  const path = src.split("?")[0].toLowerCase();
+  return /\.(mp4|webm|mov|m4v|ogg)$/i.test(path);
+};
+
 const CardPost: FC<CardPostProps> = ({ img, title, saleTypeId, price, owner, onClick }) => {
   const [hovered, setHovered] = useState(false);
+  const isVideo = img ? isVideoUrl(img) : false;
 
   return (
     <motion.div
@@ -25,7 +34,21 @@ const CardPost: FC<CardPostProps> = ({ img, title, saleTypeId, price, owner, onC
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {img ? (
+      {img && isVideo ? (
+        <>
+          <video
+            src={img}
+            muted
+            playsInline
+            preload="metadata"
+            className="absolute inset-0 w-full h-full object-cover bg-black"
+          />
+          <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-black/55 text-white text-[10px] font-semibold flex items-center gap-1 z-10">
+            <LuPlay size={10} />
+            Video
+          </div>
+        </>
+      ) : img ? (
         <img
           src={img}
           alt={title}
