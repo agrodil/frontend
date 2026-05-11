@@ -89,7 +89,7 @@ export const PostDetailActions: FC<PostDetailActionsProps> = ({
         disabled={buying}
         className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-colors cursor-pointer border-0 disabled:opacity-60 disabled:cursor-not-allowed mt-auto"
       >
-        {buying ? "Enviando solicitud..." : "Comprar ahora"}
+        {buying ? "Enviando solicitud..." : "Solicitar compra"}
       </button>
       {error && <p className="text-xs text-red-500 text-center">{error}</p>}
     </>
