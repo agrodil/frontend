@@ -26,6 +26,7 @@ Data fetching follows React Router's **loader/action** pattern — routes declar
 ### Authentication
 
 `AuthProvider` (`src/context/AuthProvider.tsx`) manages the session lifecycle:
+
 - User state stored in localStorage (persistent) or sessionStorage (temporary)
 - All authenticated API calls go through `fetchWithAuth()` (`src/services/api/fetchWithAuth.ts`), which automatically refreshes the token on 401 and retries, with request queuing to prevent duplicate refresh calls
 - The `ProtectedLayout` (`src/routes/private/ProtectedLayout.tsx`) redirects unauthenticated users to `/login`
@@ -41,17 +42,17 @@ Data fetching follows React Router's **loader/action** pattern — routes declar
 
 ### Folder Purposes
 
-| Path | Purpose |
-|---|---|
-| `src/views/` | Page-level components (split into `public/` and `private/`) |
-| `src/components/ui/` | Reusable UI components (Button, Form, CardPost, etc.) |
-| `src/components/layout/` | App shell components (Navbar, Footer, RootLayout) |
-| `src/routes/` | Router config, loaders, and actions |
-| `src/services/api/` | API client modules + `fetchWithAuth` + WebSocket |
-| `src/context/` | React Context definitions and providers |
-| `src/interfaces/` | TypeScript type definitions organized by domain |
-| `src/constants/` | Static lookup data (breeds, sale types, townships, etc.) |
-| `src/utils/` | Pure helper functions |
+| Path                     | Purpose                                                     |
+| ------------------------ | ----------------------------------------------------------- |
+| `src/views/`             | Page-level components (split into `public/` and `private/`) |
+| `src/components/ui/`     | Reusable UI components (Button, Form, CardPost, etc.)       |
+| `src/components/layout/` | App shell components (Navbar, Footer, RootLayout)           |
+| `src/routes/`            | Router config, loaders, and actions                         |
+| `src/services/api/`      | API client modules + `fetchWithAuth` + WebSocket            |
+| `src/context/`           | React Context definitions and providers                     |
+| `src/interfaces/`        | TypeScript type definitions organized by domain             |
+| `src/constants/`         | Static lookup data (breeds, sale types, townships, etc.)    |
+| `src/utils/`             | Pure helper functions                                       |
 
 ### Environment Variables
 
