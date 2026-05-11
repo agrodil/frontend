@@ -3,29 +3,32 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LuChevronLeft } from "react-icons/lu";
 
-import Form from "../../../components/ui/Form";
-import Button from "../../../components/ui/Button";
-import Loader from "../../../components/layout/Loader";
+import Form from "@/components/ui/Form";
+import Button from "@/components/ui/Button";
+import Loader from "@/components/layout/Loader";
 
 import {
   login as loginAction,
   register as registerAction,
   verifyEmail,
   resendVerification,
-} from "../../../routes/actions/auth.actions";
-import { useAuth } from "../../../hooks/useAuth";
+} from "@/routes/actions/auth.actions";
+import { useAuth } from "@/hooks/useAuth";
+import { useCheckAvailability } from "@/hooks/useCheckAvailability";
+import {
+  checkEmailExistsAction,
+  checkPhoneExistsAction,
+  checkDocumentExistsAction,
+} from "@/routes/actions/users.actions";
 import { loginFields } from "./loginFields";
 import { registerFields } from "./registerFields";
 import { verifyFields } from "./verifyFields";
-import {
-  loginSchema,
-  registerSchema,
-  normalizeVenezuelanPhone,
-} from "./authSchemas";
-import { AuthError } from "../../../services/api/auth.api";
+import { loginSchema, registerSchema } from "./authSchemas";
+import { AuthError } from "@/services/api/auth.api";
 
-import type { Login } from "../../../interfaces/api/auth/Login.interface";
-import type { Register } from "../../../interfaces/api/auth/Register.interface";
+import type { Login } from "@/interfaces/api/auth/Login.interface";
+import type { Register } from "@/interfaces/api/auth/Register.interface";
+import { formatPhone } from "@/utils/formatPhone";
 
 type AuthView = "login" | "register" | "verify";
 
@@ -40,6 +43,18 @@ const AuthPage: FC = () => {
     [verifyErrors, setVerifyErrors] = useState<Record<string, string>>({});
 
   const { login } = useAuth();
+  const emailCheck = useCheckAvailability(
+    checkEmailExistsAction,
+    "Este correo electrónico ya está registrado",
+  );
+  const phoneCheck = useCheckAvailability(
+    checkPhoneExistsAction,
+    "Este número de teléfono ya está registrado",
+  );
+  const docCheck = useCheckAvailability(
+    checkDocumentExistsAction,
+    "Este número de documento ya está registrado",
+  );
   const navigate = useNavigate(),
     location = useLocation(),
     from = (location.state as { from?: Location })?.from?.pathname ?? "/";
@@ -81,9 +96,19 @@ const AuthPage: FC = () => {
       const raw = { ...(data as Record<string, string>) };
       delete raw.confirmPassword;
       delete raw.remember_me;
+
+      if (raw.document_type === "J") {
+        delete raw.first_name;
+        delete raw.middle_name;
+        delete raw.surname;
+        delete raw.second_surname;
+      } else {
+        delete raw.company_name;
+      }
+
       const payload: Register = {
         ...raw,
-        phone: `+58${normalizeVenezuelanPhone(raw.phone)}`,
+        phone: `+58${formatPhone(raw.phone)}`,
         document_number: Number(raw.document_number),
         township_id: raw.township_id ? Number(raw.township_id) : undefined,
       } as Register;
@@ -183,7 +208,42 @@ const AuthPage: FC = () => {
     },
     register: {
       title: "Registrarse",
-      fields: registerFields,
+      fields: registerFields.map((field) => {
+        if (field.name === "email") {
+          return {
+            ...field,
+            onAsyncCheck: emailCheck.check,
+            asyncError: emailCheck.error,
+            isChecking: emailCheck.isChecking,
+            asyncAvailable: emailCheck.isAvailable,
+          };
+        }
+        if (field.name === "phone") {
+          return {
+            ...field,
+            onAsyncCheck: (val: string) => {
+              if (val.trim()) {
+                phoneCheck.check(`+58${formatPhone(val)}`);
+              } else {
+                phoneCheck.check("");
+              }
+            },
+            asyncError: phoneCheck.error,
+            isChecking: phoneCheck.isChecking,
+            asyncAvailable: phoneCheck.isAvailable,
+          };
+        }
+        if (field.name === "document_number") {
+          return {
+            ...field,
+            onAsyncCheck: docCheck.check,
+            asyncError: docCheck.error,
+            isChecking: docCheck.isChecking,
+            asyncAvailable: docCheck.isAvailable,
+          };
+        }
+        return field;
+      }),
       schema: registerSchema,
       submitLabel: "Crear cuenta",
       onSubmit: handleRegister,
