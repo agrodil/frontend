@@ -2,11 +2,11 @@ import { useState, type FC } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LuCircleCheck, LuCircleX, LuLoader } from "react-icons/lu";
-import Form from "../../../components/ui/Form";
-import Button from "../../../components/ui/Button";
+import Form from "@/components/ui/Form";
+import Button from "@/components/ui/Button";
 import { newPostFormFields } from "./NewPostFormFields";
-import { useAuth } from "../../../hooks/useAuth";
-import { uploadPost } from "../../../routes/actions/post.actions";
+import { useAuth } from "@/hooks/useAuth";
+import { uploadPost } from "@/routes/actions/post.actions";
 
 type SubmitState = "idle" | "loading" | "success" | "error";
 
@@ -26,10 +26,9 @@ const NewPostPage: FC = () => {
     const townshipId = Number(municipalityRaw);
 
     if (!municipalityRaw || !Number.isFinite(townshipId)) {
-      console.error(
-        "[NewPostPage] Falta el municipio del usuario en sesión.",
-        { user },
-      );
+      console.error("[NewPostPage] Falta el municipio del usuario en sesión.", {
+        user,
+      });
       return {
         formData: new FormData(),
         validationError:
@@ -37,8 +36,7 @@ const NewPostPage: FC = () => {
       };
     }
 
-    const breedName =
-      typeof data.breed === "string" ? data.breed.trim() : "";
+    const breedName = typeof data.breed === "string" ? data.breed.trim() : "";
     if (!breedName) {
       return {
         formData: new FormData(),

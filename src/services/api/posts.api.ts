@@ -1,49 +1,9 @@
+import type { PostDetail } from "@/interfaces/api/posts/PostDetail.interface";
 import { url } from "..";
 import { fetchWithAuth } from "./fetchWithAuth";
-
-export type PostDetail = {
-  livestock_post_id: string;
-  livestock_type_id: number;
-  livestock_post_name: string;
-  posted_by: string;
-  breed_id: number;
-  sector_id: number;
-  sale_type_id: number;
-  sex: string;
-  quantity: number;
-  avg_weight_kg: number | null;
-  price_per_kg: number | null;
-  price_per_unit: number | null;
-  township_id: number;
-  details: string | null;
-  created_at: string;
-  updated_at: string;
-  main_image_s3_key?: string | null;
-};
-
-export type PostsPost = {
-  livestock_post_id: string;
-  livestock_post_name: string;
-  posted_by: string;
-  sale_type_id: number;
-  avg_weight_kg: number | null;
-  price_per_kg: number | null;
-  price_per_unit: number | null;
-  main_image_url?: string | null;
-};
-
-export type PostsSearchResult = {
-  livestock_post_id: string;
-  livestock_post_name: string;
-  posted_by: string;
-  posted_by_name: string;
-  relevance: number;
-  sale_type_id: number;
-  avg_weight_kg: number | null;
-  price_per_kg: number | null;
-  price_per_unit: number | null;
-  main_image_url: string | null;
-};
+import type { PostsPost } from "@/interfaces/api/posts/PostsPost.interface";
+import type { UpdatePostPayload } from "@/interfaces/api/posts/UpdatePostPayload.interface";
+import type { PostsSearchResult } from "@/interfaces/api/posts/PostsSearchResult.interface";
 
 export type PostsPagination = {
   total: number;
@@ -51,21 +11,6 @@ export type PostsPagination = {
   offset: number;
   hasMore: boolean;
 };
-
-export type UpdatePostPayload = Partial<{
-  livestockTypeId: number;
-  livestockPostName: string;
-  breedName: string;
-  sectorId: number;
-  saleTypeId: number;
-  sex: string;
-  quantity: number;
-  avgWeightKg: number;
-  pricePerKg: number;
-  pricePerUnit: number;
-  townshipId: number;
-  details: string;
-}>;
 
 export const postApi = {
   uploadPost: async (
@@ -112,10 +57,9 @@ export const postApi = {
     }
 
     if (!json.data) {
-      console.error(
-        "[posts.api.uploadPost] Respuesta 2xx sin payload `data`",
-        { body: json },
-      );
+      console.error("[posts.api.uploadPost] Respuesta 2xx sin payload `data`", {
+        body: json,
+      });
       throw new Error("Respuesta inválida del servidor (data faltante)");
     }
 
@@ -171,6 +115,7 @@ export const postApi = {
 
   getPostById: async (id: string): Promise<PostDetail> => {
     const response = await fetch(`${url}/posts/${id}`);
+    console.log(response);
     if (!response.ok) throw new Error("Failed to fetch post");
     const json = await response.json();
     return json.data;

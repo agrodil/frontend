@@ -1,7 +1,7 @@
 import { authApi } from "../../services";
 import type { User } from "../../interfaces/auth/AuthProps";
-import type { Login } from "../../services/interfaces/login.interface";
-import type { Register } from "../../services/interfaces/register.interface";
+import type { Login } from "../../interfaces/api/auth/Login.interface";
+import type { Register } from "../../interfaces/api/auth/Register.interface";
 
 interface AuthResponse {
   user: User;
