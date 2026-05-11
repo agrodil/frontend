@@ -1,11 +1,8 @@
+import type { PostDetail } from "@/interfaces/api/posts/PostDetail.interface";
+import type { PostsPost } from "@/interfaces/api/posts/PostsPost.interface";
+import type { PostsSearchResult } from "@/interfaces/api/posts/PostsSearchResult.interface";
+import { postApi, type PostsPagination } from "@/services/api/posts.api";
 import type { LoaderFunctionArgs } from "react-router-dom";
-import {
-  postApi,
-  type PostsPost,
-  type PostsSearchResult,
-  type PostsPagination,
-  type PostDetail,
-} from "../../services/api/posts.api";
 
 export const POSTS_LIMIT = 20;
 
