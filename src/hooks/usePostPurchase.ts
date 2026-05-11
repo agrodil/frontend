@@ -59,9 +59,10 @@ export const usePostPurchase = () => {
           sellerName: previewOwner ?? "Vendedor",
         },
       });
-    } catch {
+    } catch (err) {
       setError("Error al enviar la solicitud. Intenta de nuevo.");
       setBuying(false);
+      console.log(err);
       throw new Error("Purchase request failed");
     }
   };
