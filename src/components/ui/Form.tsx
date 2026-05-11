@@ -72,6 +72,11 @@ const Form: FC<FormProps> = ({
 
   const handleSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (fields.some((f) => f.asyncError)) {
+      return; // Bloqueamos el submit si hay errores asíncronos pendientes
+    }
+
     const data = { ...values, ...files, ...multiFiles, ...booleans };
 
     if (schema) {
@@ -97,7 +102,8 @@ const Form: FC<FormProps> = ({
   const FieldError = ({ name }: { name: string }) => {
     const validationError = errors[name];
     const apiError = backendErrors[name];
-    const errorMessage = validationError || apiError;
+    const asyncErr = fields.find((f) => f.name === name)?.asyncError;
+    const errorMessage = validationError || apiError || asyncErr;
 
     return errorMessage ? (
       <p className="text-xs text-red-500 mt-0.5 pl-1">{errorMessage}</p>
@@ -135,7 +141,7 @@ const Form: FC<FormProps> = ({
                 {field.label && (
                   <label className="text-sm font-medium text-gray-700">
                     {field.label}
-                    {!field.required && (
+                    {field.optional && (
                       <span className="italic text-gray-500 font-thin">
                         {" "}
                         {"(opcional)"}
@@ -176,7 +182,7 @@ const Form: FC<FormProps> = ({
                 {field.label && (
                   <label className="text-sm font-medium text-gray-700">
                     {field.label}
-                    {!field.required && (
+                    {field.optional && (
                       <span className="italic text-gray-500 font-thin">
                         {" "}
                         {"(opcional)"}
@@ -202,37 +208,52 @@ const Form: FC<FormProps> = ({
 
           if (field.type === "image") {
             return (
-              <label
+              <div
                 key={field.name}
-                className={`flex flex-col items-center justify-center gap-2 w-full h-32 bg-gray-100 rounded-2xl border-2 border-dashed border-gray-300 transition-colors overflow-hidden ${field.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-primary/50"} ${field.className ?? ""}`}
+                className={`flex flex-col gap-1.5 ${field.className ?? ""}`}
               >
-                {previews[field.name] ? (
-                  <img
-                    src={previews[field.name]}
-                    alt="preview"
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <>
-                    <LuImagePlus size={24} className="text-gray-400" />
-                    <span className="text-xs text-gray-400">
-                      {field.placeholder ?? "Subir imagen"}
-                    </span>
-                  </>
+                {field.label && (
+                  <label className="text-sm font-medium text-gray-700">
+                    {field.label}
+                    {field.optional && (
+                      <span className="italic text-gray-500 font-thin">
+                        {" "}
+                        {"(opcional)"}
+                      </span>
+                    )}
+                  </label>
                 )}
-                <input
-                  type="file"
-                  name={field.name}
-                  accept={field.accept ?? "image/*"}
-                  required={field.required}
-                  disabled={field.disabled}
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) handleFile(field.name, file);
-                  }}
-                  className="hidden"
-                />
-              </label>
+                <label
+                  className={`flex flex-col items-center justify-center gap-2 w-full h-32 bg-gray-100 rounded-2xl border-2 border-dashed border-gray-300 transition-colors overflow-hidden ${field.disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer hover:border-primary/50"}`}
+                >
+                  {previews[field.name] ? (
+                    <img
+                      src={previews[field.name]}
+                      alt="preview"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <>
+                      <LuImagePlus size={24} className="text-gray-400" />
+                      <span className="text-xs text-gray-400">
+                        {field.placeholder ?? "Subir imagen"}
+                      </span>
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    name={field.name}
+                    accept={field.accept ?? "image/*"}
+                    required={field.required}
+                    disabled={field.disabled}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFile(field.name, file);
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              </div>
             );
           }
 
@@ -252,7 +273,7 @@ const Form: FC<FormProps> = ({
                     <span className="ml-1 text-gray-400 font-normal text-xs">
                       ({selected.length}/{maxFiles})
                     </span>
-                    {!field.required && (
+                    {field.optional && (
                       <span className="italic text-gray-500 font-thin">
                         {" "}
                         (opcional)
@@ -327,31 +348,44 @@ const Form: FC<FormProps> = ({
             return (
               <div
                 key={field.name}
-                className={`relative ${field.className ?? ""}`}
+                className={`flex flex-col gap-1.5 ${field.className ?? ""}`}
               >
-                <input
-                  type={visible[field.name] ? "text" : "password"}
-                  name={field.name}
-                  placeholder={field.placeholder}
-                  required={field.required}
-                  disabled={field.disabled}
-                  value={values[field.name]}
-                  onChange={(e) => handleChange(field.name, e.target.value)}
-                  className={`${baseInput} pr-10`}
-                />
-                {!field.disabled && (
-                  <button
-                    type="button"
-                    onClick={() => toggleVisible(field.name)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors bg-transparent border-0 cursor-pointer p-0"
-                  >
-                    {visible[field.name] ? (
-                      <LuEyeOff size={15} />
-                    ) : (
-                      <LuEye size={15} />
+                {field.label && (
+                  <label className="text-sm font-medium text-gray-700">
+                    {field.label}
+                    {field.optional && (
+                      <span className="italic text-gray-500 font-thin">
+                        {" "}
+                        {"(opcional)"}
+                      </span>
                     )}
-                  </button>
+                  </label>
                 )}
+                <div className="relative">
+                  <input
+                    type={visible[field.name] ? "text" : "password"}
+                    name={field.name}
+                    placeholder={field.placeholder}
+                    required={field.required}
+                    disabled={field.disabled}
+                    value={values[field.name]}
+                    onChange={(e) => handleChange(field.name, e.target.value)}
+                    className={`${baseInput} pr-10`}
+                  />
+                  {!field.disabled && (
+                    <button
+                      type="button"
+                      onClick={() => toggleVisible(field.name)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors bg-transparent border-0 cursor-pointer p-0"
+                    >
+                      {visible[field.name] ? (
+                        <LuEyeOff size={15} />
+                      ) : (
+                        <LuEye size={15} />
+                      )}
+                    </button>
+                  )}
+                </div>
                 <FieldError name={field.name} />
               </div>
             );
@@ -390,7 +424,7 @@ const Form: FC<FormProps> = ({
               {field.label && (
                 <label className="text-sm font-medium text-gray-700">
                   {field.label}
-                  {!field.required && (
+                  {field.optional && (
                     <span className="italic text-gray-500 font-thin">
                       {" "}
                       {"(opcional)"}
@@ -398,15 +432,32 @@ const Form: FC<FormProps> = ({
                   )}
                 </label>
               )}
-              <input
-                type={field.type}
-                name={field.name}
-                placeholder={field.placeholder}
-                required={field.required}
-                value={values[field.name]}
-                onChange={(e) => handleChange(field.name, e.target.value)}
-                className={`${baseInput} ${field.className ?? ""}`}
-              />
+              <div className="relative">
+                <input
+                  type={field.type}
+                  name={field.name}
+                  placeholder={field.placeholder}
+                  required={field.required}
+                  value={values[field.name]}
+                  onChange={(e) => {
+                    handleChange(field.name, e.target.value);
+                    if (field.onAsyncCheck) field.onAsyncCheck(e.target.value);
+                  }}
+                  className={`${baseInput} ${field.className ?? ""}`}
+                />
+                {field.isChecking && (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-primary">
+                    Verificando...
+                  </span>
+                )}
+                {field.asyncAvailable &&
+                  !field.isChecking &&
+                  values[field.name]?.trim() && (
+                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-green-500">
+                      Disponible
+                    </span>
+                  )}
+              </div>
               <FieldError name={field.name} />
             </div>
           );
@@ -416,7 +467,11 @@ const Form: FC<FormProps> = ({
       <Button
         label={isLoading ? "Cargando..." : submitLabel}
         type="submit"
-        disabled={isLoading}
+        disabled={
+          isLoading ||
+          fields.some((f) => f.asyncError || f.isChecking) ||
+          Object.values(errors).some((err) => !!err)
+        }
         className="mt-2 w-full"
       />
 

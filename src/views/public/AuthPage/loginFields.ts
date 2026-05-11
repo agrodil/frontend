@@ -1,21 +1,23 @@
-import type { FormField } from "../../../interfaces/components/FormProps";
+import type { FormField } from "@/interfaces/components/FormProps";
 
 export const loginFields: FormField[] = [
   {
     name: "email",
     type: "email",
-    placeholder: "Correo electrónico",
+    label: "Correo Electrónico",
+    placeholder: "juan@email.com",
     required: true,
   },
   {
     name: "password",
     type: "password",
-    placeholder: "Contraseña",
+    label: "Contraseña",
+    placeholder: "••••••••",
     required: true,
   },
   {
     name: "remember_me",
     type: "checkbox",
-    checkboxLabel: "Recordarme",
+    label: "Recordarme",
   },
 ];

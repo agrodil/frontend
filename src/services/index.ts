@@ -3,3 +3,4 @@ export const url =
 export { authApi } from "./api/auth.api";
 export { meApi } from "./api/me.api";
 export { landingApi } from "./api/landing.api";
+export { usersApi } from "./api/users.api";

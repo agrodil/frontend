@@ -24,6 +24,7 @@ export interface FormField {
   placeholder?: string;
   label?: string;
   required?: boolean;
+  optional?: boolean;
   options?: SelectOption[]; // for select fields
   accept?: string; // for image/media fields (e.g. "image/*,video/*")
   maxFiles?: number; // for media fields
@@ -36,6 +37,10 @@ export interface FormField {
     fieldName: string;
     value: string | number;
   };
+  onAsyncCheck?: (value: string) => void;
+  asyncError?: string | null;
+  isChecking?: boolean;
+  asyncAvailable?: boolean | null;
 }
 
 export interface FormProps {

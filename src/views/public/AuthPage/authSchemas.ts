@@ -1,13 +1,5 @@
+import { formatPhone } from "@/utils/formatPhone";
 import { z } from "zod";
-
-export function normalizeVenezuelanPhone(raw: string): string {
-  let phone = raw.replace(/[\s\-]/g, "");
-  if (phone.startsWith("+58")) phone = phone.slice(3);
-  else if (phone.startsWith("0058")) phone = phone.slice(4);
-  else if (phone.startsWith("58") && phone.length === 12) phone = phone.slice(2);
-  if (phone.startsWith("0")) phone = phone.slice(1);
-  return phone;
-}
 
 export const loginSchema = z.object({
   email: z
@@ -21,14 +13,29 @@ export const registerSchema = z
   .object({
     first_name: z
       .string()
-      .min(1, "El nombre es requerido")
-      .max(50, "Máximo 50 caracteres"),
-    middle_name: z.string().optional(),
+      .max(50, "Máximo 50 caracteres")
+      .optional()
+      .or(z.literal("")),
+    middle_name: z
+      .string()
+      .max(50, "Máximo 50 caracteres")
+      .optional()
+      .or(z.literal("")),
     surname: z
       .string()
-      .min(1, "El apellido es requerido")
-      .max(50, "Máximo 50 caracteres"),
-    second_surname: z.string().optional(),
+      .max(50, "Máximo 50 caracteres")
+      .optional()
+      .or(z.literal("")),
+    second_surname: z
+      .string()
+      .max(50, "Máximo 50 caracteres")
+      .optional()
+      .or(z.literal("")),
+    company_name: z
+      .string()
+      .max(50, "Máximo 50 caracteres")
+      .optional()
+      .or(z.literal("")),
     document_type: z.string().min(1, "Selecciona el tipo de documento"),
     document_number: z
       .string()
@@ -39,7 +46,7 @@ export const registerSchema = z
       .string()
       .min(1, "El teléfono es requerido")
       .refine(
-        (val) => /^\d{10}$/.test(normalizeVenezuelanPhone(val)),
+        (val) => /^\d{10}$/.test(formatPhone(val)),
         "Ingresa 10 dígitos sin código de país (ej: 4129968751)",
       ),
     email: z
@@ -51,7 +58,37 @@ export const registerSchema = z
       .min(8, "La contraseña debe tener al menos 8 caracteres"),
     confirmPassword: z.string().min(1, "Confirma la contraseña"),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Las contraseñas no coinciden",
-    path: ["confirmPassword"],
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Las contraseñas no coinciden",
+        path: ["confirmPassword"],
+      });
+    }
+
+    if (data.document_type === "J") {
+      if (!data.company_name || data.company_name.trim() === "") {
+        ctx.addIssue({
+          code: "custom",
+          message: "El nombre de la empresa es requerido",
+          path: ["company_name"],
+        });
+      }
+    } else if (data.document_type === "V") {
+      if (!data.first_name || data.first_name.trim() === "") {
+        ctx.addIssue({
+          code: "custom",
+          message: "El nombre es requerido",
+          path: ["first_name"],
+        });
+      }
+      if (!data.surname || data.surname.trim() === "") {
+        ctx.addIssue({
+          code: "custom",
+          message: "El apellido es requerido",
+          path: ["surname"],
+        });
+      }
+    }
   });

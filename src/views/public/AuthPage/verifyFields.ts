@@ -4,7 +4,8 @@ export const verifyFields: FormField[] = [
   {
     name: "code",
     type: "text",
-    placeholder: "Código de 6 dígitos",
+    label: "Código de Verificación",
+    placeholder: "123456",
     required: true,
   },
 ];
