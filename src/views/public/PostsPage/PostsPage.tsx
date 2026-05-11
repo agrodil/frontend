@@ -1,14 +1,16 @@
 import { useState, useEffect, type FC } from "react";
 import { useLoaderData, useNavigate } from "react-router-dom";
+
 import { motion } from "framer-motion";
-import SearchInput from "../../../components/ui/SearchInput";
-import CardPost from "../../../components/ui/CardPost";
-import PostDetailModal from "../../../components/ui/PostDetailModal/PostDetailModal";
-import type { PostsPageLoaderData } from "../../../routes/loaders/posts.loader";
-import type {
-  PostsPost,
-  PostsSearchResult,
-} from "../../../services/api/posts.api";
+
+import SearchInput from "@/components/ui/SearchInput";
+import CardPost from "@/components/ui/CardPost";
+import PostDetailModal from "@/components/ui/PostDetailModal/PostDetailModal";
+
+import type { PostsPageLoaderData } from "@/routes/loaders/posts.loader";
+
+import type { PostsPost } from "@/interfaces/api/posts/PostsPost.interface";
+import type { PostsSearchResult } from "@/interfaces/api/posts/PostsSearchResult.interface";
 
 const isSearchResult = (
   item: PostsPost | PostsSearchResult,

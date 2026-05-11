@@ -1,8 +1,7 @@
-import {
-  postApi,
-  type PostDetail,
-  type UpdatePostPayload,
-} from "../../services/api/posts.api";
+import { postApi } from "@/services/api/posts.api";
+
+import type { PostDetail } from "@/interfaces/api/posts/PostDetail.interface";
+import type { UpdatePostPayload } from "@/interfaces/api/posts/UpdatePostPayload.interface";
 
 export const uploadPost = async (
   data: FormData,
