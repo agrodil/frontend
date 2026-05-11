@@ -15,10 +15,37 @@ const NewPostPage: FC = () => {
   const navigate = useNavigate();
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string>(
+    "No se pudo crear la publicación. Intenta de nuevo.",
+  );
 
   const buildFormData = (
     data: Record<string, string | File | File[] | boolean>,
-  ): FormData => {
+  ): { formData: FormData; validationError: string | null } => {
+    const municipalityRaw = user?.municipality;
+    const townshipId = Number(municipalityRaw);
+
+    if (!municipalityRaw || !Number.isFinite(townshipId)) {
+      console.error(
+        "[NewPostPage] Falta el municipio del usuario en sesión.",
+        { user },
+      );
+      return {
+        formData: new FormData(),
+        validationError:
+          "Tu perfil no tiene un municipio asignado. Actualiza tu perfil antes de publicar.",
+      };
+    }
+
+    const breedName =
+      typeof data.breed === "string" ? data.breed.trim() : "";
+    if (!breedName) {
+      return {
+        formData: new FormData(),
+        validationError: "Debes indicar la raza predominante del lote.",
+      };
+    }
+
     const formData = new FormData();
 
     const mediaFiles = Array.isArray(data.media) ? (data.media as File[]) : [];
@@ -41,17 +68,18 @@ const NewPostPage: FC = () => {
       sectorId: Number(data.sectorId),
       saleTypeId: Number(data.saleTypeId),
       sex: data.sex,
-      breedId: Number(data.breed),
+      breedName,
       quantity: Number(data.quantity),
-      townshipId: Number(user!.municipality),
+      townshipId,
       ...(data.avgWeightKg ? { avgWeightKg: Number(data.avgWeightKg) } : {}),
       ...(data.pricePerKg ? { pricePerKg: Number(data.pricePerKg) } : {}),
       ...(data.pricePerUnit ? { pricePerUnit: Number(data.pricePerUnit) } : {}),
       ...(data.details ? { details: data.details } : {}),
     };
 
+    console.debug("[NewPostPage] Payload generado para /posts", post);
     formData.append("post", JSON.stringify(post));
-    return formData;
+    return { formData, validationError: null };
   };
 
   const submit = async (formData: FormData) => {
@@ -59,7 +87,11 @@ const NewPostPage: FC = () => {
     try {
       await uploadPost(formData);
       setSubmitState("success");
-    } catch {
+    } catch (error) {
+      const detail =
+        error instanceof Error ? error.message : "Error desconocido";
+      console.error("[NewPostPage] Falló uploadPost:", error);
+      setErrorMessage(`No se pudo crear la publicación. ${detail}`);
       setSubmitState("error");
     }
   };
@@ -67,13 +99,23 @@ const NewPostPage: FC = () => {
   const handleSubmit = (
     data: Record<string, string | File | File[] | boolean>,
   ) => {
-    const formData = buildFormData(data);
+    const { formData, validationError } = buildFormData(data);
+
+    if (validationError) {
+      console.warn("[NewPostPage] Validación previa falló:", validationError);
+      setErrorMessage(validationError);
+      setPendingFormData(null);
+      setSubmitState("error");
+      return;
+    }
+
     setPendingFormData(formData);
     submit(formData);
   };
 
   const handleRetry = () => {
     if (pendingFormData) submit(pendingFormData);
+    else setSubmitState("idle");
   };
 
   return (
@@ -142,16 +184,25 @@ const NewPostPage: FC = () => {
                   <h2 className="text-xl font-bold text-gray-800">
                     Error al publicar
                   </h2>
-                  <p className="text-gray-500 text-sm">
-                    No se pudo crear la publicación. Intenta de nuevo.
+                  <p className="text-gray-500 text-sm wrap-break-word">
+                    {errorMessage}
                   </p>
                   <div className="flex gap-3 w-full mt-2">
-                    <Button
-                      label="Reintentar"
-                      variant="primary"
-                      className="flex-1"
-                      onClick={handleRetry}
-                    />
+                    {pendingFormData ? (
+                      <Button
+                        label="Reintentar"
+                        variant="primary"
+                        className="flex-1"
+                        onClick={handleRetry}
+                      />
+                    ) : (
+                      <Button
+                        label="Cerrar"
+                        variant="primary"
+                        className="flex-1"
+                        onClick={() => setSubmitState("idle")}
+                      />
+                    )}
                     <Button
                       label="Ir al inicio"
                       variant="secondary"
