@@ -1,17 +1,11 @@
-import { useState, type FC } from "react";
+import { useState, type FC, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { LuChevronLeft, LuChevronRight, LuPlay } from "react-icons/lu";
-import type { PostFile } from "../../services/api/aws.api";
 
-interface MediaCarouselProps {
-  items: PostFile[];
-  fallbackImg?: string | null;
-  alt: string;
-  className?: string;
-}
+import type { MediaCarouselProps } from "@/interfaces/components/MediaCarouselProps.interface";
 
 const isVideo = (mime: string | undefined, name?: string) =>
-  mime?.startsWith("video/") ||
-  /\.(mp4|webm|mov|m4v|ogg)$/i.test(name ?? "");
+  mime?.startsWith("video/") || /\.(mp4|webm|mov|m4v|ogg)$/i.test(name ?? "");
 
 const MediaCarousel: FC<MediaCarouselProps> = ({
   items,
@@ -20,6 +14,9 @@ const MediaCarousel: FC<MediaCarouselProps> = ({
   className,
 }) => {
   const [index, setIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const preloadedRef = useRef<Set<string>>(new Set());
+  const isVideoPlayingRef = useRef(false);
 
   const sorted = [...items].sort((a, b) => {
     if (a.is_main_file !== b.is_main_file) return a.is_main_file ? -1 : 1;
@@ -29,17 +26,77 @@ const MediaCarousel: FC<MediaCarouselProps> = ({
   const hasItems = sorted.length > 0;
   const safeIndex = Math.min(index, Math.max(sorted.length - 1, 0));
   const current = hasItems ? sorted[safeIndex] : null;
+  const fallbackIsVideo = fallbackImg
+    ? isVideo(undefined, fallbackImg.split("?")[0])
+    : false;
 
-  const next = () => setIndex((i) => (i + 1) % sorted.length);
-  const prev = () =>
+  // Precargar imágenes siguiente y anterior
+  useEffect(() => {
+    if (!hasItems) return;
+
+    const nextIndex = (safeIndex + 1) % sorted.length;
+    const prevIndex = (safeIndex - 1 + sorted.length) % sorted.length;
+
+    [nextIndex, prevIndex].forEach((idx) => {
+      const item = sorted[idx];
+
+      if (!item) return;
+
+      const isItemVideo = isVideo(item.mime_type, item.app_file_name);
+
+      if (
+        !isItemVideo &&
+        item.url &&
+        !preloadedRef.current.has(item.app_file_id)
+      ) {
+        const img = new Image();
+        img.src = item.url;
+        preloadedRef.current.add(item.app_file_id);
+      }
+    });
+  }, [safeIndex, sorted, hasItems]);
+
+  // Auto slide cada 4 segundos
+  useEffect(() => {
+    if (!hasItems || sorted.length <= 1) return;
+
+    const interval = setInterval(() => {
+      // No avanzar si el video está en reproducción
+      if (!isVideoPlayingRef.current) {
+        setDirection(1);
+        setIndex((i) => (i + 1) % sorted.length);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [hasItems, sorted.length]);
+
+  const next = () => {
+    setDirection(1);
+    setIndex((i) => (i + 1) % sorted.length);
+  };
+  const prev = () => {
+    setDirection(-1);
     setIndex((i) => (i - 1 + sorted.length) % sorted.length);
+  };
+
+  const variants = {
+    enter: (dir: number) => ({ x: dir * 100, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (dir: number) => ({ x: dir * -100, opacity: 0 }),
+  };
 
   if (!hasItems) {
     return (
-      <div
-        className={`relative w-full h-full bg-gray-100 ${className ?? ""}`}
-      >
-        {fallbackImg ? (
+      <div className={`relative w-full h-full bg-gray-100 ${className ?? ""}`}>
+        {fallbackImg && fallbackIsVideo ? (
+          <video
+            src={fallbackImg}
+            controls
+            playsInline
+            className="absolute inset-0 w-full h-full object-contain bg-black"
+          />
+        ) : fallbackImg ? (
           <img
             src={fallbackImg}
             alt={alt}
@@ -52,28 +109,56 @@ const MediaCarousel: FC<MediaCarouselProps> = ({
     );
   }
 
-  const showVideo = current && isVideo(current.mime_type, current.app_file_name);
+  const showVideo =
+    current && isVideo(current.mime_type, current.app_file_name);
 
   return (
     <div
       className={`relative w-full h-full bg-black/5 ${className ?? ""}`}
+      style={{ contain: "layout style paint" }}
     >
-      {current && showVideo ? (
-        <video
-          key={current.app_file_id}
-          src={current.url}
-          controls
-          playsInline
-          className="absolute inset-0 w-full h-full object-contain bg-black"
-        />
-      ) : current ? (
-        <img
-          key={current.app_file_id}
-          src={current.url}
-          alt={alt}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-      ) : null}
+      <AnimatePresence mode="wait" custom={direction}>
+        {current && showVideo ? (
+          <motion.video
+            key={current.app_file_id}
+            src={current.url}
+            controls
+            playsInline
+            autoPlay
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            onPlay={() => {
+              isVideoPlayingRef.current = true;
+            }}
+            onPause={() => {
+              isVideoPlayingRef.current = false;
+            }}
+            onEnded={() => {
+              isVideoPlayingRef.current = false;
+            }}
+            className="absolute inset-0 w-full h-full object-contain bg-black"
+          />
+        ) : current ? (
+          <motion.img
+            key={current.app_file_id}
+            src={current.url}
+            alt={alt}
+            loading="eager"
+            decoding="async"
+            custom={direction}
+            variants={variants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        ) : null}
+      </AnimatePresence>
 
       {sorted.length > 1 && (
         <>

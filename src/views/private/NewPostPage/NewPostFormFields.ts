@@ -1,6 +1,6 @@
-import { sectors } from "../../../constants/sectors";
-import { sexes } from "../../../constants/sex";
-import type { FormField } from "../../../interfaces/components/FormProps";
+import { sectors } from "@/constants/sectors";
+import { SEX_LABEL } from "@/constants/sex";
+import type { FormField } from "@/interfaces/components/FormProps";
 
 export const newPostFormFields: FormField[] = [
   {
@@ -35,7 +35,7 @@ export const newPostFormFields: FormField[] = [
     placeholder: "Seleccione el sexo del lote",
     type: "select",
     required: true,
-    options: sexes,
+    options: SEX_LABEL.map((sex, index) => ({ value: index, label: sex.label })),
   },
   {
     name: "breed",

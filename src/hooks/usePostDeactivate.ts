@@ -1,0 +1,33 @@
+import { useState } from "react";
+import { deactivatePost } from "@/routes/actions/post.actions";
+
+export const usePostDeactivate = () => {
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [isDeactivating, setIsDeactivating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleDeactivate = async (livestockPostId: string) => {
+    setIsDeactivating(true);
+    setError(null);
+    try {
+      await deactivatePost(livestockPostId);
+      return true;
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : "No se pudo desactivar el post";
+      setError(msg);
+      return false;
+    } finally {
+      setIsDeactivating(false);
+    }
+  };
+
+  return {
+    confirmDeactivate,
+    setConfirmDeactivate,
+    isDeactivating,
+    error,
+    handleDeactivate,
+    setError,
+  };
+};

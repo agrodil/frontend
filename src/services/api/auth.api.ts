@@ -1,6 +1,6 @@
 import { url } from "..";
-import type { Login } from "../interfaces/login.interface";
-import type { Register } from "../interfaces/register.interface";
+import type { Login } from "../../interfaces/api/auth/Login.interface";
+import type { Register } from "../../interfaces/api/auth/Register.interface";
 
 export class AuthError extends Error {
   statusCode: number;

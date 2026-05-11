@@ -3,7 +3,7 @@ import { useLoaderData, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import SearchInput from "../../../components/ui/SearchInput";
 import CardPost from "../../../components/ui/CardPost";
-import PostDetailModal from "../../../components/ui/PostDetailModal";
+import PostDetailModal from "../../../components/ui/PostDetailModal/PostDetailModal";
 import type { PostsPageLoaderData } from "../../../routes/loaders/posts.loader";
 import type {
   PostsPost,
@@ -71,7 +71,9 @@ const PostsPage: FC = () => {
     owner: isSearchResult(item) ? item.posted_by_name : item.posted_by,
   }));
 
-  const selectedCard = postId ? cards.find((c) => c.id === postId) ?? null : null;
+  const selectedCard = postId
+    ? (cards.find((c) => c.id === postId) ?? null)
+    : null;
 
   return (
     <main className="w-[90vw] mx-auto mt-8 mb-16">

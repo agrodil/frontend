@@ -3,12 +3,15 @@ import { useLoaderData, useNavigate } from "react-router-dom";
 
 import { motion } from "framer-motion";
 
-import SearchInput from "../../components/ui/SearchInput";
-import PostsCarousel from "../../components/ui/PostsCarousel";
-import PostDetailModal from "../../components/ui/PostDetailModal";
-import { postApi, type PostDetail } from "../../services/api/posts.api";
+import SearchInput from "@/components/ui/SearchInput";
+import PostsCarousel from "@/components/ui/PostsCarousel";
+import PostDetailModal from "@/components/ui/PostDetailModal/PostDetailModal";
 
-import type { LandingPageLoaderData } from "../../routes/loaders/landing.loader";
+import type { PostDetail } from "@/interfaces/api/posts/PostDetail.interface";
+
+import type { LandingPageLoaderData } from "@/routes/loaders/landing.loader";
+
+import { postApi } from "@/services/api/posts.api";
 
 const LandingPage: FC = () => {
   const [search, setSearch] = useState("");
@@ -123,11 +126,12 @@ const LandingPage: FC = () => {
                         ...p,
                         title: updated.livestock_post_name,
                         saleTypeId: updated.sale_type_id,
-                        price: Number(
-                          updated.sale_type_id === 1
-                            ? updated.price_per_kg
-                            : updated.price_per_unit,
-                        ) || 0,
+                        price:
+                          Number(
+                            updated.sale_type_id === 1
+                              ? updated.price_per_kg
+                              : updated.price_per_unit,
+                          ) || 0,
                       }
                     : p,
                 ),

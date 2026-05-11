@@ -17,11 +17,15 @@ import { useAuth } from "../../../hooks/useAuth";
 import { loginFields } from "./loginFields";
 import { registerFields } from "./registerFields";
 import { verifyFields } from "./verifyFields";
-import { loginSchema, registerSchema, normalizeVenezuelanPhone } from "./authSchemas";
+import {
+  loginSchema,
+  registerSchema,
+  normalizeVenezuelanPhone,
+} from "./authSchemas";
 import { AuthError } from "../../../services/api/auth.api";
 
-import type { Login } from "../../../services/interfaces/login.interface";
-import type { Register } from "../../../services/interfaces/register.interface";
+import type { Login } from "../../../interfaces/api/auth/Login.interface";
+import type { Register } from "../../../interfaces/api/auth/Register.interface";
 
 type AuthView = "login" | "register" | "verify";
 
