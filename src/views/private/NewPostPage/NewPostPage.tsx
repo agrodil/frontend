@@ -111,11 +111,6 @@ const NewPostPage: FC = () => {
     submit(formData);
   };
 
-  const handleRetry = () => {
-    if (pendingFormData) submit(pendingFormData);
-    else setSubmitState("idle");
-  };
-
   return (
     <section className="flex flex-col min-h-screen w-[90vw] mx-auto">
       <div className="mt-8 lg:mt-0 p-4 text-center md:text-start text-lg md:text-2xl font-bold mb-4 border border-gray-200 shadow-sm rounded-2xl h-fit w-full">
