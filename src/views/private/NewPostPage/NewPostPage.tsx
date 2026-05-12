@@ -123,7 +123,7 @@ const NewPostPage: FC = () => {
         <span className="text-primary">formulario de venta.</span>
       </div>
 
-      <div className="p-4 border border-gray-200 shadow-sm rounded-2xl h-fit w-full lg:max-h-[65vh] overflow-y-auto">
+      <div className="p-4 border border-gray-200 shadow-sm rounded-2xl h-fit w-full lg:max-h-[75vh] overflow-y-auto">
         <Form
           onSubmit={handleSubmit}
           fields={newPostFormFields}
@@ -191,7 +191,9 @@ const NewPostPage: FC = () => {
                         label="Reintentar"
                         variant="primary"
                         className="flex-1"
-                        onClick={handleRetry}
+                        onClick={() => {
+                          setSubmitState("idle");
+                        }}
                       />
                     ) : (
                       <Button
