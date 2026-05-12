@@ -35,7 +35,7 @@ export const newPostFormFields: FormField[] = [
     placeholder: "Seleccione el sexo del lote",
     type: "select",
     required: true,
-    options: SEX_LABEL.map((sex, index) => ({ value: index, label: sex.label })),
+    options: SEX_LABEL,
   },
   {
     name: "breed",
