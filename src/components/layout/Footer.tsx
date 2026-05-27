@@ -8,7 +8,7 @@ import {
   LuFacebook,
   LuMessageCircle,
 } from "react-icons/lu";
-import type { FooterProps } from "../../interfaces/components/FooterProps";
+import type { FooterProps } from "../../interfaces/components/ui/FooterProps";
 
 const DEFAULT_SECTIONS = [
   {

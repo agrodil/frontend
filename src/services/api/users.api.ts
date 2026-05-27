@@ -1,4 +1,5 @@
 import { url } from "..";
+import { fetchWithAuth } from "./fetchWithAuth";
 
 interface ApiResponse<T> {
   success: boolean;
@@ -53,5 +54,15 @@ export const usersApi = {
     const json: ApiResponse<{ document: string; exists: boolean }> =
       await response.json();
     return json.data;
+  },
+  update: async (
+    data: Record<string, string | File | File[] | boolean>,
+  ): Promise<ApiResponse<unknown>> => {
+    const response = await fetchWithAuth("/users/me", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) throw new Error("Error updating user profile");
+    return await response.json();
   },
 };

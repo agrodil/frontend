@@ -1,6 +1,6 @@
 import { useState, type FC, type KeyboardEvent } from "react";
 import { motion } from "framer-motion";
-import type { SearchInputProps } from "../../interfaces/components/SearchInputProps";
+import type { SearchInputProps } from "@/interfaces/components/ui/SearchInputProps";
 import { LuSearch } from "react-icons/lu";
 
 const SHADOW_ACTIVE = "0 8px 24px rgba(0,0,0,0.12)";

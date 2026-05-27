@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, type FC } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import CardPost from "./CardPost";
-import type { CardPostProps } from "../../interfaces/components/CardPostProps";
+import type { CardPostProps } from "../../interfaces/components/ui/CardPostProps";
 
 interface PostsCarouselProps {
   posts: CardPostProps[];

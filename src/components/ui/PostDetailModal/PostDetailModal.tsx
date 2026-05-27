@@ -15,7 +15,7 @@ import MediaCarousel from "../MediaCarousel";
 import { PostDetailContent } from "./PostDetailContent";
 import { PostDetailActions } from "./PostDetailActions";
 
-import type { PostDetailModalProps } from "@/interfaces/components/PostDetailModalProps";
+import type { PostDetailModalProps } from "@/interfaces/components/layout/PostDetailModalProps";
 
 import { buildEditFields } from "./buildEditFields";
 

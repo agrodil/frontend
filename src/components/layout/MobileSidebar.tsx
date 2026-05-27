@@ -2,7 +2,7 @@ import type { FC } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LuX } from "react-icons/lu";
-import type { NavItem } from "../../interfaces/components/NavbarProps";
+import type { NavItem } from "../../interfaces/components/ui/NavbarProps";
 import Button from "../ui/Button";
 import UserMenu from "../ui/UserMenu";
 import { useAuth } from "../../hooks/useAuth";

@@ -1,5 +1,5 @@
 import { landingApi, type LandingPost } from "../../services/api/landing.api";
-import type { CardPostProps } from "../../interfaces/components/CardPostProps";
+import type { CardPostProps } from "../../interfaces/components/ui/CardPostProps";
 
 export type LandingPageLoaderData = {
   posts: CardPostProps[];

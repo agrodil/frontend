@@ -10,7 +10,7 @@ import {
 
 import Button from "./Button";
 
-import type { FormProps } from "../../interfaces/components/FormProps";
+import type { FormProps } from "../../interfaces/components/ui/FormProps";
 
 const baseInput =
   "w-full bg-gray-100 rounded-full px-4 py-2.5 text-sm outline-none border border-gray-200 focus:border-primary/40 transition-colors placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed";

@@ -1,6 +1,6 @@
 import { sectors } from "@/constants/sectors";
 import { SEX_LABEL } from "@/constants/sex";
-import type { FormField } from "@/interfaces/components/FormProps";
+import type { FormField } from "@/interfaces/components/ui/FormProps";
 
 export const newPostFormFields: FormField[] = [
   {

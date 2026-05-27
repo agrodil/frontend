@@ -1,7 +1,7 @@
 import type { FC } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import type { NavbarProps } from "../../interfaces/components/NavbarProps";
+import type { NavbarProps } from "../../interfaces/components/ui/NavbarProps";
 import Button from "../ui/Button";
 import UserMenu from "../ui/UserMenu";
 import { useAuth } from "../../hooks/useAuth";

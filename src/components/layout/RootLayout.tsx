@@ -12,7 +12,7 @@ import MobileSidebar from "./MobileSidebar";
 import Footer from "./Footer";
 import Loader from "./Loader";
 import SearchInput from "../ui/SearchInput";
-import type { NavItem } from "../../interfaces/components/NavbarProps";
+import type { NavItem } from "../../interfaces/components/ui/NavbarProps";
 import { useUnreadCount } from "../../hooks/useUnreadCount";
 
 const RootLayout: FC = () => {

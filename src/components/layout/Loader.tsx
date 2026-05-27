@@ -1,6 +1,6 @@
 import type { FC } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { LoaderProps } from "../../interfaces/components/LoaderProps";
+import type { LoaderProps } from "@/interfaces/components/layout/LoaderProps";
 
 const Loader: FC<LoaderProps> = ({ visible, text }) => (
   <AnimatePresence>

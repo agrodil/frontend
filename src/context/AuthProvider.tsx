@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, type ReactNode } from "react";
 import type { AuthContextType, User } from "../interfaces/auth/AuthProps";
 import { AuthContext } from "./AuthContext";
-import { authApi } from "../services";
+import { authApi, usersApi } from "../services";
 import { mapUser } from "../utils/mapUser";
 import { notificationsSocket } from "../services/api/NotificationsSocket";
 
@@ -87,9 +87,17 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     setUser(null);
   };
 
-  const updateUser = (data: Partial<User>) => {
+  const updateUser = async (data: Partial<User>) => {
     if (!user) return;
-    setUser({ ...user, ...data });
+    try {
+      await usersApi.update(
+        data as Record<string, string | File | File[] | boolean>,
+      );
+      setUser({ ...user, ...data });
+    } catch (error) {
+      console.error("Error updating user:", error);
+      throw error;
+    }
   };
 
   const checkSession = useCallback(async (): Promise<boolean> => {

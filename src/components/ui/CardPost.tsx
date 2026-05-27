@@ -1,7 +1,7 @@
 import { useState, type FC } from "react";
 import { motion } from "framer-motion";
 import { LuPlay } from "react-icons/lu";
-import type { CardPostProps } from "../../interfaces/components/CardPostProps";
+import type { CardPostProps } from "../../interfaces/components/ui/CardPostProps";
 
 const SHADOW_DEFAULT = "0 4px 6px rgba(0,0,0,0.10)";
 const SHADOW_HOVER = "0 10px 20px rgba(0,0,0,0.18)";
@@ -18,7 +18,14 @@ const isVideoUrl = (src: string) => {
   return /\.(mp4|webm|mov|m4v|ogg)$/i.test(path);
 };
 
-const CardPost: FC<CardPostProps> = ({ img, title, saleTypeId, price, owner, onClick }) => {
+const CardPost: FC<CardPostProps> = ({
+  img,
+  title,
+  saleTypeId,
+  price,
+  owner,
+  onClick,
+}) => {
   const [hovered, setHovered] = useState(false);
   const isVideo = img ? isVideoUrl(img) : false;
 

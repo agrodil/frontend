@@ -1,7 +1,7 @@
 import type {
   ToastMode,
   ToastProps,
-} from "@/interfaces/components/ToastProps.interface";
+} from "@/interfaces/components/ui/ToastProps.interface";
 import {
   useCallback,
   useEffect,

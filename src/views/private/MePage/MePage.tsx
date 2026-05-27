@@ -1,32 +1,24 @@
 import { useState, useEffect, type FC } from "react";
 import { useLoaderData, useNavigate } from "react-router-dom";
-import { useAuth } from "../../../hooks/useAuth.tsx";
+import { useAuth } from "@/hooks/useAuth.tsx";
 
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  LuMessageCircle,
-  LuX,
-  LuClipboardList,
-  LuLoader,
-} from "react-icons/lu";
-import CardPost from "../../../components/ui/CardPost.tsx";
-import Button from "../../../components/ui/Button.tsx";
-import Form from "../../../components/ui/Form.tsx";
+import { LuMessageCircle, LuClipboardList, LuLoader } from "react-icons/lu";
 
-import type { MePageLoaderData } from "../../../routes/loaders/me.loader.ts";
-import type {
-  MePost,
-  MyPostsPagination,
-} from "../../../services/api/me.api.ts";
-import { meApi } from "../../../services/api/me.api.ts";
-import { getAvatarColor } from "../../../utils/getAvatarColor.ts";
-import { getInitials } from "../../../utils/getInitials.ts";
-import { buildProfileFields } from "./buildProfileFields.ts";
+import CardPost from "@/components/ui/CardPost.tsx";
+import Button from "@/components/ui/Button.tsx";
+import ProfileEditForm from "./ProfileEditForm.tsx";
 
-const PLACEHOLDER_IMG = "https://picsum.photos/seed/post/400/550";
+import type { MePageLoaderData } from "@/routes/loaders/me.loader.ts";
+
+import type { MePost, MyPostsPagination } from "@/services/api/me.api.ts";
+import { meApi } from "@/services/api/me.api.ts";
+
+import { getAvatarColor } from "@/utils/getAvatarColor.ts";
+import { getInitials } from "@/utils/getInitials.ts";
 
 const mapToCardPost = (post: MePost) => ({
-  img: post.main_image_url ?? PLACEHOLDER_IMG,
+  img: post.main_image_url ?? null,
   title: post.livestock_post_name,
   saleTypeId: post.sale_type_id,
   weight: Number(post.avg_weight_kg ?? 0),
@@ -57,19 +49,25 @@ const MePage: FC = () => {
     initials = getInitials(user.firstName + " " + user.lastName),
     avatarColor = getAvatarColor(user.email);
 
-  const handleSave = (data: Record<string, string | File | File[] | boolean>) => {
-    updateUser({
-      firstName: data.firstName as string,
-      middleName: data.middleName as string,
-      lastName: data.lastName as string,
-      secondLastName: data.secondLastName as string,
-      documentType: data.documentType as string,
-      documentNumber: data.documentNumber as string,
-      municipality: data.municipality as string,
-      phone: data.phone as string,
-      email: data.email as string,
-    });
-    setIsEditing(false);
+  const handleUpdateProfile = async (
+    data: Record<string, string | File | File[] | boolean>,
+  ) => {
+    try {
+      await updateUser({
+        firstName: data.firstName as string,
+        middleName: data.middleName as string,
+        lastName: data.lastName as string,
+        secondLastName: data.secondLastName as string,
+        documentType: data.documentType as string,
+        documentNumber: Number(data.documentNumber),
+        townshipId: Number(data.townshipId),
+        phone: data.phone as string,
+        email: data.email as string,
+      });
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+    }
   };
 
   const handleLogout = () => {
@@ -178,39 +176,11 @@ const MePage: FC = () => {
         {/* ── Edit form ───────────────────────────────────────────────── */}
         <AnimatePresence>
           {isEditing && (
-            <motion.div
-              key="edit-form"
-              initial={{ opacity: 0, y: -12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.28, ease: "easeInOut" }}
-              className="bg-white rounded-2xl border border-gray-200 shadow-sm px-[clamp(1.25rem,4vw,2.5rem)] py-[clamp(1rem,2.5vw,1.75rem)]"
-            >
-              {/* Header */}
-              <div className="flex items-center justify-between mb-5">
-                <h2 className="text-primary font-bold text-[clamp(2rem,1.8vw,2.5rem)]">
-                  Perfil de usuario
-                </h2>
-                <button
-                  type="button"
-                  aria-label="Cerrar formulario"
-                  onClick={() => setIsEditing(false)}
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400
-                           hover:bg-gray-100 hover:text-gray-600 transition-colors cursor-pointer
-                           bg-transparent border-0"
-                >
-                  <LuX size={18} />
-                </button>
-              </div>
-
-              <Form
-                key={user.email}
-                singleColumn
-                fields={buildProfileFields(user)}
-                onSubmit={handleSave}
-                submitLabel="Guardar cambios"
-              />
-            </motion.div>
+            <ProfileEditForm
+              user={user}
+              onSave={handleUpdateProfile}
+              onClose={() => setIsEditing(false)}
+            />
           )}
         </AnimatePresence>
 

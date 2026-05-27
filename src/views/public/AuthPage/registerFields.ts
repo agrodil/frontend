@@ -1,4 +1,4 @@
-import type { FormField } from "@/interfaces/components/FormProps";
+import type { FormField } from "@/interfaces/components/ui/FormProps";
 import { townships } from "@/constants/townships";
 
 export const registerFields: FormField[] = [

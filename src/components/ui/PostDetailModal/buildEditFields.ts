@@ -1,4 +1,4 @@
-import type { FormField } from "@/interfaces/components/FormProps";
+import type { FormField } from "@/interfaces/components/ui/FormProps";
 import type { PostDetail } from "@/interfaces/api/posts/PostDetail.interface";
 
 export const buildEditFields = (post: PostDetail): FormField[] => [

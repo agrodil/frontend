@@ -1,5 +1,5 @@
 import type { FC } from "react";
-import type { ButtonProps } from "../../interfaces/components/ButtonProps";
+import type { ButtonProps } from "@/interfaces/components/ui/ButtonProps";
 
 const sizeClasses = {
   sm: "px-4 py-1.5 text-sm",

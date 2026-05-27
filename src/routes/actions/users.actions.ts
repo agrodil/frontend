@@ -20,3 +20,9 @@ export const checkDocumentExistsAction = async (
   const data = await usersApi.checkDocument(document);
   return data.exists;
 };
+
+export const updateUserProfileAction = async (
+  data: Record<string, string | File | File[] | boolean>,
+) => {
+  return await usersApi.update(data);
+};
