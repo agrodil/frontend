@@ -1,0 +1,103 @@
+﻿import type { FormField } from "@/presentation/interfaces/ui/FormProps";
+import { townships } from "@/shared/constants/townships.catalog";
+
+export const registerFields: FormField[] = [
+  {
+    name: "document_type",
+    type: "select",
+    label: "Tipo de Documento",
+    options: [
+      { label: "V – Venezolano", value: "V" },
+      { label: "J – Jurídico", value: "J" },
+    ],
+    defaultValue: "V",
+    required: true,
+  },
+  {
+    name: "document_number",
+    type: "text",
+    label: "Número de Documento",
+    placeholder: "30217530",
+    required: true,
+  },
+  {
+    name: "first_name",
+    type: "text",
+    label: "Nombre",
+    placeholder: "Juan",
+    required: true,
+    dependsOn: { fieldName: "document_type", value: "V" },
+  },
+  {
+    name: "middle_name",
+    type: "text",
+    label: "Segundo Nombre",
+    placeholder: "Carlos",
+    dependsOn: { fieldName: "document_type", value: "V" },
+    optional: true,
+  },
+  {
+    name: "surname",
+    type: "text",
+    label: "Apellido",
+    placeholder: "Pérez",
+    required: true,
+    dependsOn: { fieldName: "document_type", value: "V" },
+  },
+  {
+    name: "second_surname",
+    type: "text",
+    label: "Segundo Apellido",
+    placeholder: "Vera",
+    dependsOn: { fieldName: "document_type", value: "V" },
+    optional: true,
+  },
+  {
+    name: "company_name",
+    type: "text",
+    label: "Nombre de la Empresa",
+    placeholder: "Mi Empresa S.A.",
+    required: true,
+    dependsOn: { fieldName: "document_type", value: "J" },
+  },
+  {
+    name: "township_id",
+    type: "select",
+    label: "Municipio",
+    options: townships,
+    required: true,
+  },
+  {
+    name: "phone",
+    type: "tel",
+    label: "Teléfono",
+    placeholder: "4129968751",
+    required: true,
+  },
+  {
+    name: "email",
+    type: "email",
+    label: "Correo Electrónico",
+    placeholder: "juan@email.com",
+    required: true,
+  },
+  {
+    name: "password",
+    type: "password",
+    label: "Contraseña",
+    placeholder: "••••••••",
+    required: true,
+  },
+  {
+    name: "confirmPassword",
+    type: "password",
+    label: "Confirmar Contraseña",
+    placeholder: "••••••••",
+    required: true,
+  },
+  {
+    name: "remember_me",
+    type: "checkbox",
+    label: "Recordarme",
+  },
+];

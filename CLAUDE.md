@@ -21,19 +21,19 @@ This is a React 19 + TypeScript SPA (deployed to Vercel) for an agricultural liv
 
 ### Data Flow Pattern
 
-Data fetching follows React Router's **loader/action** pattern — routes declare loaders that fetch data before the component renders, and actions handle mutations (form submissions). This means most data-fetching logic lives in `src/routes/loaders/` and `src/routes/actions/`, not inside components.
+Data fetching follows React Router's **loader/action** pattern — routes declare loaders that fetch data before the component renders, and actions handle mutations (form submissions). This means most data-fetching logic lives in `src/presentation/router/loaders/` and `src/presentation/router/actions/`, not inside components.
 
 ### Authentication
 
-`AuthProvider` (`src/context/AuthProvider.tsx`) manages the session lifecycle:
+`AuthProvider` (`src/adapters/contexts/AuthProvider.tsx`) manages the session lifecycle:
 
 - User state stored in localStorage (persistent) or sessionStorage (temporary)
-- All authenticated API calls go through `fetchWithAuth()` (`src/services/api/fetchWithAuth.ts`), which automatically refreshes the token on 401 and retries, with request queuing to prevent duplicate refresh calls
-- The `ProtectedLayout` (`src/routes/private/ProtectedLayout.tsx`) redirects unauthenticated users to `/login`
+- All authenticated API calls go through `fetchWithAuth()` (`src/api/fetchWithAuth.ts`), which automatically refreshes the token on 401 and retries, with request queuing to prevent duplicate refresh calls
+- The `ProtectedLayout` (`src/presentation/router/private/ProtectedLayout.tsx`) redirects unauthenticated users to `/login`
 
 ### Real-Time Notifications
 
-`NotificationsSocket.ts` (`src/services/api/`) is a singleton Socket.IO client that connects on login, disconnects on logout, and auto-reconnects with credential refresh on error. Unread count is exposed globally via `UnreadCountContext`.
+`NotificationsSocket.ts` (`src/infrastructure/`) is a singleton Socket.IO client that connects on login, disconnects on logout, and auto-reconnects with credential refresh on error. Unread count is exposed globally via `UnreadCountContext`.
 
 ### Route Structure
 
@@ -42,17 +42,23 @@ Data fetching follows React Router's **loader/action** pattern — routes declar
 
 ### Folder Purposes
 
-| Path                     | Purpose                                                     |
-| ------------------------ | ----------------------------------------------------------- |
-| `src/views/`             | Page-level components (split into `public/` and `private/`) |
-| `src/components/ui/`     | Reusable UI components (Button, Form, CardPost, etc.)       |
-| `src/components/layout/` | App shell components (Navbar, Footer, RootLayout)           |
-| `src/routes/`            | Router config, loaders, and actions                         |
-| `src/services/api/`      | API client modules + `fetchWithAuth` + WebSocket            |
-| `src/context/`           | React Context definitions and providers                     |
-| `src/interfaces/`        | TypeScript type definitions organized by domain             |
-| `src/constants/`         | Static lookup data (breeds, sale types, townships, etc.)    |
-| `src/utils/`             | Pure helper functions                                       |
+| Path                                      | Purpose                                                              |
+| ----------------------------------------- | -------------------------------------------------------------------- |
+| `src/presentation/pages/`                 | Page-level components (split into `public/` and `private/`)          |
+| `src/presentation/ui/`                    | Reusable UI components (Button, Form, CardPost, etc.)                |
+| `src/presentation/layout/`               | App shell components (Navbar, Footer, RootLayout)                    |
+| `src/presentation/router/`               | Router config, loaders, and actions                                  |
+| `src/presentation/interfaces/`           | Props interfaces for presentation-layer components                   |
+| `src/api/clients/`                        | API client modules (one per backend controller)                      |
+| `src/api/fetchWithAuth.ts`               | Authenticated fetch wrapper with token refresh + request queuing     |
+| `src/api/interfaces/`                     | Request DTOs (`requests/`) and response DTOs (`responses/`)          |
+| `src/entities/`                           | Domain entity interfaces mirroring DB models                         |
+| `src/adapters/contexts/`                  | React Context definitions and providers                              |
+| `src/adapters/hooks/actions/`             | Action hooks that handle backend use cases (call `api/clients/`)     |
+| `src/adapters/hooks/common/`              | Utility hooks with no backend coupling (useAuth, etc.)               |
+| `src/infrastructure/`                     | Third-party SDK integrations (Socket.IO client)                      |
+| `src/shared/constants/`                   | Static lookup data (`*.catalog.ts` — sale types, townships, etc.)    |
+| `src/shared/utils/`                       | Pure helper functions                                                |
 
 ### Environment Variables
 
