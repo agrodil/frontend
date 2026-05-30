@@ -1,7 +1,7 @@
 import { RouterProvider } from "react-router-dom";
-import { router } from "./routes/router.tsx";
-import { AuthProvider } from "./context/AuthProvider";
-import { UnreadCountProvider } from "./context/UnreadCountProvider";
+import { router } from "@/presentation/router/router";
+import { AuthProvider } from "@/adapters/contexts/AuthProvider";
+import { UnreadCountProvider } from "@/adapters/contexts/UnreadCountProvider";
 
 function App() {
   return (
