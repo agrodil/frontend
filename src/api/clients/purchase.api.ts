@@ -16,6 +16,15 @@ export const purchaseApi = {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    if (!response.ok) throw new Error("Failed to create purchase request");
+    if (!response.ok) {
+      console.error("[purchase] createPurchaseRequest failed", {
+        status: response.status,
+        statusText: response.statusText,
+        url: response.url,
+      });
+      throw new Error(
+        `Failed to create purchase request (status ${response.status})`,
+      );
+    }
   },
 };

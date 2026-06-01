@@ -39,19 +39,23 @@ export const usePostPurchase = () => {
         img: previewImg ?? "",
       });
 
-      await notificationsApi.createNotification({
-        sentTo: post.posted_by,
-        livestockPostId: post.livestock_post_id,
-        purchaseNotificationTypeId: 1,
-        message: cardMessage,
-      });
+      try {
+        await notificationsApi.createNotification({
+          sentTo: post.posted_by,
+          livestockPostId: post.livestock_post_id,
+          purchaseNotificationTypeId: 1,
+          message: cardMessage,
+        });
 
-      await notificationsApi.createNotification({
-        sentTo: post.posted_by,
-        livestockPostId: post.livestock_post_id,
-        purchaseNotificationTypeId: 2,
-        message: `Has recibido una nueva solicitud de compra de ${fullName(user)}`,
-      });
+        await notificationsApi.createNotification({
+          sentTo: post.posted_by,
+          livestockPostId: post.livestock_post_id,
+          purchaseNotificationTypeId: 2,
+          message: `Has recibido una nueva solicitud de compra de ${fullName(user)}`,
+        });
+      } catch (notifErr) {
+        console.error("[purchase] notification step failed:", notifErr);
+      }
 
       navigate("/notifications", {
         state: {
@@ -66,7 +70,7 @@ export const usePostPurchase = () => {
         setError("Error al enviar la solicitud. Intenta de nuevo.");
       }
       setBuying(false);
-      console.log(err);
+      console.error("[purchase] handleBuy failed:", err);
       throw new Error("Purchase request failed");
     }
   };
