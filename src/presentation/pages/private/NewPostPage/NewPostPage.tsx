@@ -2,9 +2,9 @@
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LuCircleCheck, LuCircleX, LuLoader } from "react-icons/lu";
-import Form from "@/presentation/ui/Form";
+import MinusForm from "@minusui/form";
 import Button from "@/presentation/ui/Button";
-import { newPostFormFields } from "./NewPostFormFields";
+import { newPostFormFields, newPostSchema } from "./NewPostFormFields";
 import { useAuth } from "@/adapters/hooks/common/useAuth";
 import { uploadPost } from "@/presentation/router/actions/post.actions";
 
@@ -42,6 +42,31 @@ const NewPostPage: FC = () => {
         formData: new FormData(),
         validationError: "Debes indicar la raza predominante del lote.",
       };
+    }
+
+    // Validación condicional según el tipo de venta. Estos campos van con
+    // `dependsOn` en el form, por lo que no pueden ser `required` en el schema.
+    const saleTypeId = Number(data.saleTypeId);
+    if (saleTypeId === 1) {
+      if (!data.avgWeightKg) {
+        return {
+          formData: new FormData(),
+          validationError: "Debes indicar el peso promedio (kg).",
+        };
+      }
+      if (!data.pricePerKg) {
+        return {
+          formData: new FormData(),
+          validationError: "Debes indicar el precio por kg.",
+        };
+      }
+    } else if (saleTypeId === 2) {
+      if (!data.pricePerUnit) {
+        return {
+          formData: new FormData(),
+          validationError: "Debes indicar el precio por unidad.",
+        };
+      }
     }
 
     const formData = new FormData();
@@ -94,10 +119,10 @@ const NewPostPage: FC = () => {
     }
   };
 
-  const handleSubmit = (
-    data: Record<string, string | File | File[] | boolean>,
-  ) => {
-    const { formData, validationError } = buildFormData(data);
+  const handleSubmit = (data: Record<string, unknown>) => {
+    const { formData, validationError } = buildFormData(
+      data as Record<string, string | File | File[] | boolean>,
+    );
 
     if (validationError) {
       console.warn("[NewPostPage] Validación previa falló:", validationError);
@@ -119,12 +144,19 @@ const NewPostPage: FC = () => {
       </div>
 
       <div className="p-4 border border-gray-200 shadow-sm rounded-2xl h-fit w-full lg:max-h-[75vh] overflow-y-auto">
-        <Form
-          onSubmit={handleSubmit}
-          fields={newPostFormFields}
-          submitLabel="Publicar"
-          isLoading={submitState === "loading"}
-        />
+        <MinusForm onSubmit={handleSubmit} schema={newPostSchema}>
+          <MinusForm.Grid>
+            {newPostFormFields.map((field) => (
+              <MinusForm.Field key={field.name} {...field} />
+            ))}
+          </MinusForm.Grid>
+          <MinusForm.Submit
+            isLoading={submitState === "loading"}
+            className="mt-2 w-full rounded-full font-semibold transition-colors duration-200 cursor-pointer bg-primary text-white hover:bg-primary-hover px-6 py-2.5 text-base"
+          >
+            Publicar
+          </MinusForm.Submit>
+        </MinusForm>
       </div>
 
       {/* Overlay: loader + modals */}
