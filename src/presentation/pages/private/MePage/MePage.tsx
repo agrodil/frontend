@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, type FC } from "react";
+import { useState, useEffect, type FC } from "react";
 import { useLoaderData, useNavigate } from "react-router-dom";
 import { useAuth } from "@/adapters/hooks/common/useAuth.tsx";
 
@@ -8,6 +8,9 @@ import { LuMessageCircle, LuClipboardList, LuLoader } from "react-icons/lu";
 import CardPost from "@/presentation/ui/CardPost.tsx";
 import Button from "@/presentation/ui/Button.tsx";
 import ProfileEditForm from "./ProfileEditForm.tsx";
+import PostDetailModal from "@/presentation/ui/PostDetailModal/PostDetailModal";
+import type { PostDetail } from "@/api/interfaces/responses/PostDetail.interface";
+import { postApi } from "@/api/clients/posts.api";
 
 import type { MePageLoaderData } from "@/presentation/router/loaders/me.loader.ts";
 
@@ -38,6 +41,18 @@ const MePage: FC = () => {
     loaderData.pagination,
   );
   const [loadingMore, setLoadingMore] = useState(false);
+  const [postDetail, setPostDetail] = useState<PostDetail | null>(null);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
+
+  const handleCardClick = async (postId: string) => {
+    try {
+      const detail = await postApi.getPostById(postId);
+      setPostDetail(detail);
+      setSelectedPostId(postId);
+    } catch (error) {
+      console.error("Error loading post detail:", error);
+    }
+  };
 
   useEffect(() => {
     if (!loading && !user) navigate("/login", { replace: true });
@@ -97,7 +112,7 @@ const MePage: FC = () => {
       value: String(pagination.total).padStart(2, "0"),
       label: "publicaciones",
     },
-    ...loaderData.stats.slice(1),
+    // ...loaderData.stats.slice(1),
   ];
 
   return (
@@ -211,13 +226,14 @@ const MePage: FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: "easeOut", delay: 0.15 }}
-              className="flex-1 flex flex-col sm:flex-row flex-wrap gap-4"
+              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
             >
               {posts.map((post) => (
                 <CardPost
                   key={post.livestock_post_id}
                   {...mapToCardPost(post)}
                   owner={displayName}
+                  onClick={() => handleCardClick(post.livestock_post_id)}
                 />
               ))}
             </motion.div>
@@ -243,6 +259,45 @@ const MePage: FC = () => {
           </>
         )}
       </main>
+
+      {postDetail && selectedPostId && (
+        <PostDetailModal
+          post={postDetail}
+          previewImg={
+            posts.find((p) => p.livestock_post_id === selectedPostId)
+              ?.main_image_url ?? null
+          }
+          previewOwner={displayName}
+          onClose={() => {
+            setPostDetail(null);
+            setSelectedPostId(null);
+          }}
+          onUpdated={(updated) => {
+            setPostDetail(updated);
+            setPosts((prev) =>
+              prev.map((item) =>
+                item.livestock_post_id === updated.livestock_post_id
+                  ? {
+                      ...item,
+                      livestock_post_name: updated.livestock_post_name,
+                      sale_type_id: updated.sale_type_id,
+                      avg_weight_kg: updated.avg_weight_kg,
+                      price_per_kg: updated.price_per_kg,
+                      price_per_unit: updated.price_per_unit,
+                    }
+                  : item,
+              ),
+            );
+          }}
+          onDeactivated={(deactivatedId) => {
+            setPosts((prev) =>
+              prev.filter((item) => item.livestock_post_id !== deactivatedId),
+            );
+            setPostDetail(null);
+            setSelectedPostId(null);
+          }}
+        />
+      )}
     </>
   );
 };

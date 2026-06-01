@@ -1,7 +1,7 @@
 ﻿import RootLayout from "@/presentation/layout/RootLayout.tsx";
 import NewPostPage from "@/presentation/pages/private/NewPostPage/NewPostPage.tsx";
 import { getMeData } from "../loaders/me.loader.ts";
-import { getNotificationsData } from "../loaders/notifications.loader.ts";
+import { getNotificationsData, getChatData } from "../loaders/notifications.loader.ts";
 import { ProtectedLayout } from "./ProtectedLayout.tsx";
 
 export const routes = [
@@ -32,6 +32,19 @@ export const routes = [
             element: <NewPostPage />,
           },
         ],
+      },
+    ],
+  },
+  {
+    element: <ProtectedLayout />,
+    children: [
+      {
+        path: "/notifications/chat/:otherUserId",
+        loader: getChatData,
+        lazy: async () => {
+          const module = await import("@/presentation/pages/private/ChatPage/ChatPage.tsx");
+          return { Component: module.default };
+        },
       },
     ],
   },
