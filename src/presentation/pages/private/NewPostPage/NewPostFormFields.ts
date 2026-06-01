@@ -1,6 +1,7 @@
 ﻿import { sectors } from "@/shared/constants/sectors.catalog";
 import { SEX_LABEL } from "@/shared/constants/sex.catalog";
-import type { FormField } from "@/presentation/interfaces/ui/FormProps";
+import { buildSchema } from "@minusui/form";
+import type { FormField } from "@minusui/form";
 
 export const newPostFormFields: FormField[] = [
   {
@@ -92,3 +93,18 @@ export const newPostFormFields: FormField[] = [
     maxFiles: 10,
   },
 ];
+
+// NOTE: Los campos condicionales (avgWeightKg, pricePerKg, pricePerUnit) NO se
+// declaran aquí como `required`. MinusForm aborta el submit si el schema falla en
+// CUALQUIER campo, incluso uno oculto por `dependsOn`. Un `required` estático sobre
+// un campo oculto deja el botón habilitado pero bloquea onSubmit silenciosamente.
+// Su validación se hace condicionalmente en buildFormData (NewPostPage).
+export const newPostSchema = buildSchema({
+  livestockPostName: { required: "El título es requerido" },
+  sectorId: { required: "El rubro es requerido" },
+  saleTypeId: { required: "El tipo de venta es requerido" },
+  sex: { required: "El sexo es requerido" },
+  breed: { required: "La raza predominante es requerida" },
+  quantity: { required: "La cantidad es requerida" },
+  media: { required: "Debes agregar al menos una foto o video" },
+});
