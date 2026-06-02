@@ -153,11 +153,11 @@ const Footer: FC<FooterProps> = ({
           <span>
             Desarrollado por{" "}
             <Link
-              to="https://crane.tech"
+              to="https://www.linkedin.com/in/davidpaz06/"
               target="_blank"
               className="text-white/70 hover:text-white transition-colors"
             >
-              Crane Technologies
+              David Paz.
             </Link>
           </span>
         </div>

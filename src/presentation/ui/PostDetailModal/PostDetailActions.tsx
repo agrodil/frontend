@@ -1,10 +1,12 @@
 import type { FC } from "react";
-import { LuPencil, LuTrash2 } from "react-icons/lu";
+import { LuPencil, LuTrash2, LuRefreshCw } from "react-icons/lu";
 
 interface PostDetailActionsProps {
   isOwnPost: boolean;
+  isActive?: boolean;
   buying: boolean;
   isDeactivating: boolean;
+  isActivating?: boolean;
   confirmDeactivate: boolean;
   error: string | null;
   onBuy: () => void;
@@ -12,12 +14,15 @@ interface PostDetailActionsProps {
   onDeactivateStart: () => void;
   onDeactivateConfirm: () => void;
   onDeactivateCancel: () => void;
+  onActivate?: () => void;
 }
 
 export const PostDetailActions: FC<PostDetailActionsProps> = ({
   isOwnPost,
+  isActive = true,
   buying,
   isDeactivating,
+  isActivating = false,
   confirmDeactivate,
   error,
   onBuy,
@@ -25,11 +30,32 @@ export const PostDetailActions: FC<PostDetailActionsProps> = ({
   onDeactivateStart,
   onDeactivateConfirm,
   onDeactivateCancel,
+  onActivate,
 }) => {
   if (isOwnPost) {
     return (
       <div className="mt-auto flex flex-col gap-2">
-        {confirmDeactivate ? (
+        {!isActive ? (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onEditStart}
+              className="flex-1 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-colors cursor-pointer border-0 inline-flex items-center justify-center gap-2"
+            >
+              <LuPencil size={16} />
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={onActivate}
+              disabled={isActivating}
+              className="flex-1 py-3 rounded-xl bg-white text-green-700 font-bold text-sm hover:bg-green-50 transition-colors cursor-pointer border border-green-300 inline-flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              <LuRefreshCw size={16} className={isActivating ? "animate-spin" : ""} />
+              {isActivating ? "Activando..." : "Activar"}
+            </button>
+          </div>
+        ) : confirmDeactivate ? (
           <div className="p-3 rounded-xl border border-red-200 bg-red-50">
             <p className="text-sm text-red-700 font-semibold mb-2">
               ¿Desactivar este post?

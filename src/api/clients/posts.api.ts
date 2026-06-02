@@ -85,6 +85,35 @@ export const postApi = {
     return json.data;
   },
 
+  activatePost: async (id: string): Promise<PostDetail> => {
+    const response = await fetchWithAuth(`/posts/${id}/activate`, {
+      method: "PATCH",
+    });
+    const json = await response.json();
+    if (!response.ok) {
+      throw new Error(
+        typeof json.message === "string"
+          ? json.message
+          : JSON.stringify(json.message ?? json),
+      );
+    }
+    return json.data;
+  },
+
+  deletePost: async (id: string): Promise<void> => {
+    const response = await fetchWithAuth(`/posts/${id}/permanent`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      const json = await response.json().catch(() => ({}));
+      throw new Error(
+        typeof json.message === "string"
+          ? json.message
+          : `Failed to delete post (${response.status})`,
+      );
+    }
+  },
+
   deactivatePost: async (id: string): Promise<PostDetail> => {
     const response = await fetchWithAuth(`/posts/${id}`, {
       method: "DELETE",
