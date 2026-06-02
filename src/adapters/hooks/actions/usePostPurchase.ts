@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createPurchaseRequest } from "@/presentation/router/actions/purchase.actions";
 import { notificationsApi } from "@/api/clients/notifications.api";
@@ -23,7 +23,7 @@ export const usePostPurchase = () => {
       const price =
         post.sale_type_id === 1 ? post.price_per_kg : post.price_per_unit;
 
-      await createPurchaseRequest({
+      const { purchaseRequestId } = await createPurchaseRequest({
         livestockPostId: post.livestock_post_id,
         potentialBuyer: user.id,
         potentialBuyerName: fullName(user),
@@ -32,6 +32,8 @@ export const usePostPurchase = () => {
 
       const cardMessage = JSON.stringify({
         __type: "PURCHASE_CARD",
+        purchaseRequestId,
+        postedBy: post.posted_by,
         title: post.livestock_post_name,
         saleTypeId: post.sale_type_id,
         price: Number(price ?? 0),

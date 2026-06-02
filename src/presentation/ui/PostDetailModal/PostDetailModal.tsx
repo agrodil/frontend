@@ -1,4 +1,4 @@
-﻿import { useEffect, type FC } from "react";
+﻿import { useEffect, useState, type FC } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { motion, AnimatePresence } from "framer-motion";
@@ -9,6 +9,7 @@ import { useMediaFiles } from "@/adapters/hooks/actions/useMediaFiles";
 import { usePostEdit } from "@/adapters/hooks/actions/usePostEdit";
 import { usePostPurchase } from "@/adapters/hooks/actions/usePostPurchase";
 import { usePostDeactivate } from "@/adapters/hooks/actions/usePostDeactivate";
+import { activatePost } from "@/presentation/router/actions/post.actions";
 
 import Form from "../Form";
 import MediaCarousel from "../MediaCarousel";
@@ -23,12 +24,15 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
   post,
   previewImg,
   previewOwner,
+  isActive = true,
   onClose,
   onUpdated,
   onDeactivated,
+  onActivated,
 }) => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [isActivating, setIsActivating] = useState(false);
 
   // Custom hooks
   const { mediaFiles } = useMediaFiles(post.livestock_post_id);
@@ -88,6 +92,19 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
     if (success) {
       onDeactivated?.(currentPost.livestock_post_id);
       onClose();
+    }
+  };
+
+  const handleActivateClick = async () => {
+    setIsActivating(true);
+    try {
+      await activatePost(currentPost.livestock_post_id);
+      onActivated?.(currentPost.livestock_post_id);
+      onClose();
+    } catch {
+      // silently ignore — parent reloads state on success only
+    } finally {
+      setIsActivating(false);
     }
   };
 
@@ -166,8 +183,10 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
 
                   <PostDetailActions
                     isOwnPost={isOwnPost}
+                    isActive={isActive}
                     buying={buying}
                     isDeactivating={isDeactivating}
+                    isActivating={isActivating}
                     confirmDeactivate={confirmDeactivate}
                     error={purchaseError || deactivateError}
                     onBuy={handleBuyClick}
@@ -175,6 +194,7 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
                     onDeactivateStart={() => setConfirmDeactivate(true)}
                     onDeactivateConfirm={handleDeactivateClick}
                     onDeactivateCancel={() => setConfirmDeactivate(false)}
+                    onActivate={handleActivateClick}
                   />
 
                   {error && (

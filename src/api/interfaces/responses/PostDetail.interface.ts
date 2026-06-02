@@ -18,4 +18,5 @@ export interface PostDetail {
   created_at: string;
   updated_at: string;
   main_image_s3_key?: string | null;
+  is_active?: boolean;
 }

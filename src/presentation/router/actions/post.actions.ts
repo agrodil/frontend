@@ -13,7 +13,20 @@ export const uploadPost = async (
 export const updatePost = async (
   id: string,
   data: UpdatePostPayload,
-): Promise<PostDetail> => postApi.updatePost(id, data);
+): Promise<PostDetail> => {
+  const post = await postApi.updatePost(id, data);
+  window.dispatchEvent(new CustomEvent("postUpdated", { detail: post }));
+  return post;
+};
 
 export const deactivatePost = async (id: string): Promise<PostDetail> =>
   postApi.deactivatePost(id);
+
+export const activatePost = async (id: string): Promise<PostDetail> => {
+  const post = await postApi.activatePost(id);
+  window.dispatchEvent(new CustomEvent("postUpdated", { detail: post }));
+  return post;
+};
+
+export const deletePost = async (id: string): Promise<void> =>
+  postApi.deletePost(id);

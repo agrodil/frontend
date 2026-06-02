@@ -10,6 +10,7 @@ export type MePost = {
   sale_type_id: number;
   created_at: string;
   main_image_url: string | null;
+  is_active: boolean;
 };
 
 export type MeStat = {
@@ -36,6 +37,17 @@ const authGet = async (endpoint: string) => {
 export const meApi = {
   getMe: () => authGet("/auth/me"),
   getUserById: (id: string) => authGet(`/users/${id}`),
+  getMyDeactivatedPosts: async (
+    limit: number,
+    offset: number,
+  ): Promise<{ items: MePost[]; pagination: MyPostsPagination }> => {
+    const response = await fetchWithAuth(
+      `/posts/me?active=false&limit=${limit}&offset=${offset}`,
+    );
+    if (!response.ok) throw new Error("Failed to fetch deactivated posts");
+    const json = await response.json();
+    return json.data;
+  },
   getMyPosts: async (
     limit: number,
     offset: number,

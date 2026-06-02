@@ -5,7 +5,7 @@
   type MeStat,
 } from "@/api/clients/me.api";
 
-export const INITIAL_POSTS_LIMIT = 3;
+export const INITIAL_POSTS_LIMIT = 4;
 
 export type MePageLoaderData = {
   posts: MePost[];

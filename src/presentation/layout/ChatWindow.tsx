@@ -1,8 +1,9 @@
-﻿import {
+import {
   useState,
   useEffect,
   useRef,
   useCallback,
+  useMemo,
   type FC,
   type KeyboardEvent,
 } from "react";
@@ -11,6 +12,7 @@ import { LuChevronLeft, LuImageOff } from "react-icons/lu";
 import { useAuth } from "@/adapters/hooks/common/useAuth";
 import { notificationsSocket } from "@/infrastructure/NotificationsSocket";
 import { notificationsApi } from "@/api/clients/notifications.api";
+import { purchaseApi } from "@/api/clients/purchase.api";
 import { postApi } from "@/api/clients/posts.api";
 import { useUnreadCount } from "@/adapters/hooks/actions/useUnreadCount";
 import {
@@ -23,9 +25,16 @@ import type { PostDetail } from "@/api/interfaces/responses/PostDetail.interface
 import { sales } from "@/shared/constants/sale-types.catalog";
 import type { ChatWindowProps } from "@/presentation/interfaces/layout/ChatWindowProps";
 import PostDetailModal from "@/presentation/ui/PostDetailModal/PostDetailModal";
+import ConfirmSaleModal from "@/presentation/ui/ConfirmSaleModal";
+import PostSaleActionsModal from "@/presentation/ui/PostSaleActionsModal";
+import Toast from "@/presentation/ui/Toast";
+import { banPhone } from "@/shared/utils/banPhone";
+import type { ToastMode } from "@/presentation/interfaces/ui/ToastProps.interface";
 
 type PurchaseCardPayload = {
   __type: "PURCHASE_CARD";
+  purchaseRequestId: string;
+  postedBy: string;
   title: string;
   saleTypeId: number;
   price: number;
@@ -39,6 +48,29 @@ const parsePurchaseCard = (text: string): PurchaseCardPayload | null => {
     if (parsed.__type === "PURCHASE_CARD") return parsed as PurchaseCardPayload;
   } catch {
     /* not a card */
+  }
+  return null;
+};
+
+// purchase_status_id: 2 = approved (vendedor), 3 = rejected (vendedor), 4 = cancelled (comprador)
+const STATUS_APPROVED = 2;
+const STATUS_REJECTED = 3;
+const STATUS_CANCELLED = 4;
+
+type PurchaseStatusPayload = {
+  __type: "PURCHASE_STATUS";
+  purchaseRequestId: string;
+  status: number;
+  title: string;
+};
+
+const parsePurchaseStatus = (text: string): PurchaseStatusPayload | null => {
+  try {
+    const parsed = JSON.parse(text);
+    if (parsed.__type === "PURCHASE_STATUS")
+      return parsed as PurchaseStatusPayload;
+  } catch {
+    /* not a status update */
   }
   return null;
 };
@@ -59,15 +91,42 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
     [freshCardImages, setFreshCardImages] = useState<Record<string, string>>(
       {},
     ),
+    [freshCardPosts, setFreshCardPosts] = useState<Record<string, PostDetail>>(
+      {},
+    ),
     [selectedPost, setSelectedPost] = useState<{
       post: PostDetail;
       img: string | null;
       owner: string;
     } | null>(null);
 
+  // Sale flow state
+  const [confirmingSale, setConfirmingSale] = useState<{
+    purchaseRequestId: string;
+    postDetail: PostDetail;
+  } | null>(null);
+  const [postSalePost, setPostSalePost] = useState<PostDetail | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [toast, setToast] = useState<{
+    mode: ToastMode;
+    message: string;
+  } | null>(null);
+
   const messagesRef = useRef<HTMLDivElement>(null),
     textareaRef = useRef<HTMLTextAreaElement>(null),
-    fetchedPostIds = useRef<Set<string>>(new Set());
+    fetchedPostIds = useRef<Set<string>>(new Set()),
+    seenStatusIds = useRef<Set<string>>(new Set()),
+    statusToastsInit = useRef(false);
+
+  // Mapa purchaseRequestId -> status (3 rechazado, 4 cancelado), derivado del historial.
+  const purchaseStatusMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    messages.forEach((m) => {
+      const s = parsePurchaseStatus(m.message);
+      if (s) map[s.purchaseRequestId] = s.status;
+    });
+    return map;
+  }, [messages]);
 
   const scrollToBottom = useCallback(() => {
     const el = messagesRef.current;
@@ -88,11 +147,62 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
   }, [chat.other_user_id]);
 
   useEffect(() => {
-    loadMessages();
+    let cancelled = false;
+    // Reset del tracking de toasts de estado al abrir otro chat.
+    seenStatusIds.current = new Set();
+    statusToastsInit.current = false;
+    notificationsApi
+      .getAllMessagesByChat(chat.other_user_id, MESSAGES_LIMIT, 0)
+      .then((data) => {
+        if (!cancelled) setMessages(Array.isArray(data) ? data : []);
+      })
+      .catch(() => {
+        if (!cancelled) setMessages([]);
+      });
     markChatAsRead(chat.other_user_id)
       .then(() => refreshUnreadCount())
       .catch(() => {});
-  }, [chat.other_user_id, loadMessages, refreshUnreadCount]);
+    return () => {
+      cancelled = true;
+    };
+  }, [chat.other_user_id, refreshUnreadCount]);
+
+  // Toast en tiempo real cuando llega un cambio de estado del OTRO usuario.
+  useEffect(() => {
+    const statusMsgs = messages.filter((m) => parsePurchaseStatus(m.message));
+
+    // Primera carga: marca todo lo histórico como visto sin notificar.
+    if (!statusToastsInit.current) {
+      statusMsgs.forEach((m) =>
+        seenStatusIds.current.add(m.purchase_notification_id),
+      );
+      statusToastsInit.current = true;
+      return;
+    }
+
+    statusMsgs.forEach((m) => {
+      if (seenStatusIds.current.has(m.purchase_notification_id)) return;
+      seenStatusIds.current.add(m.purchase_notification_id);
+      if (m.sent_by === user?.id) return; // ignora los propios
+      const s = parsePurchaseStatus(m.message)!;
+      if (s.status === STATUS_APPROVED) {
+        setToast({
+          mode: "success",
+          message: `¡Tu compra de "${s.title}" fue confirmada por el vendedor!`,
+        });
+      } else if (s.status === STATUS_REJECTED) {
+        setToast({
+          mode: "warning",
+          message: `Tu solicitud de compra de "${s.title}" fue rechazada.`,
+        });
+      } else {
+        setToast({
+          mode: "info",
+          message: `La solicitud de compra de "${s.title}" fue cancelada.`,
+        });
+      }
+    });
+  }, [messages, user?.id]);
 
   useEffect(() => {
     scrollToBottom();
@@ -107,14 +217,26 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
     });
   }, [chat.other_user_id, loadMessages, refreshUnreadCount]);
 
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const post = (e as CustomEvent<PostDetail>).detail;
+      setFreshCardPosts((prev) => ({ ...prev, [post.livestock_post_id]: post }));
+    };
+    window.addEventListener("postUpdated", handler);
+    return () => window.removeEventListener("postUpdated", handler);
+  }, []);
+
   const handleSend = async () => {
     const trimmed = text.trim();
     if (!trimmed || sending) return;
 
+    // Censura teléfonos ANTES de enviar: el número crudo nunca sale del cliente.
+    const sanitized = banPhone(trimmed);
+
     setSending(true);
     setText("");
     try {
-      await sendMessageAction(chat.other_user_id, trimmed);
+      await sendMessageAction(chat.other_user_id, sanitized);
     } catch {
       setText(trimmed);
     } finally {
@@ -143,13 +265,17 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
       if (fetchedPostIds.current.has(postId)) return;
       fetchedPostIds.current.add(postId);
       try {
-        const files = await getFilesByPost(postId);
+        const [files, post] = await Promise.all([
+          getFilesByPost(postId),
+          postApi.getPostById(postId),
+        ]);
         const main = files.find((f) => f.is_main_file) ?? files[0];
         if (main?.url) {
           setFreshCardImages((prev) => ({ ...prev, [postId]: main.url }));
         }
+        setFreshCardPosts((prev) => ({ ...prev, [postId]: post }));
       } catch {
-        /* keep card.img as fallback */
+        /* keep card data as fallback */
       }
     });
   }, [messages]);
@@ -165,6 +291,108 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
       });
     } catch {
       /* post may be deactivated */
+    }
+  };
+
+  const handleConfirmSale = async () => {
+    if (!confirmingSale) return;
+    setActionLoading(true);
+    try {
+      await purchaseApi.updatePurchaseRequest(
+        confirmingSale.purchaseRequestId,
+        { purchaseStatusId: STATUS_APPROVED },
+      );
+      await notificationsApi.createNotification({
+        sentTo: chat.other_user_id,
+        livestockPostId: confirmingSale.postDetail.livestock_post_id,
+        purchaseNotificationTypeId: 2,
+        message: JSON.stringify({
+          __type: "PURCHASE_STATUS",
+          purchaseRequestId: confirmingSale.purchaseRequestId,
+          status: STATUS_APPROVED,
+          title: confirmingSale.postDetail.livestock_post_name,
+        }),
+      });
+      setConfirmingSale(null);
+      setToast({ mode: "success", message: "¡Venta confirmada exitosamente!" });
+      setPostSalePost(confirmingSale.postDetail);
+      loadMessages();
+    } catch {
+      setToast({ mode: "error", message: "Error al confirmar la venta. Intenta de nuevo." });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectPurchase = async (
+    purchaseRequestId: string,
+    postDetail: PostDetail,
+  ) => {
+    setActionLoading(true);
+    try {
+      await purchaseApi.updatePurchaseRequest(purchaseRequestId, {
+        purchaseStatusId: STATUS_REJECTED,
+      });
+      await notificationsApi.createNotification({
+        sentTo: chat.other_user_id,
+        livestockPostId: postDetail.livestock_post_id,
+        purchaseNotificationTypeId: 2,
+        message: JSON.stringify({
+          __type: "PURCHASE_STATUS",
+          purchaseRequestId,
+          status: STATUS_REJECTED,
+          title: postDetail.livestock_post_name,
+        }),
+      });
+      setToast({ mode: "warning", message: "Solicitud rechazada." });
+      loadMessages();
+    } catch {
+      setToast({ mode: "error", message: "Error al rechazar. Intenta de nuevo." });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCancelPurchase = async (
+    purchaseRequestId: string,
+    postDetail: PostDetail,
+  ) => {
+    setActionLoading(true);
+    try {
+      await purchaseApi.updatePurchaseRequest(purchaseRequestId, {
+        purchaseStatusId: STATUS_CANCELLED,
+      });
+      await notificationsApi.createNotification({
+        sentTo: chat.other_user_id,
+        livestockPostId: postDetail.livestock_post_id,
+        purchaseNotificationTypeId: 2,
+        message: JSON.stringify({
+          __type: "PURCHASE_STATUS",
+          purchaseRequestId,
+          status: STATUS_CANCELLED,
+          title: postDetail.livestock_post_name,
+        }),
+      });
+      setToast({ mode: "info", message: "Solicitud cancelada." });
+      loadMessages();
+    } catch {
+      setToast({ mode: "error", message: "Error al cancelar. Intenta de nuevo." });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handlePostSaleDeactivate = async () => {
+    if (!postSalePost) return;
+    setActionLoading(true);
+    try {
+      await postApi.deactivatePost(postSalePost.livestock_post_id);
+      setPostSalePost(null);
+      setToast({ mode: "info", message: "Publicación desactivada." });
+    } catch {
+      setToast({ mode: "error", message: "Error al desactivar. Intenta de nuevo." });
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -206,11 +434,39 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
         {/* Messages */}
         <div
           ref={messagesRef}
-          className="flex-1 min-h-0 overflow-y-auto px-16 py-4 flex flex-col gap-4"
+          className="flex-1 min-h-0 overflow-y-auto px-4 lg:px-16 py-4 flex flex-col gap-4"
         >
           {messages.map((msg) => {
             const isOwn = msg.sent_by === user?.id;
             const card = parsePurchaseCard(msg.message);
+            const statusMsg = parsePurchaseStatus(msg.message);
+
+            // Cambio de estado: línea de sistema centrada (trazabilidad en el chat).
+            if (statusMsg) {
+              return (
+                <motion.div
+                  key={msg.purchase_notification_id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex justify-center"
+                >
+                  <span
+                    className={`text-[11px] rounded-full px-3 py-1 border ${
+                      statusMsg.status === STATUS_APPROVED
+                        ? "text-green-700 bg-green-50 border-green-200"
+                        : "text-gray-500 bg-gray-100 border-gray-200"
+                    }`}
+                  >
+                    {statusMsg.status === STATUS_APPROVED
+                      ? `Venta confirmada · ${statusMsg.title}`
+                      : statusMsg.status === STATUS_REJECTED
+                        ? `Solicitud rechazada · ${statusMsg.title}`
+                        : `Solicitud cancelada · ${statusMsg.title}`}
+                  </span>
+                </motion.div>
+              );
+            }
 
             return (
               <motion.div
@@ -222,53 +478,154 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
               >
                 {card ? (
                   <div className="max-w-[75%] flex flex-col gap-1">
-                    <div
-                      className="rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                      onClick={() => handleCardClick(msg, card)}
-                    >
-                      <div className="w-48 h-36 relative bg-gray-100">
-                        {(() => {
-                          const imgSrc =
-                            (msg.livestock_post_id &&
-                              freshCardImages[msg.livestock_post_id]) ||
-                            card.img ||
-                            null;
-                          return imgSrc &&
-                            !brokenImgs.has(msg.purchase_notification_id) ? (
-                            <img
-                              src={imgSrc}
-                              alt={card.title}
-                              className="absolute inset-0 w-full h-full object-cover"
-                              onError={() =>
-                                setBrokenImgs((prev) =>
-                                  new Set(prev).add(
-                                    msg.purchase_notification_id,
-                                  ),
-                                )
-                              }
-                            />
-                          ) : (
-                            <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
-                              <LuImageOff
-                                size={28}
-                                className="text-primary/40"
-                              />
+                    {(() => {
+                      const freshPost = msg.livestock_post_id
+                        ? freshCardPosts[msg.livestock_post_id]
+                        : undefined;
+                      const displayTitle =
+                        freshPost?.livestock_post_name ?? card.title;
+                      const displaySaleTypeId =
+                        freshPost?.sale_type_id ?? card.saleTypeId;
+                      const displayPrice = freshPost
+                        ? (freshPost.price_per_kg ??
+                          freshPost.price_per_unit ??
+                          card.price)
+                        : card.price;
+                      const imgSrc =
+                        (msg.livestock_post_id &&
+                          freshCardImages[msg.livestock_post_id]) ||
+                        card.img ||
+                        null;
+
+                      // El card lo envía el comprador; quien NO lo envió es el vendedor
+                      const isSeller = !isOwn;
+                      const hasPurchaseRequestId = Boolean(
+                        card.purchaseRequestId,
+                      );
+                      const cardStatus = card.purchaseRequestId
+                        ? purchaseStatusMap[card.purchaseRequestId]
+                        : undefined;
+                      const isResolved =
+                        cardStatus === STATUS_APPROVED ||
+                        cardStatus === STATUS_REJECTED ||
+                        cardStatus === STATUS_CANCELLED;
+                      const showActions =
+                        hasPurchaseRequestId && freshPost && !isResolved;
+
+                      return (
+                        <div className="flex flex-col gap-2">
+                          <div
+                            className={`rounded-2xl overflow-hidden border border-gray-200 bg-white shadow-sm cursor-pointer hover:shadow-md transition-shadow ${
+                              isResolved ? "opacity-50 grayscale" : ""
+                            }`}
+                            onClick={() => handleCardClick(msg, card)}
+                          >
+                            {isResolved && (
+                              <div className="px-3 pt-2">
+                                <span
+                                  className={`text-[10px] font-bold uppercase ${
+                                    cardStatus === STATUS_APPROVED
+                                      ? "text-green-600"
+                                      : "text-gray-500"
+                                  }`}
+                                >
+                                  {cardStatus === STATUS_APPROVED
+                                    ? "Vendida"
+                                    : cardStatus === STATUS_REJECTED
+                                      ? "Rechazada"
+                                      : "Cancelada"}
+                                </span>
+                              </div>
+                            )}
+                            <div className="w-48 h-36 relative bg-gray-100">
+                              {imgSrc &&
+                              !brokenImgs.has(msg.purchase_notification_id) ? (
+                                <img
+                                  src={imgSrc}
+                                  alt={displayTitle}
+                                  className="absolute inset-0 w-full h-full object-cover"
+                                  onError={() =>
+                                    setBrokenImgs((prev) =>
+                                      new Set(prev).add(
+                                        msg.purchase_notification_id,
+                                      ),
+                                    )
+                                  }
+                                />
+                              ) : (
+                                <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                                  <LuImageOff
+                                    size={28}
+                                    className="text-primary/40"
+                                  />
+                                </div>
+                              )}
                             </div>
-                          );
-                        })()}
-                      </div>
-                      <div className="p-3">
-                        <p className="text-[10px] text-gray-500 uppercase font-semibold">
-                          {sales[card.saleTypeId] ?? "—"}
-                        </p>
-                        <p className="font-bold text-xs text-gray-900 truncate">
-                          {card.title}
-                        </p>
-                        <p className="font-black text-sm text-gray-900">
-                          US ${Number(card.price).toFixed(0)}
-                        </p>
-                      </div>
-                    </div>
+                            <div className="p-3">
+                              <p className="text-[10px] text-gray-500 uppercase font-semibold">
+                                {sales[displaySaleTypeId] ?? "—"}
+                              </p>
+                              <p className="font-bold text-xs text-gray-900 truncate">
+                                {displayTitle}
+                              </p>
+                              <p className="font-black text-sm text-gray-900">
+                                US ${Number(displayPrice).toFixed(0)}
+                              </p>
+                            </div>
+                          </div>
+
+                          {showActions && (
+                            <div className="flex gap-2 w-48">
+                              {isSeller ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    disabled={actionLoading}
+                                    onClick={() =>
+                                      setConfirmingSale({
+                                        purchaseRequestId:
+                                          card.purchaseRequestId,
+                                        postDetail: freshPost,
+                                      })
+                                    }
+                                    className="flex-1 py-1.5 rounded-lg bg-green-600 text-white text-xs font-semibold hover:bg-green-700 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    Confirmar venta
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={actionLoading}
+                                    onClick={() =>
+                                      handleRejectPurchase(
+                                        card.purchaseRequestId,
+                                        freshPost,
+                                      )
+                                    }
+                                    className="flex-1 py-1.5 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs font-semibold hover:bg-red-100 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    Rechazar
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  type="button"
+                                  disabled={actionLoading}
+                                  onClick={() =>
+                                    handleCancelPurchase(
+                                      card.purchaseRequestId,
+                                      freshPost,
+                                    )
+                                  }
+                                  className="flex-1 py-1.5 rounded-lg border border-gray-300 text-gray-600 text-xs font-semibold hover:bg-gray-50 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  Cancelar solicitud
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                     <span
                       className={`text-[10px] text-gray-400 ${isOwn ? "text-right" : "text-left"}`}
                     >
@@ -346,6 +703,41 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
           previewImg={selectedPost.img}
           previewOwner={selectedPost.owner}
           onClose={() => setSelectedPost(null)}
+        />
+      )}
+
+      {confirmingSale && (
+        <ConfirmSaleModal
+          postTitle={confirmingSale.postDetail.livestock_post_name}
+          quantity={confirmingSale.postDetail.quantity}
+          onConfirm={handleConfirmSale}
+          onClose={() => !actionLoading && setConfirmingSale(null)}
+          loading={actionLoading}
+        />
+      )}
+
+      {postSalePost && (
+        <PostSaleActionsModal
+          postTitle={postSalePost.livestock_post_name}
+          onDeactivate={handlePostSaleDeactivate}
+          onEdit={() => {
+            setSelectedPost({
+              post: postSalePost,
+              img: freshCardImages[postSalePost.livestock_post_id] ?? null,
+              owner: postSalePost.livestock_post_name,
+            });
+            setPostSalePost(null);
+          }}
+          onSkip={() => setPostSalePost(null)}
+          loading={actionLoading}
+        />
+      )}
+
+      {toast && (
+        <Toast
+          mode={toast.mode}
+          message={toast.message}
+          onClose={() => setToast(null)}
         />
       )}
     </>
