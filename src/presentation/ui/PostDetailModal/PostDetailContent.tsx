@@ -53,7 +53,7 @@ export const PostDetailContent: FC<PostDetailContentProps> = ({
           {post.livestock_post_name}
         </h2>
         <p className="text-3xl font-black text-gray-900 mt-1">
-          US ${Number(price ?? 0).toFixed(0)}
+          US ${(() => { const n = Number(price ?? 0); return Number.isInteger(n) ? n : n.toFixed(2); })()}
           <span className="text-sm font-normal text-gray-500 ml-1">
             {post.sale_type_id === 1 ? "/ kg" : "/ unidad"}
           </span>

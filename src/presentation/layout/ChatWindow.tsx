@@ -569,7 +569,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
                                 {displayTitle}
                               </p>
                               <p className="font-black text-sm text-gray-900">
-                                US ${Number(displayPrice).toFixed(0)}
+                                US ${(() => { const n = Number(displayPrice); return Number.isInteger(n) ? n : n.toFixed(2); })()}
                               </p>
                             </div>
                           </div>
