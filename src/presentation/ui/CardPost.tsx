@@ -72,7 +72,7 @@ const CardPost: FC<CardPostProps> = ({
             <br />
             {SALE_LABEL[saleTypeId] ?? "—"}
           </p>
-          <p className="font-black text-xs lg:text-lg">${price.toFixed(0)}</p>
+          <p className="font-black text-xs lg:text-lg">${Number.isInteger(price) ? price : price.toFixed(2)}</p>
           <p>
             <span className="text-xs leading-snug truncate">{owner}</span>
           </p>
