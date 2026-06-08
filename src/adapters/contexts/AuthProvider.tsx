@@ -66,10 +66,18 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   }, [fetchMe]);
 
   const login = async (user: User, rememberMe = false) => {
-    if (rememberMe) {
-      localStorage.setItem(SESSION_KEY, "1");
-    } else {
-      sessionStorage.setItem(SESSION_KEY, "1");
+    try {
+      if (rememberMe) {
+        localStorage.setItem(SESSION_KEY, "1");
+      } else {
+        sessionStorage.setItem(SESSION_KEY, "1");
+      }
+    } catch {
+      try {
+        sessionStorage.setItem(SESSION_KEY, "1");
+      } catch {
+        // private browsing blocks all storage — session won't survive reload
+      }
     }
     const fullUser = await fetchMe();
     setUser(fullUser ?? user);
