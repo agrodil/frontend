@@ -9,6 +9,7 @@ import {
   LuUser,
   LuChevronRight,
   LuLoader,
+  LuX,
   LuShoppingCart,
   LuSquareCheck,
   LuSquare,
