@@ -38,10 +38,12 @@ export const purchaseApi = {
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
+      const errorBody = await response.text().catch(() => "");
       console.error("[purchase] createPurchaseRequest failed", {
         status: response.status,
         statusText: response.statusText,
         url: response.url,
+        body: errorBody,
       });
       throw new Error(
         `Failed to create purchase request (status ${response.status})`,
