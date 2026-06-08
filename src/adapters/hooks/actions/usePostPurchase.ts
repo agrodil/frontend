@@ -59,12 +59,7 @@ export const usePostPurchase = () => {
         console.error("[purchase] notification step failed:", notifErr);
       }
 
-      navigate("/notifications", {
-        state: {
-          openChatWith: post.posted_by,
-          sellerName: previewOwner ?? "Vendedor",
-        },
-      });
+      navigate(`/notifications/chat/${post.posted_by}`);
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);

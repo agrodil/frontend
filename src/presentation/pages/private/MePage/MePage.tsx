@@ -33,6 +33,7 @@ import { getAvatarColor } from "@/shared/utils/getAvatarColor.ts";
 import { getInitials } from "@/shared/utils/getInitials.ts";
 import { sales } from "@/shared/constants/sale-types.catalog";
 import { purchaseStatuses } from "@/shared/constants/purchase-status.catalog";
+import { ADMIN_ROLE_ID } from "@/shared/constants/roles.catalog";
 import { userPreferencesApi } from "@/api/clients/userPreferences.api";
 import type { UserPreferences } from "@/api/interfaces/responses/UserPreferences.interface";
 
@@ -371,6 +372,16 @@ const MePage: FC = () => {
                 onClick={handleLogout}
                 className="shrink-0 text-[clamp(0.7rem,1.2vw,0.875rem)] px-[clamp(1rem,2vw,2rem)]"
               />
+
+              {user.role === ADMIN_ROLE_ID && (
+                <Button
+                  label="Admin"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => navigate("/admin")}
+                  className="shrink-0 text-[clamp(0.7rem,1.2vw,0.875rem)] px-[clamp(1rem,2vw,2rem)]"
+                />
+              )}
             </div>
           </div>
 
