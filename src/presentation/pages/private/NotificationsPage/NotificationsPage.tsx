@@ -1,4 +1,4 @@
-import { useEffect, type FC } from "react";
+import { useEffect, useState, type FC } from "react";
 import { useLoaderData, useRevalidator, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { LuMessagesSquare } from "react-icons/lu";
@@ -8,12 +8,18 @@ import type {
   Chat,
   NotificationsPageLoaderData,
 } from "@/presentation/interfaces/pages/NotificationsPageLoaderData";
+import Toast from "@/presentation/ui/Toast";
 
 const NotificationsPage: FC = () => {
   const { items = [], error } = (useLoaderData() as NotificationsPageLoaderData) ?? {};
   const { user } = useAuth();
   const { revalidate } = useRevalidator();
   const navigate = useNavigate();
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (error) setToast(error);
+  }, [error]);
 
   useEffect(() => {
     return notificationsSocket.onMessage(() => revalidate());
@@ -24,6 +30,7 @@ const NotificationsPage: FC = () => {
   };
 
   return (
+    <>
     <main className="w-[90vw] mx-auto flex flex-col mt-8 lg:mt-0 h-[80vh]">
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -100,6 +107,10 @@ const NotificationsPage: FC = () => {
         )}
       </motion.div>
     </main>
+    {toast && (
+      <Toast mode="error" message={toast} onClose={() => setToast(null)} />
+    )}
+    </>
   );
 };
 
