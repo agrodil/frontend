@@ -11,24 +11,14 @@ export const loginSchema = z.object({
 
 export const registerSchema = z
   .object({
-    first_name: z
+    names: z
       .string()
-      .max(50, "Máximo 50 caracteres")
+      .max(101, "Máximo 100 caracteres")
       .optional()
       .or(z.literal("")),
-    middle_name: z
+    surnames: z
       .string()
-      .max(50, "Máximo 50 caracteres")
-      .optional()
-      .or(z.literal("")),
-    surname: z
-      .string()
-      .max(50, "Máximo 50 caracteres")
-      .optional()
-      .or(z.literal("")),
-    second_surname: z
-      .string()
-      .max(50, "Máximo 50 caracteres")
+      .max(101, "Máximo 100 caracteres")
       .optional()
       .or(z.literal("")),
     company_name: z
@@ -76,18 +66,18 @@ export const registerSchema = z
         });
       }
     } else if (data.document_type === "V") {
-      if (!data.first_name || data.first_name.trim() === "") {
+      if (!data.names || data.names.trim() === "") {
         ctx.addIssue({
           code: "custom",
           message: "El nombre es requerido",
-          path: ["first_name"],
+          path: ["names"],
         });
       }
-      if (!data.surname || data.surname.trim() === "") {
+      if (!data.surnames || data.surnames.trim() === "") {
         ctx.addIssue({
           code: "custom",
           message: "El apellido es requerido",
-          path: ["surname"],
+          path: ["surnames"],
         });
       }
     }
