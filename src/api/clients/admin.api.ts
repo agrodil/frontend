@@ -54,7 +54,8 @@ export const adminApi = {
     const response = await fetchWithAuth(`/admin/chats?${params}`);
     if (!response.ok) {
       const body = await response.text().catch(() => "");
-      throw new Error(`Failed to fetch chats (status ${response.status}): ${body}`);
+      console.error("[admin] getChatsForUser failed", { status: response.status, body });
+      throw new Error(`Failed to fetch chats (${response.status})${body ? `: ${body}` : ""}`);
     }
     const json = await response.json();
     return (json.data ?? json) as Chat[];

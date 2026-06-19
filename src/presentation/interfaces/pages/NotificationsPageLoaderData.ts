@@ -35,4 +35,5 @@ export interface ChatPagination {
 export interface NotificationsPageLoaderData {
   items: Chat[];
   pagination?: ChatPagination;
+  error?: string;
 }

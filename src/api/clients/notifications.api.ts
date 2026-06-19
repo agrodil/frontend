@@ -5,7 +5,11 @@ export const notificationsApi = {
     const response = await fetchWithAuth(
       `/notifications/chats?limit=${limit}&offset=${offset}`,
     );
-    if (!response.ok) throw new Error("Failed to fetch chats");
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      console.error("[notifications] getAllChatsByUser failed", { status: response.status, body });
+      throw new Error(`Failed to fetch chats (${response.status})${body ? `: ${body}` : ""}`);
+    }
     const json = await response.json();
     return json.data;
   },

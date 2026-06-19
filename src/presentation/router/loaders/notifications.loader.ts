@@ -15,13 +15,14 @@ export const getNotificationsData =
         items: chats ?? [],
       };
     } catch (error) {
-      console.error("Error fetching notifications:", error);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error("[notifications] getNotificationsData failed:", message);
+      return {
+        items: [],
+        pagination: { total: 0, limit: 0, offset: 0, hasMore: false },
+        error: message,
+      };
     }
-
-    return {
-      items: [],
-      pagination: { total: 0, limit: 0, offset: 0, hasMore: false },
-    };
   };
 
 export const getChatData = async ({

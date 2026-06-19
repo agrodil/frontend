@@ -10,7 +10,7 @@ import type {
 } from "@/presentation/interfaces/pages/NotificationsPageLoaderData";
 
 const NotificationsPage: FC = () => {
-  const { items = [] } = (useLoaderData() as NotificationsPageLoaderData) ?? {};
+  const { items = [], error } = (useLoaderData() as NotificationsPageLoaderData) ?? {};
   const { user } = useAuth();
   const { revalidate } = useRevalidator();
   const navigate = useNavigate();
@@ -31,7 +31,13 @@ const NotificationsPage: FC = () => {
         transition={{ duration: 0.25 }}
         className="flex-1 min-h-0 bg-white rounded-2xl border border-gray-200 shadow-sm flex overflow-hidden"
       >
-        {items.length === 0 ? (
+        {error ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 text-center">
+            <LuMessagesSquare size={64} strokeWidth={1.2} className="text-red-300" />
+            <p className="text-sm font-semibold text-red-500">Error al cargar los chats</p>
+            <p className="text-xs text-gray-400 font-mono max-w-xs break-all">{error}</p>
+          </div>
+        ) : items.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 text-primary">
             <LuMessagesSquare size={96} strokeWidth={1.2} />
             <p className="text-lg font-semibold italic">No hay Chats</p>
