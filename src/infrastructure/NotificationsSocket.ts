@@ -1,7 +1,8 @@
 ﻿import { io, Socket } from "socket.io-client";
 import { authApi, url } from "@/api";
 
-const socketUrl = url.replace(/\/api\/?$/, "");
+const socketUrl =
+  import.meta.env.VITE_SOCKET_URL || url.replace(/\/api\/?$/, "");
 
 class NotificationsSocket {
   private socket: Socket | null = null;

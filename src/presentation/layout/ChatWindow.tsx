@@ -237,6 +237,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
     setText("");
     try {
       await sendMessageAction(chat.other_user_id, sanitized);
+      await loadMessages();
     } catch {
       setText(trimmed);
     } finally {
