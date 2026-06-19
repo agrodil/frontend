@@ -98,12 +98,24 @@ const AuthPage: FC = () => {
       delete raw.remember_me;
 
       if (raw.document_type === "J") {
-        delete raw.first_name;
-        delete raw.middle_name;
-        delete raw.surname;
-        delete raw.second_surname;
+        delete raw.names;
+        delete raw.surnames;
       } else {
         delete raw.company_name;
+
+        const [firstName = "", middleName = ""] = raw.names
+          .trim()
+          .split(/\s+/);
+        const [firstSurname = "", secondSurname = ""] = raw.surnames
+          .trim()
+          .split(/\s+/);
+        delete raw.names;
+        delete raw.surnames;
+
+        raw.first_name = firstName;
+        if (middleName) raw.middle_name = middleName;
+        raw.surname = firstSurname;
+        if (secondSurname) raw.second_surname = secondSurname;
       }
 
       const payload: Register = {
