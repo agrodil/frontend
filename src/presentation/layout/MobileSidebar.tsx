@@ -104,7 +104,7 @@ const MobileSidebar: FC<MobileSidebarProps> = ({
             {/* Auth section */}
             <div className="px-6 py-5 border-t border-gray-100">
               {isAuthenticated && user ? (
-                <UserMenu user={user} />
+                <UserMenu user={user} onNavigate={onClose} />
               ) : (
                 <Button
                   label="Iniciar Sesión"
