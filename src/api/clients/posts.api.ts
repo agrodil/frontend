@@ -83,7 +83,7 @@ export const postApi = {
     const formData = new FormData();
     formData.append("post", JSON.stringify(post));
 
-    const response = await fetchWithAuth("/posts/", {
+    const response = await fetchWithAuth("/posts", {
       method: "POST",
       body: formData,
     });
