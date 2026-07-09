@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@minusui/form": "^1.0.0",
+    "browser-image-compression": "^2.0.2",
     "framer-motion": "^12.35.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

@@ -15,6 +15,7 @@ import { notificationsApi } from "@/api/clients/notifications.api";
 import { purchaseApi } from "@/api/clients/purchase.api";
 import { postApi } from "@/api/clients/posts.api";
 import { useUnreadCount } from "@/adapters/hooks/actions/useUnreadCount";
+import { useMessageModeration } from "@/adapters/hooks/actions/useMessageModeration";
 import {
   sendMessage as sendMessageAction,
   markChatAsRead,
@@ -28,7 +29,6 @@ import PostDetailModal from "@/presentation/ui/PostDetailModal/PostDetailModal";
 import ConfirmSaleModal from "@/presentation/ui/ConfirmSaleModal";
 import PostSaleActionsModal from "@/presentation/ui/PostSaleActionsModal";
 import Toast from "@/presentation/ui/Toast";
-import { banPhone } from "@/shared/utils/banPhone";
 import type { ToastMode } from "@/presentation/interfaces/ui/ToastProps.interface";
 
 type PurchaseCardPayload = {
@@ -83,6 +83,7 @@ const formatTime = (iso: string) =>
 const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
   const { user } = useAuth();
   const { refresh: refreshUnreadCount } = useUnreadCount();
+  const { moderate, reportViolations } = useMessageModeration();
 
   const [messages, setMessages] = useState<Message[]>([]),
     [text, setText] = useState(""),
@@ -231,12 +232,15 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
     if (!trimmed || sending) return;
 
     // Censura teléfonos ANTES de enviar: el número crudo nunca sale del cliente.
-    const sanitized = banPhone(trimmed);
+    const { sanitized, violations } = moderate(trimmed);
 
     setSending(true);
     setText("");
     try {
-      await sendMessageAction(chat.other_user_id, sanitized);
+      const created = await sendMessageAction(chat.other_user_id, sanitized);
+      if (violations.length > 0 && created?.purchase_notification_id) {
+        void reportViolations(violations, created.purchase_notification_id);
+      }
       await loadMessages();
     } catch {
       setText(trimmed);

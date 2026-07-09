@@ -12,58 +12,130 @@ export type PostsPagination = {
   hasMore: boolean;
 };
 
+// Metadatos que el cliente manda a /presign (antes de subir a S3).
+export type PresignFileInput = {
+  fileName: string;
+  mimeType: string;
+  fileSizeBytes: number;
+  isMainFile?: boolean;
+  displayOrder?: number;
+};
+
+// URL presigned que devuelve el backend para subir un archivo a S3.
+export type PresignedUpload = {
+  fileName: string;
+  s3Key: string;
+  uploadUrl: string;
+  contentType: string;
+};
+
+// Metadatos que el cliente manda a /confirm (después de subir a S3).
+export type ConfirmFileInput = {
+  s3Key: string;
+  fileName: string;
+  fileSizeBytes: number;
+  mimeType: string;
+  isMainFile?: boolean;
+  displayOrder?: number;
+};
+
+type Envelope = { data?: unknown; message?: unknown; error?: unknown };
+
+// El backend envuelve toda respuesta en { data }. Parsea el sobre y, si !ok,
+// lanza con formato "(status) detalle" para que la UI lo muestre.
+async function readEnvelope(
+  response: Response,
+  ctx: string,
+): Promise<Envelope> {
+  let json: Envelope = {};
+  try {
+    json = (await response.json()) as Envelope;
+  } catch (parseError) {
+    console.error(`[posts.api.${ctx}] No se pudo parsear JSON`, {
+      status: response.status,
+      parseError,
+    });
+  }
+
+  if (!response.ok) {
+    const message = json.message ?? json.error ?? json;
+    const detail = Array.isArray(message)
+      ? message.join("; ")
+      : typeof message === "string"
+        ? message
+        : JSON.stringify(message);
+    console.error(`[posts.api.${ctx}] El backend respondió con error`, {
+      status: response.status,
+      body: json,
+    });
+    throw new Error(`(${response.status}) ${detail}`);
+  }
+
+  return json;
+}
+
 export const postApi = {
-  uploadPost: async (
-    data: FormData,
-  ): Promise<{
-    livestockPostId: string;
-    filesInfo: { success: boolean; message: string; uploadedCount: number };
-  }> => {
+  // Paso 1 del flujo presigned: crea el post (solo JSON, sin binarios) y
+  // devuelve su id. El binario NO pasa por aquí.
+  createPost: async (
+    post: Record<string, unknown>,
+  ): Promise<{ livestockPostId: string }> => {
+    const formData = new FormData();
+    formData.append("post", JSON.stringify(post));
+
     const response = await fetchWithAuth("/posts/", {
       method: "POST",
-      body: data,
+      body: formData,
     });
+    const json = await readEnvelope(response, "createPost");
 
-    type UploadEnvelope = {
-      message?: unknown;
-      error?: unknown;
-      data?: {
-        livestockPostId: string;
-        filesInfo: { success: boolean; message: string; uploadedCount: number };
-      };
-    };
-    let json: UploadEnvelope = {};
-    try {
-      json = (await response.json()) as UploadEnvelope;
-    } catch (parseError) {
-      console.error(
-        "[posts.api.uploadPost] No se pudo parsear la respuesta JSON",
-        { status: response.status, parseError },
-      );
+    const id = (json.data as { livestockPostId?: string } | undefined)
+      ?.livestockPostId;
+    if (!id) {
+      throw new Error("Respuesta inválida del servidor (livestockPostId faltante)");
     }
+    return { livestockPostId: id };
+  },
 
+  // Paso 2: pide URLs presigned PUT para subir los archivos del post a S3.
+  presignPostFiles: async (
+    postId: string,
+    files: PresignFileInput[],
+  ): Promise<{ uploads: PresignedUpload[]; expiresIn: number }> => {
+    const response = await fetchWithAuth(`/posts/${postId}/files/presign`, {
+      method: "POST",
+      body: JSON.stringify({ files }),
+    });
+    const json = await readEnvelope(response, "presignPostFiles");
+    return json.data as { uploads: PresignedUpload[]; expiresIn: number };
+  },
+
+  // Paso 3 (por archivo): sube el binario DIRECTO a S3 con la URL presigned.
+  // fetch nativo (no fetchWithAuth): S3 no debe recibir nuestras credenciales,
+  // y no pasa por el proxy Vercel → sin límite de 4.5MB.
+  uploadToS3: async (uploadUrl: string, file: File): Promise<void> => {
+    const response = await fetch(uploadUrl, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": file.type },
+    });
     if (!response.ok) {
-      const message = json.message ?? json.error ?? json;
-      const detail = Array.isArray(message)
-        ? message.join("; ")
-        : typeof message === "string"
-          ? message
-          : JSON.stringify(message);
-      console.error("[posts.api.uploadPost] El backend respondió con error", {
-        status: response.status,
-        body: json,
-      });
-      throw new Error(`(${response.status}) ${detail}`);
+      throw new Error(`Falló la subida a S3 (${response.status})`);
     }
+  },
 
-    if (!json.data) {
-      console.error("[posts.api.uploadPost] Respuesta 2xx sin payload `data`", {
-        body: json,
-      });
-      throw new Error("Respuesta inválida del servidor (data faltante)");
-    }
-
-    return json.data;
+  // Paso 4: confirma las subidas para que el backend persista la metadata.
+  confirmPostFiles: async (
+    postId: string,
+    files: ConfirmFileInput[],
+  ): Promise<{ uploadedCount: number }> => {
+    const response = await fetchWithAuth(`/posts/${postId}/files/confirm`, {
+      method: "POST",
+      body: JSON.stringify({ files }),
+    });
+    const json = await readEnvelope(response, "confirmPostFiles");
+    const data = json.data as { files?: unknown[] } | undefined;
+    return { uploadedCount: data?.files?.length ?? 0 };
   },
 
   updatePost: async (
