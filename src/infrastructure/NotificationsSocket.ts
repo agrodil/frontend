@@ -1,5 +1,6 @@
 ﻿import { io, Socket } from "socket.io-client";
-import { authApi, url } from "@/api";
+import { url } from "@/api";
+import { refreshSession, hasSessionFlag } from "@/api/refreshSession";
 
 const socketUrl =
   import.meta.env.VITE_SOCKET_URL || url.replace(/\/api\/?$/, "");
@@ -7,7 +8,6 @@ const socketUrl =
 class NotificationsSocket {
   private socket: Socket | null = null;
   private handlers: Set<(data: unknown) => void> = new Set();
-  private isRefreshing = false;
 
   onMessage(handler: (data: unknown) => void): () => void {
     this.handlers.add(handler);
@@ -27,16 +27,13 @@ class NotificationsSocket {
       this.handlers.forEach((h) => h(data));
     });
 
-    this.socket.on("connect_error", async () => {
-      if (this.isRefreshing) return;
-      this.isRefreshing = true;
-      try {
-        await authApi.refresh();
-      } catch {
-        // refresh falló — sesión expirada completamente
-      } finally {
-        this.isRefreshing = false;
-      }
+    this.socket.on("connect_error", () => {
+      // Solo intentar renovar si hay sesión local; evita rotar de gusto estando
+      // deslogueado. refreshSession() está deduplicado con el resto de la app.
+      if (!hasSessionFlag()) return;
+      void refreshSession().catch(() => {
+        // refresh falló — sesión expirada o backend dormido; el socket reintenta solo
+      });
     });
   }
 
