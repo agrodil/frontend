@@ -1,7 +1,5 @@
 import { url } from ".";
-import { authApi } from "./clients/auth.api";
-
-let refreshPromise: Promise<void> | null = null;
+import { refreshSession } from "./refreshSession";
 
 export async function fetchWithAuth(
   endpoint: string,
@@ -22,14 +20,8 @@ export async function fetchWithAuth(
   let response = await doFetch();
 
   if (response.status === 401) {
-    if (!refreshPromise) {
-      refreshPromise = authApi.refresh().finally(() => {
-        refreshPromise = null;
-      });
-    }
-
     try {
-      await refreshPromise;
+      await refreshSession();
       response = await doFetch();
     } catch {
       // refresh failed, propagate the 401
