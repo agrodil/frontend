@@ -13,9 +13,10 @@ import {
   LuShoppingCart,
   LuSquareCheck,
   LuSquare,
+  LuTriangleAlert,
 } from "react-icons/lu";
 import { adminApi } from "@/api/clients/admin.api";
-import type { AdminUser } from "@/api/clients/admin.api";
+import type { AdminUser, AdminIncident } from "@/api/clients/admin.api";
 import { postApi } from "@/api/clients/posts.api";
 import type { PostDetail } from "@/api/interfaces/responses/PostDetail.interface";
 import PostDetailModal from "@/presentation/ui/PostDetailModal/PostDetailModal";
@@ -50,6 +51,10 @@ const parsePurchaseCard = (message: string, typeId: number): PurchaseCardPayload
     /* not a card */
   }
   return null;
+};
+
+const INCIDENT_REASON_LABELS: Record<string, string> = {
+  phone_number: "Número de teléfono",
 };
 
 const formatDateTime = (iso: string) =>
@@ -150,6 +155,41 @@ const AdminChatPage: FC = () => {
     owner: string;
   } | null>(null);
   const [fetchingCardId, setFetchingCardId] = useState<string | null>(null);
+
+  // incidents
+  const [incidents, setIncidents] = useState<AdminIncident[]>([]);
+  const [incidentsLoading, setIncidentsLoading] = useState(true);
+  const [incidentsError, setIncidentsError] = useState<string | null>(null);
+  const [focusMessageId, setFocusMessageId] = useState<string | null>(null);
+
+  // ── Load incidents (independent of the search flow) ───────────────────────
+  useEffect(() => {
+    let cancelled = false;
+    adminApi
+      .getIncidents(100, 0)
+      .then((result) => {
+        if (!cancelled) setIncidents(result.incidents);
+      })
+      .catch(() => {
+        if (!cancelled) setIncidentsError("Error al cargar las incidencias.");
+      })
+      .finally(() => {
+        if (!cancelled) setIncidentsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Scroll + resalta brevemente el mensaje puntual de una incidencia, una vez
+  // que la conversación termina de cargar.
+  useEffect(() => {
+    if (!focusMessageId || messagesLoading) return;
+    const el = document.getElementById(`msg-${focusMessageId}`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const timer = setTimeout(() => setFocusMessageId(null), 2500);
+    return () => clearTimeout(timer);
+  }, [focusMessageId, messagesLoading, messages]);
 
   // ── Debounced user search ─────────────────────────────────────────────────
   useEffect(() => {
@@ -270,6 +310,53 @@ const AdminChatPage: FC = () => {
     // but we need an immediate fetch since debounced value is already "".
     setMessagesLoading(true);
     fetchMessages(foundUser.app_user_id, chat.other_user_id, "", 0)
+      .then((result) => {
+        setMessages(result.messages);
+        setPagination(result.pagination);
+      })
+      .catch(() => {
+        setMessages([]);
+        setPagination(null);
+      })
+      .finally(() => setMessagesLoading(false));
+  };
+
+  const openChatFromIncident = (incident: AdminIncident) => {
+    const offenderUser: AdminUser = {
+      app_user_id: incident.app_user_id,
+      email: "",
+      document_type: null,
+      document_number: null,
+      role_id: 0,
+      is_verified: false,
+      display_name: incident.offender_name || "Usuario",
+    };
+    const chat: Chat = {
+      purchase_notification_id: incident.purchase_notification_id,
+      sent_by: incident.app_user_id,
+      sent_to: incident.other_user_id,
+      livestock_post_id: null,
+      purchase_notification_type_id: 2,
+      message: incident.message,
+      is_read: true,
+      created_at: incident.created_at,
+      other_user_id: incident.other_user_id,
+      other_user_name: incident.other_user_name || "Usuario",
+      livestock_post_name: null,
+    };
+
+    setFoundUser(offenderUser);
+    setQuery(incident.offender_name);
+    setSelectedChat(chat);
+    setMessages([]);
+    setPagination(null);
+    setSelectedIds(new Set());
+    setMessageFilter("");
+    setMessageFilterDebounced("");
+    setFocusMessageId(incident.purchase_notification_id);
+    setView("chat-view");
+    setMessagesLoading(true);
+    fetchMessages(incident.app_user_id, incident.other_user_id, "", 0)
       .then((result) => {
         setMessages(result.messages);
         setPagination(result.pagination);
@@ -512,6 +599,83 @@ const AdminChatPage: FC = () => {
         </AnimatePresence>
       </motion.div>
 
+      {/* Incidents — always visible, independent of the search flow */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut", delay: 0.05 }}
+        className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6"
+      >
+        <div className="flex items-center gap-2 mb-4 font-bold text-gray-900">
+          <LuTriangleAlert size={18} className="text-amber-500" />
+          Incidencias
+          {incidentsLoading && (
+            <LuLoader size={16} className="text-gray-400 animate-spin ml-1" />
+          )}
+        </div>
+
+        {incidentsError && (
+          <p className="text-sm text-red-500">{incidentsError}</p>
+        )}
+
+        {!incidentsLoading && !incidentsError && incidents.length === 0 && (
+          <p className="text-sm text-gray-400">
+            No hay incidencias reportadas.
+          </p>
+        )}
+
+        {!incidentsLoading && incidents.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-gray-500 border-b border-gray-100">
+                  <th className="font-semibold py-2 pr-4">Motivo</th>
+                  <th className="font-semibold py-2 pr-4">Usuario</th>
+                  <th className="font-semibold py-2 pr-4">Mensaje</th>
+                  <th className="font-semibold py-2 pr-4">Fecha</th>
+                  <th className="font-semibold py-2">
+                    <span className="sr-only">Acciones</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {incidents.map((incident) => (
+                  <tr
+                    key={incident.purchase_notification_incident_id}
+                    className="border-b border-gray-50 last:border-0"
+                  >
+                    <td className="py-2.5 pr-4 whitespace-nowrap">
+                      <span className="inline-flex items-center rounded-full bg-amber-50 text-amber-700 text-xs font-semibold px-2.5 py-1">
+                        {INCIDENT_REASON_LABELS[incident.reason_name] ??
+                          incident.reason_name}
+                      </span>
+                    </td>
+                    <td className="py-2.5 pr-4 text-gray-800 whitespace-nowrap">
+                      {incident.offender_name || "—"}
+                    </td>
+                    <td className="py-2.5 pr-4 text-gray-600 max-w-xs truncate">
+                      {incident.message}
+                    </td>
+                    <td className="py-2.5 pr-4 text-gray-400 whitespace-nowrap">
+                      {formatDateTime(incident.created_at)}
+                    </td>
+                    <td className="py-2.5">
+                      <button
+                        type="button"
+                        onClick={() => openChatFromIncident(incident)}
+                        className="text-primary text-xs font-semibold hover:underline whitespace-nowrap"
+                      >
+                        Ver chat
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
+
       {/* Chat list view */}
       <AnimatePresence>
         {view === "chat-list" && (
@@ -720,12 +884,14 @@ const AdminChatPage: FC = () => {
                   const isDeleting = deletingId === msg.purchase_notification_id;
                   const isSelected = selectedIds.has(msg.purchase_notification_id);
                   const isFetchingCard = fetchingCardId === msg.purchase_notification_id;
+                  const isFocused = focusMessageId === msg.purchase_notification_id;
 
                   return (
                     <div
                       key={msg.purchase_notification_id}
+                      id={`msg-${msg.purchase_notification_id}`}
                       className={`px-5 py-4 flex items-start gap-3 transition-colors ${
-                        isSelected ? "bg-red-50" : ""
+                        isSelected ? "bg-red-50" : isFocused ? "bg-yellow-50" : ""
                       }`}
                     >
                       {/* Checkbox */}

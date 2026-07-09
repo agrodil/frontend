@@ -26,6 +26,23 @@ export type AdminChatMessagesResult = {
   pagination: ChatPagination;
 };
 
+export type AdminIncident = {
+  purchase_notification_incident_id: string;
+  purchase_notification_id: string;
+  app_user_id: string;
+  offender_name: string;
+  reason_name: string;
+  message: string;
+  created_at: string;
+  other_user_id: string;
+  other_user_name: string;
+};
+
+export type AdminIncidentsResult = {
+  incidents: AdminIncident[];
+  pagination: ChatPagination;
+};
+
 export const adminApi = {
   getStats: async (): Promise<AdminStats> => {
     const response = await fetchWithAuth("/admin/stats");
@@ -82,6 +99,23 @@ export const adminApi = {
     }
     const json = await response.json();
     return (json.data ?? json) as AdminChatMessagesResult;
+  },
+
+  getIncidents: async (
+    limit: number,
+    offset: number,
+  ): Promise<AdminIncidentsResult> => {
+    const params = new URLSearchParams({
+      limit: String(limit),
+      offset: String(offset),
+    });
+    const response = await fetchWithAuth(`/admin/incidents?${params}`);
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      throw new Error(`Failed to fetch incidents (status ${response.status}): ${body}`);
+    }
+    const json = await response.json();
+    return (json.data ?? json) as AdminIncidentsResult;
   },
 
   deleteMessage: async (messageId: string): Promise<void> => {

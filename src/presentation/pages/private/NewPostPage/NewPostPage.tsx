@@ -6,22 +6,44 @@ import MinusForm from "@minusui/form";
 import Button from "@/presentation/ui/Button";
 import { newPostFormFields, newPostSchema } from "./NewPostFormFields";
 import { useAuth } from "@/adapters/hooks/common/useAuth";
-import { uploadPost } from "@/presentation/router/actions/post.actions";
+import {
+  uploadPost,
+  type NewPostInput,
+  type UploadProgress,
+} from "@/presentation/router/actions/post.actions";
 
 type SubmitState = "idle" | "loading" | "success" | "error";
+
+const labelForProgress = (progress: UploadProgress): string => {
+  switch (progress.phase) {
+    case "compressing":
+      return "Optimizando imágenes...";
+    case "creating":
+      return "Creando publicación...";
+    case "uploading":
+      return `Subiendo archivo ${progress.index + 1} de ${progress.total}...`;
+    case "confirming":
+      return "Finalizando...";
+  }
+};
 
 const NewPostPage: FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
-  const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
+  const [pendingPayload, setPendingPayload] = useState<NewPostInput | null>(
+    null,
+  );
+  const [progressLabel, setProgressLabel] = useState<string>(
+    "Subiendo publicación...",
+  );
   const [errorMessage, setErrorMessage] = useState<string>(
     "No se pudo crear la publicación. Intenta de nuevo.",
   );
 
-  const buildFormData = (
+  const buildPayload = (
     data: Record<string, string | File | File[] | boolean>,
-  ): { formData: FormData; validationError: string | null } => {
+  ): { payload: NewPostInput | null; validationError: string | null } => {
     const municipalityRaw = user?.municipality;
     const townshipId = Number(municipalityRaw);
 
@@ -30,7 +52,7 @@ const NewPostPage: FC = () => {
         user,
       });
       return {
-        formData: new FormData(),
+        payload: null,
         validationError:
           "Tu perfil no tiene un municipio asignado. Actualiza tu perfil antes de publicar.",
       };
@@ -39,7 +61,7 @@ const NewPostPage: FC = () => {
     const breedName = typeof data.breed === "string" ? data.breed.trim() : "";
     if (!breedName) {
       return {
-        formData: new FormData(),
+        payload: null,
         validationError: "Debes indicar la raza predominante del lote.",
       };
     }
@@ -50,40 +72,26 @@ const NewPostPage: FC = () => {
     if (saleTypeId === 1) {
       if (!data.avgWeightKg) {
         return {
-          formData: new FormData(),
+          payload: null,
           validationError: "Debes indicar el peso promedio (kg).",
         };
       }
       if (!data.pricePerKg) {
         return {
-          formData: new FormData(),
+          payload: null,
           validationError: "Debes indicar el precio por kg.",
         };
       }
     } else if (saleTypeId === 2) {
       if (!data.pricePerUnit) {
         return {
-          formData: new FormData(),
+          payload: null,
           validationError: "Debes indicar el precio por unidad.",
         };
       }
     }
 
-    const formData = new FormData();
-
     const mediaFiles = Array.isArray(data.media) ? (data.media as File[]) : [];
-    mediaFiles.forEach((file) => formData.append("files", file));
-
-    if (mediaFiles.length > 0) {
-      const filesMetadata = mediaFiles.map((file, index) => ({
-        fileName: file.name,
-        fileSizeBytes: file.size,
-        mimeType: file.type,
-        isMainFile: index === 0,
-        displayOrder: index + 1,
-      }));
-      formData.append("files", JSON.stringify(filesMetadata));
-    }
 
     const post = {
       livestockTypeId: 1,
@@ -101,14 +109,16 @@ const NewPostPage: FC = () => {
     };
 
     console.debug("[NewPostPage] Payload generado para /posts", post);
-    formData.append("post", JSON.stringify(post));
-    return { formData, validationError: null };
+    return { payload: { post, media: mediaFiles }, validationError: null };
   };
 
-  const submit = async (formData: FormData) => {
+  const submit = async (payload: NewPostInput) => {
     setSubmitState("loading");
+    setProgressLabel("Preparando archivos...");
     try {
-      await uploadPost(formData);
+      await uploadPost(payload, (progress) =>
+        setProgressLabel(labelForProgress(progress)),
+      );
       setSubmitState("success");
     } catch (error) {
       const detail =
@@ -120,20 +130,20 @@ const NewPostPage: FC = () => {
   };
 
   const handleSubmit = (data: Record<string, unknown>) => {
-    const { formData, validationError } = buildFormData(
+    const { payload, validationError } = buildPayload(
       data as Record<string, string | File | File[] | boolean>,
     );
 
-    if (validationError) {
+    if (validationError || !payload) {
       console.warn("[NewPostPage] Validación previa falló:", validationError);
-      setErrorMessage(validationError);
-      setPendingFormData(null);
+      setErrorMessage(validationError ?? "Datos inválidos.");
+      setPendingPayload(null);
       setSubmitState("error");
       return;
     }
 
-    setPendingFormData(formData);
-    submit(formData);
+    setPendingPayload(payload);
+    submit(payload);
   };
 
   return (
@@ -179,9 +189,7 @@ const NewPostPage: FC = () => {
               {submitState === "loading" && (
                 <>
                   <LuLoader size={48} className="text-primary animate-spin" />
-                  <p className="text-gray-600 font-medium">
-                    Subiendo publicación...
-                  </p>
+                  <p className="text-gray-600 font-medium">{progressLabel}</p>
                 </>
               )}
 
@@ -213,14 +221,12 @@ const NewPostPage: FC = () => {
                     {errorMessage}
                   </p>
                   <div className="flex gap-3 w-full mt-2">
-                    {pendingFormData ? (
+                    {pendingPayload ? (
                       <Button
                         label="Reintentar"
                         variant="primary"
                         className="flex-1"
-                        onClick={() => {
-                          setSubmitState("idle");
-                        }}
+                        onClick={() => submit(pendingPayload)}
                       />
                     ) : (
                       <Button
