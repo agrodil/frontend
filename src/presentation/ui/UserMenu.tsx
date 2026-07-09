@@ -9,9 +9,10 @@ import { fullName } from "@/shared/utils/fullName";
 
 interface UserMenuProps {
   user: User;
+  onNavigate?: () => void;
 }
 
-const UserMenu: FC<UserMenuProps> = ({ user }) => {
+const UserMenu: FC<UserMenuProps> = ({ user, onNavigate }) => {
   const displayName = fullName(user);
   const initials = getInitials(displayName);
   const avatarColor = getAvatarColor(user.email);
@@ -19,7 +20,10 @@ const UserMenu: FC<UserMenuProps> = ({ user }) => {
 
   return (
     <div
-      onClick={() => navigate("/me")}
+      onClick={() => {
+        navigate("/me");
+        onNavigate?.();
+      }}
       className="flex items-center gap-2.5 border border-gray-200 rounded-2xl p-2 bg-white shadow-sm cursor-pointer hover:border-primary/40 transition-colors"
     >
       <div
