@@ -232,7 +232,18 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
     if (!trimmed || sending) return;
 
     // Censura teléfonos ANTES de enviar: el número crudo nunca sale del cliente.
-    const { sanitized, violations } = moderate(trimmed);
+    // Se chequea también contra los últimos mensajes propios (sin cards/status
+    // de compra) por si el número viene partido entre varios mensajes.
+    const recentOwnMessages = messages
+      .filter(
+        (m) =>
+          m.sent_by === user?.id &&
+          !parsePurchaseCard(m.message) &&
+          !parsePurchaseStatus(m.message),
+      )
+      .slice(-3)
+      .map((m) => m.message);
+    const { sanitized, violations } = moderate(trimmed, recentOwnMessages);
 
     setSending(true);
     setText("");
