@@ -18,12 +18,31 @@ export interface ModerationResult {
  * checker acá — el call site en ChatWindow no cambia.
  */
 export const useMessageModeration = () => {
-  const moderate = (raw: string): ModerationResult => {
+  /**
+   * @param raw mensaje actual, sin censurar
+   * @param recentOwnMessages últimos mensajes propios ya enviados en este chat
+   * (más antiguo → más reciente), para detectar un teléfono partido entre
+   * varios mensajes (ej: "0412" en uno, "9968751" en el siguiente — ninguno
+   * matchea solo, concatenados sí).
+   */
+  const moderate = (
+    raw: string,
+    recentOwnMessages: string[] = [],
+  ): ModerationResult => {
     const violations: Violation[] = [];
 
     const sanitized = banPhone(raw);
     if (sanitized !== raw) {
       violations.push({ reason: "phone_number", rawMessage: raw });
+      return { sanitized, violations };
+    }
+
+    if (recentOwnMessages.length > 0) {
+      const combined = [...recentOwnMessages, raw].join(" ");
+      if (banPhone(combined) !== combined) {
+        violations.push({ reason: "phone_number", rawMessage: combined });
+        return { sanitized: "*".repeat(raw.length), violations };
+      }
     }
 
     return { sanitized, violations };
