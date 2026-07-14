@@ -4,8 +4,8 @@
   "description": "Marketplace ganadero agrícola",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#fbfaf2",
+  "theme_color": "#fbfaf2",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -18,7 +18,7 @@
       "type": "image/png"
     },
     {
-      "src": "/icon-512.png",
+      "src": "/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
