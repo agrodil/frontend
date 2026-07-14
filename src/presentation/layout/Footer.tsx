@@ -16,8 +16,7 @@ const DEFAULT_SECTIONS = [
     links: [
       { label: "Inicio", href: "/" },
       { label: "Categorías", href: "/categorias" },
-      { label: "Vender", href: "/vender" },
-      { label: "Cómo funciona", href: "/como-funciona" },
+      { label: "Vender", href: "/new-post" },
     ],
   },
   {
@@ -34,7 +33,6 @@ const DEFAULT_SECTIONS = [
     links: [
       { label: "Términos y condiciones", href: "/terminos" },
       { label: "Política de privacidad", href: "/privacidad" },
-      { label: "Política de cookies", href: "/cookies" },
     ],
   },
 ];
@@ -42,7 +40,7 @@ const DEFAULT_SECTIONS = [
 const Footer: FC<FooterProps> = ({
   sections = DEFAULT_SECTIONS,
   contactEmail = "soporte@agrodil.com",
-  contactPhone = "+57 300 000 0000",
+  contactPhone = "+58 412-9968751",
   socialLinks = {},
 }) => {
   return (
@@ -62,7 +60,7 @@ const Footer: FC<FooterProps> = ({
             </span>
             <p className="text-white/70 text-sm leading-relaxed">
               El marketplace ganadero de confianza. Conectamos compradores y
-              vendedores de ganado en toda la región.
+              vendedores de ganado en todo el Zulia.
             </p>
           </div>
 
