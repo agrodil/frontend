@@ -1,6 +1,6 @@
 import { fetchWithAuth } from "../fetchWithAuth";
 
-export type IncidentReason = "phone_number";
+export type IncidentReason = "phone_number" | "email";
 
 export const incidentsApi = {
   reportIncident: async (data: {
