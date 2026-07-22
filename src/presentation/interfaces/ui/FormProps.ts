@@ -38,6 +38,9 @@ export interface FormField {
     value: string | number;
   };
   onAsyncCheck?: (value: string) => void;
+  // Para campos image: se dispara al seleccionar archivo (validación async con los
+  // valores actuales del form, p.ej. cross-check OCR contra otro campo).
+  onFileSelect?: (file: File, values: Record<string, string>) => void;
   asyncError?: string | null;
   isChecking?: boolean;
   asyncAvailable?: boolean | null;
@@ -54,4 +57,7 @@ export interface FormProps {
   footer?: ReactNode;
   singleColumn?: boolean;
   backendErrors?: Record<string, string>;
+  // Muestra el aviso de aceptación de Términos y Política de privacidad (solo
+  // aplica al registro, no al login/verificación).
+  showLegalNotice?: boolean;
 }

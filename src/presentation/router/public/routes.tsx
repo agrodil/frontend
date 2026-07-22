@@ -2,10 +2,21 @@
 import AuthPage from "@/presentation/pages/public/AuthPage/AuthPage";
 import LandingPage from "@/presentation/pages/public/LandingPage";
 import PostsPage from "@/presentation/pages/public/PostsPage/PostsPage";
+import LegalPage from "@/presentation/pages/public/LegalPage/LegalPage";
+import { termsDocument, privacyDocument } from "@/shared/constants/legal";
 import { getLandingData } from "../loaders/landing.loader";
 import { getPostsData } from "../loaders/posts.loader";
 
 export const routes = [
+  // Vistas legales: pantalla limpia, fuera del RootLayout (sin navbar/footer).
+  {
+    path: "/terms-and-conditions",
+    element: <LegalPage {...termsDocument} />,
+  },
+  {
+    path: "/privacy-policy",
+    element: <LegalPage {...privacyDocument} />,
+  },
   {
     element: <RootLayout />,
     children: [

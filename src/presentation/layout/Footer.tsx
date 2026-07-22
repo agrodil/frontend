@@ -25,15 +25,15 @@ const DEFAULT_SECTIONS = [
   {
     title: "Legal",
     links: [
-      { label: "Términos y condiciones", href: "/terminos" },
-      { label: "Política de privacidad", href: "/privacidad" },
+      { label: "Términos y condiciones", href: "/terms-and-conditions" },
+      { label: "Política de privacidad", href: "/privacy-policy" },
     ],
   },
 ];
 
 const Footer: FC<FooterProps> = ({
   sections = DEFAULT_SECTIONS,
-  contactEmail = "soporte@agrodil.com",
+  contactEmail = "admin@agrodilmarket.com",
   socialLinks = {},
 }) => {
   return (

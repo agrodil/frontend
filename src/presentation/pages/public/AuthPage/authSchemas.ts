@@ -47,6 +47,7 @@ export const registerSchema = z
       .string()
       .min(8, "La contraseña debe tener al menos 8 caracteres"),
     confirmPassword: z.string().min(1, "Confirma la contraseña"),
+    id_document: z.instanceof(File).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.password !== data.confirmPassword) {
@@ -78,6 +79,13 @@ export const registerSchema = z
           code: "custom",
           message: "El apellido es requerido",
           path: ["surnames"],
+        });
+      }
+      if (!(data.id_document instanceof File)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Sube una foto de tu cédula",
+          path: ["id_document"],
         });
       }
     }
