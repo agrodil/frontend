@@ -89,8 +89,6 @@ const RootLayout: FC = () => {
         contactPhone="+58 412-0634175"
         socialLinks={{
           instagram: "https://instagram.com/agrodil",
-          facebook: "https://facebook.com/agrodil",
-          whatsapp: "https://wa.me/584120634175",
         }}
       />
       <ScrollRestoration />

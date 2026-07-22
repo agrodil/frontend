@@ -1,13 +1,7 @@
 ﻿import type { FC } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  LuMail,
-  LuPhone,
-  LuInstagram,
-  LuFacebook,
-  LuMessageCircle,
-} from "react-icons/lu";
+import { LuMail, LuPhone, LuInstagram } from "react-icons/lu";
 import type { FooterProps } from "@/presentation/interfaces/ui/FooterProps";
 
 const DEFAULT_SECTIONS = [
@@ -40,7 +34,6 @@ const DEFAULT_SECTIONS = [
 const Footer: FC<FooterProps> = ({
   sections = DEFAULT_SECTIONS,
   contactEmail = "soporte@agrodil.com",
-  contactPhone = "+58 412-9968751",
   socialLinks = {},
 }) => {
   return (
@@ -60,7 +53,7 @@ const Footer: FC<FooterProps> = ({
             </span>
             <p className="text-white/70 text-sm leading-relaxed">
               El marketplace ganadero de confianza. Conectamos compradores y
-              vendedores de ganado en todo el Zulia.
+              vendedores de ganado en toda Venezuela.
             </p>
           </div>
 
@@ -72,13 +65,6 @@ const Footer: FC<FooterProps> = ({
             >
               <LuMail className="shrink-0" />
               {contactEmail}
-            </a>
-            <a
-              href={`tel:${contactPhone.replace(/\s/g, "")}`}
-              className="flex items-center gap-2 text-white/80 hover:text-white transition-colors text-sm no-underline"
-            >
-              <LuPhone className="shrink-0" />
-              {contactPhone}
             </a>
           </div>
 
@@ -93,28 +79,6 @@ const Footer: FC<FooterProps> = ({
                 className="text-white/70 hover:text-white transition-colors"
               >
                 <LuInstagram size={20} />
-              </a>
-            )}
-            {socialLinks.facebook && (
-              <a
-                href={socialLinks.facebook}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Facebook"
-                className="text-white/70 hover:text-white transition-colors"
-              >
-                <LuFacebook size={20} />
-              </a>
-            )}
-            {socialLinks.whatsapp && (
-              <a
-                href={socialLinks.whatsapp}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="WhatsApp"
-                className="text-white/70 hover:text-white transition-colors"
-              >
-                <LuMessageCircle size={20} />
               </a>
             )}
           </div>
