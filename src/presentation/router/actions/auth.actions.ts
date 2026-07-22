@@ -21,6 +21,10 @@ export const login = async (data: Login): Promise<AuthResponse> => {
 export const register = async (data: Register): Promise<RegisterResponse> =>
   authApi.register(data);
 
+export const registerWithDocument = async (
+  formData: FormData,
+): Promise<RegisterResponse> => authApi.registerMultipart(formData);
+
 export const verifyEmail = async (
   userId: string,
   code: string,

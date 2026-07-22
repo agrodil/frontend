@@ -10,9 +10,12 @@ import Loader from "@/presentation/layout/Loader";
 import {
   login as loginAction,
   register as registerAction,
+  registerWithDocument,
   verifyEmail,
   resendVerification,
 } from "@/presentation/router/actions/auth.actions";
+import { compressImage } from "@/shared/utils/compressImage";
+import { validateIdDocument } from "@/shared/utils/validateIdDocument";
 import { useAuth } from "@/adapters/hooks/common/useAuth";
 import { useCheckAvailability } from "@/adapters/hooks/actions/useCheckAvailability";
 import {
@@ -41,6 +44,16 @@ const AuthPage: FC = () => {
     [loginErrors, setLoginErrors] = useState<Record<string, string>>({}),
     [registerErrors, setRegisterErrors] = useState<Record<string, string>>({}),
     [verifyErrors, setVerifyErrors] = useState<Record<string, string>>({});
+
+  // Validación de la cédula al SELECCIONAR la imagen (no en submit). Guarda el
+  // archivo ya comprimido+validado y contra qué número se validó, para no repetir
+  // el OCR en el submit y detectar si luego cambian el número.
+  const [idDoc, setIdDoc] = useState<{
+    isChecking: boolean;
+    error: string | null;
+    file: File | null;
+    validatedFor: string | null;
+  }>({ isChecking: false, error: null, file: null, validatedFor: null });
 
   const { login } = useAuth();
   const emailCheck = useCheckAvailability(
@@ -86,6 +99,52 @@ const AuthPage: FC = () => {
     }
   };
 
+  // Corre al seleccionar la imagen en el form: comprime (normaliza HEIC→JPEG) y
+  // valida (formato/nitidez + cross-check OCR del número de cédula tecleado).
+  const handleIdDocSelect = async (
+    file: File,
+    values: Record<string, string>,
+  ) => {
+    const docNumber = (values.document_number ?? "").trim();
+    if (!docNumber) {
+      setIdDoc({
+        isChecking: false,
+        error: "Ingresa tu número de cédula antes de subir la foto",
+        file: null,
+        validatedFor: null,
+      });
+      return;
+    }
+
+    setIdDoc({ isChecking: true, error: null, file: null, validatedFor: null });
+    try {
+      const compressed = await compressImage(file);
+      const check = await validateIdDocument(compressed, docNumber);
+      if (check.ok) {
+        setIdDoc({
+          isChecking: false,
+          error: null,
+          file: compressed,
+          validatedFor: docNumber,
+        });
+      } else {
+        setIdDoc({
+          isChecking: false,
+          error: check.reason ?? "La imagen no es válida",
+          file: null,
+          validatedFor: null,
+        });
+      }
+    } catch {
+      setIdDoc({
+        isChecking: false,
+        error: "No se pudo validar la imagen",
+        file: null,
+        validatedFor: null,
+      });
+    }
+  };
+
   const handleRegister = async (
     data: Record<string, string | File | File[] | boolean>,
   ) => {
@@ -93,9 +152,11 @@ const AuthPage: FC = () => {
     setRegisterErrors({});
     try {
       const rememberMe = !!data.remember_me;
+
       const raw = { ...(data as Record<string, string>) };
       delete raw.confirmPassword;
       delete raw.remember_me;
+      delete raw.id_document;
 
       if (raw.document_type === "J") {
         delete raw.names;
@@ -124,7 +185,36 @@ const AuthPage: FC = () => {
         document_number: Number(raw.document_number),
         township_id: raw.township_id ? Number(raw.township_id) : undefined,
       } as Register;
-      const { userId } = await registerAction(payload);
+
+      let userId: string;
+
+      // Persona natural (V): la imagen ya se validó al seleccionarla (ver
+      // handleIdDocSelect). Aquí solo reusamos el archivo comprimido/validado.
+      if (payload.document_type === "V") {
+        if (
+          !idDoc.file ||
+          idDoc.validatedFor !== String(payload.document_number)
+        ) {
+          setRegisterErrors({
+            id_document:
+              idDoc.error ?? "Sube y valida la foto de tu cédula",
+          });
+          return;
+        }
+
+        const formData = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formData.append(key, String(value));
+          }
+        });
+        formData.append("id_document", idDoc.file);
+
+        ({ userId } = await registerWithDocument(formData));
+      } else {
+        ({ userId } = await registerAction(payload));
+      }
+
       setPendingUserId(userId);
       setPendingEmail(raw.email);
       setPendingRememberMe(rememberMe);
@@ -254,6 +344,15 @@ const AuthPage: FC = () => {
             asyncAvailable: docCheck.isAvailable,
           };
         }
+        if (field.name === "id_document") {
+          return {
+            ...field,
+            onFileSelect: handleIdDocSelect,
+            asyncError: idDoc.error,
+            isChecking: idDoc.isChecking,
+            asyncAvailable: !!idDoc.file,
+          };
+        }
         return field;
       }),
       schema: registerSchema,
@@ -337,6 +436,7 @@ const AuthPage: FC = () => {
                 footer={current.footer}
                 singleColumn
                 backendErrors={current.backendErrors}
+                showLegalNotice={view === "register"}
               />
             </motion.div>
           </AnimatePresence>

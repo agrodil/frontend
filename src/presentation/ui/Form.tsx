@@ -11,6 +11,7 @@ import {
 import Button from "./Button";
 
 import type { FormProps } from "@/presentation/interfaces/ui/FormProps";
+import { Link } from "react-router-dom";
 
 const baseInput =
   "w-full bg-gray-100 rounded-full px-4 py-2.5 text-sm outline-none border border-gray-200 focus:border-primary/40 transition-colors placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed";
@@ -26,6 +27,7 @@ const Form: FC<FormProps> = ({
   footer,
   singleColumn = false,
   backendErrors = {},
+  showLegalNotice = false,
 }) => {
   const [values, setValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(fields.map((f) => [f.name, f.defaultValue ?? ""])),
@@ -52,6 +54,9 @@ const Form: FC<FormProps> = ({
   const handleFile = (name: string, file: File) => {
     setFiles((prev) => ({ ...prev, [name]: file }));
     setPreviews((prev) => ({ ...prev, [name]: URL.createObjectURL(file) }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
+    const field = fields.find((f) => f.name === name);
+    field?.onFileSelect?.(file, values);
   };
 
   const handleMediaAdd = (name: string, maxFiles: number, incoming: File[]) => {
@@ -245,7 +250,7 @@ const Form: FC<FormProps> = ({
                     name={field.name}
                     accept={field.accept ?? "image/*"}
                     required={field.required}
-                    disabled={field.disabled}
+                    disabled={field.disabled || field.isChecking}
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) handleFile(field.name, file);
@@ -253,6 +258,17 @@ const Form: FC<FormProps> = ({
                     className="hidden"
                   />
                 </label>
+                {field.isChecking && (
+                  <p className="text-xs text-primary mt-0.5 pl-1">
+                    Validando documento...
+                  </p>
+                )}
+                {field.asyncAvailable && !field.isChecking && (
+                  <p className="text-xs text-green-500 mt-0.5 pl-1">
+                    Documento válido
+                  </p>
+                )}
+                <FieldError name={field.name} />
               </div>
             );
           }
@@ -463,6 +479,22 @@ const Form: FC<FormProps> = ({
           );
         })}
       </div>
+
+      {showLegalNotice && (
+        <p className="text-xs text-gray-500 text-center">
+          Al crear su cuenta, se reconoce que ha leído y acepta los{" "}
+          <Link
+            to="/terms-and-conditions"
+            className="text-primary hover:underline"
+          >
+            Términos y Condiciones
+          </Link>{" "}
+          y la{" "}
+          <Link to="/privacy-policy" className="text-primary hover:underline">
+            Política de Privacidad
+          </Link>
+        </p>
+      )}
 
       <Button
         label={isLoading ? "Cargando..." : submitLabel}

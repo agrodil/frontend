@@ -83,6 +83,26 @@ const fetchIdempotent = async (
   throw lastError ?? new Error("Request failed");
 };
 
+// Convierte una respuesta no-ok en AuthError, mapeando el mensaje genérico del
+// backend a un campo específico cuando se puede.
+const throwAuthError = async (response: Response): Promise<never> => {
+  const error = await response.json().catch(() => ({}));
+  const fieldErrors: Record<string, string> = {};
+  const message = error.message ?? "Error de autenticación";
+
+  if (message.includes("email")) fieldErrors.email = message;
+  else if (message.includes("password")) fieldErrors.password = message;
+  else if (message.includes("already exists")) fieldErrors.email = message;
+  else if (message.includes("verified")) fieldErrors.email = message;
+  else if (message.includes("documento")) fieldErrors.id_document = message;
+
+  throw new AuthError(
+    message,
+    error.statusCode || response.status,
+    Object.keys(fieldErrors).length > 0 ? fieldErrors : undefined,
+  );
+};
+
 const authFetch = async (endpoint: string, body: unknown) => {
   const response = await fetch(`${url}${endpoint}`, {
     method: "POST",
@@ -91,24 +111,22 @@ const authFetch = async (endpoint: string, body: unknown) => {
     body: JSON.stringify(body),
   });
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    const fieldErrors: Record<string, string> = {};
+  if (!response.ok) await throwAuthError(response);
 
-    // Intentar mapear errores genéricos a campos específicos
-    const message = error.message ?? "Error de autenticación";
+  const json = await response.json();
+  return json.data;
+};
 
-    if (message.includes("email")) fieldErrors.email = message;
-    else if (message.includes("password")) fieldErrors.password = message;
-    else if (message.includes("already exists")) fieldErrors.email = message;
-    else if (message.includes("verified")) fieldErrors.email = message;
+// Registro con archivo: multipart/form-data. NO se setea Content-Type a mano —
+// el browser agrega el boundary. Mismo mapeo de errores que authFetch.
+const authFetchMultipart = async (endpoint: string, formData: FormData) => {
+  const response = await fetch(`${url}${endpoint}`, {
+    method: "POST",
+    credentials: "include",
+    body: formData,
+  });
 
-    throw new AuthError(
-      message,
-      error.statusCode || response.status,
-      Object.keys(fieldErrors).length > 0 ? fieldErrors : undefined,
-    );
-  }
+  if (!response.ok) await throwAuthError(response);
 
   const json = await response.json();
   return json.data;
@@ -117,6 +135,8 @@ const authFetch = async (endpoint: string, body: unknown) => {
 export const authApi = {
   login: (data: Login) => authFetch("/auth/login", data),
   register: (data: Register) => authFetch("/auth/register", data),
+  registerMultipart: (formData: FormData) =>
+    authFetchMultipart("/auth/register", formData),
   verifyEmail: (data: {
     userId: string;
     code: string;

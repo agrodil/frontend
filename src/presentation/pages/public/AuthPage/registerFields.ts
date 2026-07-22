@@ -45,6 +45,15 @@ export const registerFields: FormField[] = [
     dependsOn: { fieldName: "document_type", value: "J" },
   },
   {
+    name: "id_document",
+    type: "image",
+    label: "Foto de tu cédula",
+    placeholder: "Sube una foto clara de tu cédula",
+    accept: "image/jpeg,image/png,image/webp",
+    required: true,
+    dependsOn: { fieldName: "document_type", value: "V" },
+  },
+  {
     name: "township_id",
     type: "select",
     label: "Municipio",
