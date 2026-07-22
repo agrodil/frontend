@@ -1,7 +1,7 @@
 ﻿import type { FC } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LuMail, LuPhone, LuInstagram } from "react-icons/lu";
+import { LuMail, LuInstagram } from "react-icons/lu";
 import type { FooterProps } from "@/presentation/interfaces/ui/FooterProps";
 
 const DEFAULT_SECTIONS = [
