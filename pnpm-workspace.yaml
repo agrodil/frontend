@@ -1,6 +1,7 @@
 allowBuilds:
   '@swc/core': true
   esbuild: true
+  tesseract.js: set this to true or false
 minimumReleaseAgeExclude:
   - '@minusui/form@1.0.0'
   - '@minusui/utils@0.0.1'
