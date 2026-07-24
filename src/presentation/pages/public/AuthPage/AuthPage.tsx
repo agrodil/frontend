@@ -128,9 +128,15 @@ const AuthPage: FC = () => {
           validatedFor: docNumber,
         });
       } else {
+        // TODO DEBUG TEMPORAL: se anexa check.debug al mensaje visible para
+        // calibrar los umbrales de validación. Quitar la línea "DEBUG:" cuando
+        // ya no se necesite (dejar solo check.reason).
+        const message = check.debug
+          ? `${check.reason ?? "La imagen no es válida"} — DEBUG: ${check.debug}`
+          : (check.reason ?? "La imagen no es válida");
         setIdDoc({
           isChecking: false,
-          error: check.reason ?? "La imagen no es válida",
+          error: message,
           file: null,
           validatedFor: null,
         });
