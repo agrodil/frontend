@@ -17,22 +17,43 @@ const BLUR_VARIANCE_THRESHOLD = 8; // varianza del Laplaciano; solo caza fotos c
 const BLUR_SAMPLE_EDGE = 512; // px para el cálculo de nitidez
 const OCR_MAX_EDGE = 1500; // px para acelerar/afinar el OCR
 
+const LOG = "[validateIdDocument]";
+
 export async function validateIdDocument(
   file: File,
   expectedDocNumber: string,
 ): Promise<IdDocumentValidationResult> {
+  console.groupCollapsed(`${LOG} validando cédula`);
+  console.log("archivo:", {
+    type: file.type,
+    sizeKB: Math.round(file.size / 1024),
+    numeroTecleado: expectedDocNumber,
+  });
+
+  // Loguea el motivo del rechazo y cierra el grupo antes de devolver.
+  const reject = (reason: string, detail?: unknown): IdDocumentValidationResult => {
+    console.warn(`${LOG} RECHAZO:`, reason, detail ?? "");
+    console.groupEnd();
+    return { ok: false, reason };
+  };
+  const accept = (): IdDocumentValidationResult => {
+    console.log(`${LOG} VÁLIDA ✓`);
+    console.groupEnd();
+    return { ok: true };
+  };
+
   // 1. Formato y tamaño del archivo
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return { ok: false, reason: "Formato no permitido. Usa JPEG, PNG o WEBP" };
+    return reject("Formato no permitido. Usa JPEG, PNG o WEBP", file.type);
   }
   if (file.size > MAX_BYTES) {
-    return { ok: false, reason: "La imagen es demasiado grande (máx. 5MB)" };
+    return reject("La imagen es demasiado grande (máx. 5MB)", `${Math.round(file.size / 1024)}KB`);
   }
   if (file.size < MIN_BYTES) {
-    return {
-      ok: false,
-      reason: "La imagen es demasiado pequeña para ser un documento válido",
-    };
+    return reject(
+      "La imagen es demasiado pequeña para ser un documento válido",
+      `${Math.round(file.size / 1024)}KB`,
+    );
   }
 
   // 2. Cargar la imagen
@@ -40,26 +61,33 @@ export async function validateIdDocument(
   try {
     img = await loadImage(file);
   } catch {
-    return { ok: false, reason: "No se pudo leer la imagen" };
+    return reject("No se pudo leer la imagen");
   }
 
   try {
     // 3. Dimensiones mínimas
     const longEdge = Math.max(img.naturalWidth, img.naturalHeight);
+    console.log("dimensiones:", {
+      w: img.naturalWidth,
+      h: img.naturalHeight,
+      ladoLargo: longEdge,
+      minimo: MIN_LONG_EDGE,
+    });
     if (longEdge < MIN_LONG_EDGE) {
-      return {
-        ok: false,
-        reason: "La imagen tiene muy baja resolución. Toma una foto más nítida",
-      };
+      return reject(
+        "La imagen tiene muy baja resolución. Toma una foto más nítida",
+        longEdge,
+      );
     }
 
     // 4. Nitidez (varianza del Laplaciano)
     const variance = laplacianVariance(img);
+    console.log("nitidez (varianza Laplaciano):", variance.toFixed(1), "umbral:", BLUR_VARIANCE_THRESHOLD);
     if (variance < BLUR_VARIANCE_THRESHOLD) {
-      return {
-        ok: false,
-        reason: "La imagen se ve borrosa. Toma una foto más clara y enfocada",
-      };
+      return reject(
+        "La imagen se ve borrosa. Toma una foto más clara y enfocada",
+        variance.toFixed(1),
+      );
     }
 
     // 5. Cross-check OCR: el número de cédula tecleado debe aparecer en la foto.
@@ -76,26 +104,31 @@ export async function validateIdDocument(
         // Si el motor OCR no pudo cargar/correr (CDN, red, WASM), NO bloqueamos:
         // omitimos el cross-check y dejamos pasar con la heurística. El gate real
         // es server-side de todas formas.
-        console.warn(
-          "[validateIdDocument] OCR no disponible, se omite el cross-check",
-          error,
-        );
+        console.warn(`${LOG} OCR no disponible, se omite el cross-check`, error);
       }
 
       if (ocrText !== null) {
         const ocrDigits = normalizeToDigits(ocrText);
         const tolerance = expectedDigits.length <= 6 ? 1 : 2;
-        if (!fuzzyDigitMatch(ocrDigits, expectedDigits, tolerance)) {
-          return {
-            ok: false,
-            reason:
-              "No pudimos leer el número de tu cédula en la foto. Asegúrate de que se vea completo, nítido y sin reflejos",
-          };
+        const best = bestFuzzyDistance(ocrDigits, expectedDigits);
+        console.log("OCR texto crudo:\n" + ocrText.trim());
+        console.log("OCR dígitos normalizados:", ocrDigits);
+        console.log("cross-check número:", {
+          esperado: expectedDigits,
+          mejorDistancia: best,
+          tolerancia: tolerance,
+          coincide: best <= tolerance,
+        });
+        if (best > tolerance) {
+          return reject(
+            "No pudimos leer el número de tu cédula en la foto. Asegúrate de que se vea completo, nítido y sin reflejos",
+            { esperado: expectedDigits, mejorDistancia: best, tolerancia: tolerance },
+          );
         }
       }
     }
 
-    return { ok: true };
+    return accept();
   } finally {
     if (img.src.startsWith("blob:")) URL.revokeObjectURL(img.src);
   }
@@ -198,24 +231,22 @@ function normalizeToDigits(text: string): string {
     .replace(/\D/g, "");
 }
 
-// ¿Aparece `needle` dentro de `haystack` permitiendo hasta `maxDist` errores
-// (sustitución/inserción/borrado)? Prueba ventanas de longitud needle.length ±1.
-function fuzzyDigitMatch(
-  haystack: string,
-  needle: string,
-  maxDist: number,
-): boolean {
-  if (needle.length === 0) return true;
+// Mejor (mínima) distancia de edición entre `needle` y cualquier ventana de
+// `haystack` de longitud needle.length ±1. 0 = coincidencia exacta encontrada.
+// Sirve tanto para decidir (best <= tolerancia) como para loguear qué tan cerca quedó.
+function bestFuzzyDistance(haystack: string, needle: string): number {
+  if (needle.length === 0) return 0;
+  let best = needle.length; // peor caso: reemplazar todo
   const lengths = [needle.length - 1, needle.length, needle.length + 1];
   for (const len of lengths) {
     if (len <= 0) continue;
     for (let i = 0; i + len <= haystack.length; i++) {
-      if (levenshtein(haystack.slice(i, i + len), needle) <= maxDist) {
-        return true;
-      }
+      const dist = levenshtein(haystack.slice(i, i + len), needle);
+      if (dist < best) best = dist;
+      if (best === 0) return 0;
     }
   }
-  return false;
+  return best;
 }
 
 function levenshtein(a: string, b: string): number {
