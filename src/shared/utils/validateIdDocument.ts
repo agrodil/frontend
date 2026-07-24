@@ -7,6 +7,10 @@
 export interface IdDocumentValidationResult {
   ok: boolean;
   reason?: string;
+  // TODO DEBUG TEMPORAL: detalle técnico del rechazo, para mostrar en la UI
+  // mientras se calibran los umbrales. Quitar junto con su render en AuthPage
+  // cuando ya no se necesite.
+  debug?: string;
 }
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -17,42 +21,33 @@ const BLUR_VARIANCE_THRESHOLD = 8; // varianza del Laplaciano; solo caza fotos c
 const BLUR_SAMPLE_EDGE = 512; // px para el cálculo de nitidez
 const OCR_MAX_EDGE = 1500; // px para acelerar/afinar el OCR
 
-const LOG = "[validateIdDocument]";
-
 export async function validateIdDocument(
   file: File,
   expectedDocNumber: string,
 ): Promise<IdDocumentValidationResult> {
-  console.groupCollapsed(`${LOG} validando cédula`);
-  console.log("archivo:", {
-    type: file.type,
-    sizeKB: Math.round(file.size / 1024),
-    numeroTecleado: expectedDocNumber,
+  // TODO DEBUG TEMPORAL: acumula el contexto técnico recorrido hasta el punto
+  // de rechazo, para adjuntarlo al resultado y mostrarlo en la UI.
+  const trail: string[] = [];
+  const log = (line: string) => trail.push(line);
+  const reject = (reason: string): IdDocumentValidationResult => ({
+    ok: false,
+    reason,
+    debug: trail.join(" | "),
   });
 
-  // Loguea el motivo del rechazo y cierra el grupo antes de devolver.
-  const reject = (reason: string, detail?: unknown): IdDocumentValidationResult => {
-    console.warn(`${LOG} RECHAZO:`, reason, detail ?? "");
-    console.groupEnd();
-    return { ok: false, reason };
-  };
-  const accept = (): IdDocumentValidationResult => {
-    console.log(`${LOG} VÁLIDA ✓`);
-    console.groupEnd();
-    return { ok: true };
-  };
+  log(`archivo: ${file.type}, ${Math.round(file.size / 1024)}KB`);
+  log(`número tecleado: ${expectedDocNumber}`);
 
   // 1. Formato y tamaño del archivo
   if (!ALLOWED_TYPES.includes(file.type)) {
-    return reject("Formato no permitido. Usa JPEG, PNG o WEBP", file.type);
+    return reject("Formato no permitido. Usa JPEG, PNG o WEBP");
   }
   if (file.size > MAX_BYTES) {
-    return reject("La imagen es demasiado grande (máx. 5MB)", `${Math.round(file.size / 1024)}KB`);
+    return reject("La imagen es demasiado grande (máx. 5MB)");
   }
   if (file.size < MIN_BYTES) {
     return reject(
       "La imagen es demasiado pequeña para ser un documento válido",
-      `${Math.round(file.size / 1024)}KB`,
     );
   }
 
@@ -67,27 +62,22 @@ export async function validateIdDocument(
   try {
     // 3. Dimensiones mínimas
     const longEdge = Math.max(img.naturalWidth, img.naturalHeight);
-    console.log("dimensiones:", {
-      w: img.naturalWidth,
-      h: img.naturalHeight,
-      ladoLargo: longEdge,
-      minimo: MIN_LONG_EDGE,
-    });
+    log(
+      `dimensiones: ${img.naturalWidth}x${img.naturalHeight} (lado largo=${longEdge}, mínimo=${MIN_LONG_EDGE})`,
+    );
     if (longEdge < MIN_LONG_EDGE) {
       return reject(
         "La imagen tiene muy baja resolución. Toma una foto más nítida",
-        longEdge,
       );
     }
 
     // 4. Nitidez (varianza del Laplaciano)
     const variance = laplacianVariance(img);
-    console.log("nitidez (varianza Laplaciano):", variance.toFixed(1), "umbral:", BLUR_VARIANCE_THRESHOLD);
+    log(
+      `nitidez: varianza=${variance.toFixed(1)} (umbral=${BLUR_VARIANCE_THRESHOLD})`,
+    );
     if (variance < BLUR_VARIANCE_THRESHOLD) {
-      return reject(
-        "La imagen se ve borrosa. Toma una foto más clara y enfocada",
-        variance.toFixed(1),
-      );
+      return reject("La imagen se ve borrosa. Toma una foto más clara y enfocada");
     }
 
     // 5. Cross-check OCR: el número de cédula tecleado debe aparecer en la foto.
@@ -104,31 +94,29 @@ export async function validateIdDocument(
         // Si el motor OCR no pudo cargar/correr (CDN, red, WASM), NO bloqueamos:
         // omitimos el cross-check y dejamos pasar con la heurística. El gate real
         // es server-side de todas formas.
-        console.warn(`${LOG} OCR no disponible, se omite el cross-check`, error);
+        log(
+          `OCR no disponible, se omite cross-check: ${error instanceof Error ? error.message : String(error)}`,
+        );
       }
 
       if (ocrText !== null) {
         const ocrDigits = normalizeToDigits(ocrText);
         const tolerance = expectedDigits.length <= 6 ? 1 : 2;
         const best = bestFuzzyDistance(ocrDigits, expectedDigits);
-        console.log("OCR texto crudo:\n" + ocrText.trim());
-        console.log("OCR dígitos normalizados:", ocrDigits);
-        console.log("cross-check número:", {
-          esperado: expectedDigits,
-          mejorDistancia: best,
-          tolerancia: tolerance,
-          coincide: best <= tolerance,
-        });
+        log(`OCR texto crudo: "${ocrText.trim().replace(/\s+/g, " ").slice(0, 300)}"`);
+        log(`OCR dígitos normalizados: ${ocrDigits || "(vacío)"}`);
+        log(
+          `cross-check: esperado=${expectedDigits}, mejorDistancia=${best}, tolerancia=${tolerance}`,
+        );
         if (best > tolerance) {
           return reject(
             "No pudimos leer el número de tu cédula en la foto. Asegúrate de que se vea completo, nítido y sin reflejos",
-            { esperado: expectedDigits, mejorDistancia: best, tolerancia: tolerance },
           );
         }
       }
     }
 
-    return accept();
+    return { ok: true };
   } finally {
     if (img.src.startsWith("blob:")) URL.revokeObjectURL(img.src);
   }
@@ -233,7 +221,6 @@ function normalizeToDigits(text: string): string {
 
 // Mejor (mínima) distancia de edición entre `needle` y cualquier ventana de
 // `haystack` de longitud needle.length ±1. 0 = coincidencia exacta encontrada.
-// Sirve tanto para decidir (best <= tolerancia) como para loguear qué tan cerca quedó.
 function bestFuzzyDistance(haystack: string, needle: string): number {
   if (needle.length === 0) return 0;
   let best = needle.length; // peor caso: reemplazar todo
