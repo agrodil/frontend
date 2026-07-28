@@ -1,7 +1,7 @@
 ﻿import type { FC } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { LuMail, LuInstagram } from "react-icons/lu";
+import { LuMail } from "react-icons/lu";
 import type { FooterProps } from "@/presentation/interfaces/ui/FooterProps";
 
 const DEFAULT_SECTIONS = [
@@ -9,14 +9,12 @@ const DEFAULT_SECTIONS = [
     title: "Plataforma",
     links: [
       { label: "Inicio", href: "/" },
-      { label: "Categorías", href: "/categorias" },
       { label: "Vender", href: "/new-post" },
     ],
   },
   {
     title: "Soporte",
     links: [
-      { label: "Centro de ayuda", href: "/ayuda" },
       { label: "Preguntas frecuentes", href: "/faq" },
       { label: "Reportar un problema", href: "/reportar-problema" },
       { label: "Guía del vendedor", href: "/guia-vendedor" },
@@ -34,7 +32,7 @@ const DEFAULT_SECTIONS = [
 const Footer: FC<FooterProps> = ({
   sections = DEFAULT_SECTIONS,
   contactEmail = "admin@agrodilmarket.com",
-  socialLinks = {},
+  // socialLinks = {},
 }) => {
   return (
     <motion.footer
@@ -68,7 +66,7 @@ const Footer: FC<FooterProps> = ({
             </a>
           </div>
 
-          {/* Social links */}
+          {/* Social links
           <div className="flex items-center gap-3 mt-1">
             {socialLinks.instagram && (
               <a
@@ -81,7 +79,7 @@ const Footer: FC<FooterProps> = ({
                 <LuInstagram size={20} />
               </a>
             )}
-          </div>
+          </div> */}
         </div>
 
         {/* Link sections */}
