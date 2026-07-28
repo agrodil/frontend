@@ -38,6 +38,15 @@ export const routes = [
             path: "/new-post",
             element: <NewPostPage />,
           },
+          {
+            path: "/reportar-problema",
+            lazy: async () => {
+              const module = await import(
+                "@/presentation/pages/private/ReportProblemPage/ReportProblemPage.tsx"
+              );
+              return { Component: module.default };
+            },
+          },
         ],
       },
     ],
@@ -62,6 +71,15 @@ export const routes = [
             lazy: async () => {
               const module =
                 await import("@/presentation/pages/admin/AdminChatPage/AdminChatPage.tsx");
+              return { Component: module.default };
+            },
+          },
+          {
+            path: "/admin/troubleshooting",
+            lazy: async () => {
+              const module = await import(
+                "@/presentation/pages/admin/AdminTroubleshootingPage/AdminTroubleshootingPage.tsx"
+              );
               return { Component: module.default };
             },
           },

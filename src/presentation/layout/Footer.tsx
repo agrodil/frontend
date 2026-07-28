@@ -18,7 +18,7 @@ const DEFAULT_SECTIONS = [
     links: [
       { label: "Centro de ayuda", href: "/ayuda" },
       { label: "Preguntas frecuentes", href: "/faq" },
-      { label: "Reportar un problema", href: "/reportar" },
+      { label: "Reportar un problema", href: "/reportar-problema" },
       { label: "Guía del vendedor", href: "/guia-vendedor" },
     ],
   },
