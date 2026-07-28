@@ -9,6 +9,7 @@ import {
   LuUserCheck,
   LuTrendingUp,
   LuArrowLeft,
+  LuWrench,
 } from "react-icons/lu";
 import type { AdminDashboardLoaderData } from "@/presentation/interfaces/pages/AdminDashboardLoaderData";
 
@@ -114,6 +115,13 @@ const AdminDashboardPage: FC = () => {
       description: "Moderar y gestionar publicaciones",
       icon: <LuLayoutGrid size={22} className="text-green-600" />,
       color: "bg-green-50",
+    },
+    {
+      to: "/admin/troubleshooting",
+      label: "Reportes de problemas",
+      description: "Revisar fallas reportadas por usuarios",
+      icon: <LuWrench size={22} className="text-red-600" />,
+      color: "bg-red-50",
     },
   ];
 

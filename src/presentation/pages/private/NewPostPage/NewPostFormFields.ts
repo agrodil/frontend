@@ -55,7 +55,7 @@ export const newPostFormFields: FormField[] = [
   },
   {
     name: "pricePerKg",
-    label: "Precio por kg",
+    label: "Precio (USD $/Kg)",
     placeholder: "Ej: 2.50",
     type: "number",
     required: true,
@@ -63,7 +63,7 @@ export const newPostFormFields: FormField[] = [
   },
   {
     name: "pricePerUnit",
-    label: "Precio por unidad",
+    label: "Precio (USD $/unidad)",
     placeholder: "Ej: 1200",
     type: "number",
     required: true,
