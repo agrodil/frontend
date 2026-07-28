@@ -74,7 +74,7 @@ const ReportDetailModal: FC<ReportDetailModalProps> = ({
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.2 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[85vh] overflow-y-auto"
+        className="bg-white rounded-2xl shadow-xl w-full min-w-0 max-w-lg max-h-[85vh] overflow-y-auto"
       >
         <div className="flex items-center justify-between p-5 border-b border-gray-100 sticky top-0 bg-white">
           <h2 className="font-bold text-gray-900">Detalle del reporte</h2>
@@ -166,18 +166,19 @@ const ReportDetailModal: FC<ReportDetailModalProps> = ({
                       <video
                         src={detail.attachmentUrl}
                         controls
-                        className="w-full max-h-80 bg-black"
+                        className="w-full max-w-full max-h-80 bg-black"
                       />
                     ) : (
                       <a
                         href={detail.attachmentUrl}
                         target="_blank"
                         rel="noopener noreferrer"
+                        className="block"
                       >
                         <img
                           src={detail.attachmentUrl}
                           alt="Adjunto del reporte"
-                          className="w-full max-h-80 object-contain bg-gray-50"
+                          className="w-full max-w-full max-h-80 object-contain bg-gray-50"
                         />
                       </a>
                     )}
