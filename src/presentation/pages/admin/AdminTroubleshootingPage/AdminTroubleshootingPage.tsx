@@ -64,7 +64,7 @@ const AdminTroubleshootingPage: FC = () => {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut", delay: 0.05 }}
-        className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6"
+        className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 min-w-0"
       >
         {/* Toolbar */}
         <div className="flex items-center justify-between gap-3 mb-4 flex-wrap">
@@ -99,7 +99,7 @@ const AdminTroubleshootingPage: FC = () => {
         )}
 
         {!loading && items.length > 0 && (
-          <div className="overflow-x-auto">
+          <div className="w-full min-w-0 overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-gray-500 border-b border-gray-100">

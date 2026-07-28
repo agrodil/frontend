@@ -414,14 +414,14 @@ const MePage: FC = () => {
         </AnimatePresence>
 
         {/* ── Tabs ──────────────────────────────────────────────────────── */}
-        <div className="flex gap-1 border-b border-gray-200">
+        <div className="flex flex-nowrap gap-1 border-b border-gray-200 overflow-x-auto">
           {(["publicaciones", "transacciones", "preferencias"] as Tab[]).map(
             (tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => setActiveTab(tab)}
-                className={`px-5 py-2.5 text-sm font-semibold capitalize border-0 bg-transparent cursor-pointer transition-colors border-b-2 -mb-px
+                className={`shrink-0 whitespace-nowrap px-5 py-2.5 text-sm font-semibold capitalize border-0 bg-transparent cursor-pointer transition-colors border-b-2 -mb-px
                 ${
                   activeTab === tab
                     ? "text-primary border-primary"
