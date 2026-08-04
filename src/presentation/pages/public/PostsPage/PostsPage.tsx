@@ -80,7 +80,7 @@ const PostsPage: FC = () => {
           value={search}
           onChange={setSearch}
           onSearch={(val) => handleSearch(navigate, filters, val)}
-          className="mb-6 w-full hidden lg:block"
+          className="mb-6 w-full hidden lg:flex"
         />
 
         {query && (
