@@ -5,21 +5,40 @@ import { motion } from "framer-motion";
 
 import SearchInput from "@/presentation/ui/SearchInput";
 import CardPost from "@/presentation/ui/CardPost";
+import LocationSelects from "@/presentation/ui/LocationSelects";
 import PostDetailModal from "@/presentation/ui/PostDetailModal/PostDetailModal";
 
 import type { PostsPageLoaderData } from "@/presentation/router/loaders/posts.loader";
 
 import type { PostsPost } from "@/api/interfaces/requests/PostsPost.interface";
 import type { PostsSearchResult } from "@/api/interfaces/responses/PostsSearchResult.interface";
+import type { LocationValue } from "@/presentation/interfaces/ui/LocationSelectsProps";
 
 const isSearchResult = (
   item: PostsPost | PostsSearchResult,
 ): item is PostsSearchResult => "posted_by_name" in item;
 
+// Toda la búsqueda vive en la URL: cambiar un filtro navega, react-router vuelve
+// a correr el loader y la petición se relanza sola. Sin `q` no hay filtros que
+// aplicar, así que se descartan.
+const buildPostsUrl = (
+  q: string,
+  filters: LocationValue = { stateId: "", townshipId: "" },
+): string => {
+  const params = new URLSearchParams();
+  if (q) params.set("q", q);
+  if (q && filters.stateId) params.set("stateId", filters.stateId);
+  if (q && filters.townshipId) params.set("townshipId", filters.townshipId);
+  const qs = params.toString();
+  return qs ? `/posts?${qs}` : "/posts";
+};
+
 const PostsPage: FC = () => {
   const {
     items: loadedItems,
     query,
+    stateId,
+    townshipId,
     postDetail: loadedPostDetail,
     postId,
   } = useLoaderData() as PostsPageLoaderData;
@@ -40,25 +59,31 @@ const PostsPage: FC = () => {
     setPostDetail(loadedPostDetail);
   }, [loadedPostDetail]);
 
+  // Los filtros se derivan de la URL en vez de guardarse en estado local: así
+  // no hay que sincronizarlos con el loader y el back/forward del navegador
+  // reconstruye la búsqueda completa.
+  const filters: LocationValue = { stateId, townshipId };
+  const hasFilters = !!(stateId || townshipId);
+
   const handleSearch = (val: string) => {
-    if (val.trim()) {
-      navigate(`/posts?q=${encodeURIComponent(val.trim())}`);
-    } else {
-      navigate("/posts");
-    }
+    // Una búsqueda nueva conserva los filtros de ubicación ya aplicados.
+    navigate(buildPostsUrl(val.trim(), filters));
+  };
+
+  const handleFiltersChange = (next: LocationValue) => {
+    navigate(buildPostsUrl(query, next));
   };
 
   const handleCardClick = (cardId: string) => {
-    const params = new URLSearchParams();
-    if (query) params.set("q", query);
+    const params = new URLSearchParams(
+      buildPostsUrl(query, filters).split("?")[1] ?? "",
+    );
     params.set("postId", cardId);
     navigate(`/posts?${params.toString()}`);
   };
 
   const handleModalClose = () => {
-    const params = new URLSearchParams();
-    if (query) params.set("q", query);
-    navigate(`/posts?${params.toString()}`);
+    navigate(buildPostsUrl(query, filters));
   };
 
   const cards = items.map((item) => ({
@@ -97,6 +122,35 @@ const PostsPage: FC = () => {
           className="mb-6 w-full"
         />
 
+        {/* Los filtros solo aparecen una vez hecha la búsqueda por texto. */}
+        {query && (
+          <div className="mb-6 p-4 border border-gray-200 rounded-2xl shadow-sm">
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-bold text-primary uppercase tracking-wide">
+                Filtrar por ubicación
+              </p>
+              {hasFilters && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleFiltersChange({ stateId: "", townshipId: "" })
+                  }
+                  className="text-xs text-primary underline cursor-pointer bg-transparent border-0 p-0"
+                >
+                  Limpiar filtros
+                </button>
+              )}
+            </div>
+            <LocationSelects
+              value={filters}
+              onChange={handleFiltersChange}
+              stateLabel="Estado"
+              townshipLabel="Municipio"
+              emptyOptionLabel="Todos"
+            />
+          </div>
+        )}
+
         {query && (
           <p className="text-sm text-gray-500 mb-6">
             {items.length} resultado{items.length !== 1 ? "s " : " "} para
@@ -128,6 +182,7 @@ const PostsPage: FC = () => {
                 img={card.img}
                 title={card.title}
                 saleTypeId={card.saleTypeId}
+                townshipId={card.townshipId}
                 price={card.price}
                 owner={card.owner}
                 onClick={() => handleCardClick(card.id)}

@@ -45,19 +45,13 @@ const CardPost: FC<CardPostProps> = ({
       onMouseLeave={() => setHovered(false)}
     >
       {img && isVideo ? (
-        <>
-          <video
-            src={img}
-            muted
-            playsInline
-            preload="metadata"
-            className="absolute inset-0 w-full h-full object-cover bg-black"
-          />
-          <div className="absolute top-2 right-2 px-2 py-1 rounded-full bg-black/55 text-white text-[10px] font-semibold flex items-center gap-1 z-10">
-            <LuPlay size={10} />
-            Video
-          </div>
-        </>
+        <video
+          src={img}
+          muted
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 w-full h-full object-cover bg-black"
+        />
       ) : img ? (
         <img
           src={img}
@@ -68,10 +62,26 @@ const CardPost: FC<CardPostProps> = ({
         <div className="absolute inset-0 bg-primary/10" />
       )}
       <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
-      {location && (
-        <div className="absolute top-2 left-2 max-w-[calc(100%-1rem)] px-2 py-1 rounded-full bg-black/55 text-white text-[10px] font-semibold flex items-center gap-1 z-10">
-          <LuMapPin size={10} className="shrink-0" />
-          <span className="truncate">{location}</span>
+
+      {/* Una sola fila para los badges: la ubicación se trunca y el badge de
+          video no se encoge, así nunca se solapan por más largo que sea el
+          nombre del municipio. */}
+      {(location || isVideo) && (
+        <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-2 z-10">
+          {location ? (
+            <div className="min-w-0 px-2 py-1 rounded-full bg-black/55 text-white text-[10px] font-semibold flex items-center gap-1">
+              <LuMapPin size={10} className="shrink-0" />
+              <span className="truncate">{location}</span>
+            </div>
+          ) : (
+            <span />
+          )}
+          {isVideo && (
+            <div className="shrink-0 px-2 py-1 rounded-full bg-black/55 text-white text-[10px] font-semibold flex items-center gap-1">
+              <LuPlay size={10} />
+              Video
+            </div>
+          )}
         </div>
       )}
       <div className="absolute bottom-0 left-0 right-0 backdrop-blur-xs">

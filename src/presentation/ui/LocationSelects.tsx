@@ -2,39 +2,45 @@ import type { FC } from "react";
 
 import { states } from "@/shared/constants/state.catalog";
 import { townshipsByState } from "@/shared/constants/townships.catalog";
-import type { LocationFieldsProps } from "@/presentation/interfaces/ui/LocationFieldsProps";
+import type { LocationSelectsProps } from "@/presentation/interfaces/ui/LocationSelectsProps";
 
 const baseInput =
   "w-full bg-gray-100 rounded-full px-4 py-2.5 text-sm outline-none border border-gray-200 focus:border-primary/40 transition-colors placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer";
 
 const labelClass = "text-sm font-medium text-gray-700";
 
-const LocationFields: FC<LocationFieldsProps> = ({
+const LocationSelects: FC<LocationSelectsProps> = ({
   value,
   onChange,
+  stateLabel = "Estado",
+  townshipLabel = "Municipio",
+  emptyOptionLabel,
   error,
+  className = "",
 }) => {
   const townshipOptions = value.stateId
     ? (townshipsByState[Number(value.stateId)] ?? [])
     : [];
+  const isFilter = emptyOptionLabel !== undefined;
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className={`flex flex-col gap-1.5 ${className}`}>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
         <div className="flex flex-col gap-1.5">
-          <label className={labelClass} htmlFor="post-state">
-            Estado del ganado
+          <label className={labelClass} htmlFor="location-state">
+            {stateLabel}
           </label>
           <select
-            id="post-state"
+            id="location-state"
             value={value.stateId}
+            // Cambiar de estado invalida el municipio elegido: siempre se limpia.
             onChange={(e) =>
               onChange({ stateId: e.target.value, townshipId: "" })
             }
             className={baseInput}
           >
-            <option value="" disabled>
-              Selecciona el estado
+            <option value="" disabled={!isFilter}>
+              {emptyOptionLabel ?? "Selecciona el estado"}
             </option>
             {states.map((state) => (
               <option key={state.value} value={state.value}>
@@ -45,11 +51,11 @@ const LocationFields: FC<LocationFieldsProps> = ({
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className={labelClass} htmlFor="post-township">
-            Municipio del ganado
+          <label className={labelClass} htmlFor="location-township">
+            {townshipLabel}
           </label>
           <select
-            id="post-township"
+            id="location-township"
             value={value.townshipId}
             disabled={!value.stateId}
             onChange={(e) =>
@@ -57,9 +63,9 @@ const LocationFields: FC<LocationFieldsProps> = ({
             }
             className={baseInput}
           >
-            <option value="" disabled>
+            <option value="" disabled={!isFilter}>
               {value.stateId
-                ? "Selecciona el municipio"
+                ? (emptyOptionLabel ?? "Selecciona el municipio")
                 : "Selecciona primero un estado"}
             </option>
             {townshipOptions.map((township) => (
@@ -76,4 +82,4 @@ const LocationFields: FC<LocationFieldsProps> = ({
   );
 };
 
-export default LocationFields;
+export default LocationSelects;
