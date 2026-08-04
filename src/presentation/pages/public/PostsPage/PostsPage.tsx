@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import SearchInput from "@/presentation/ui/SearchInput";
 import CardPost from "@/presentation/ui/CardPost";
 import LocationSelects from "@/presentation/ui/LocationSelects";
+import Button from "@/presentation/ui/Button";
 import PostDetailModal from "@/presentation/ui/PostDetailModal/PostDetailModal";
 
 import type { PostsPageLoaderData } from "@/presentation/router/loaders/posts.loader";
@@ -125,22 +126,9 @@ const PostsPage: FC = () => {
         {/* Los filtros solo aparecen una vez hecha la búsqueda por texto. */}
         {query && (
           <div className="mb-6 p-4 border border-gray-200 rounded-2xl shadow-sm">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-bold text-primary uppercase tracking-wide">
-                Filtrar por ubicación
-              </p>
-              {hasFilters && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    handleFiltersChange({ stateId: "", townshipId: "" })
-                  }
-                  className="text-xs text-primary underline cursor-pointer bg-transparent border-0 p-0"
-                >
-                  Limpiar filtros
-                </button>
-              )}
-            </div>
+            <p className="text-xs font-bold text-primary uppercase tracking-wide mb-3">
+              Filtrar por ubicación
+            </p>
             <LocationSelects
               value={filters}
               onChange={handleFiltersChange}
@@ -164,14 +152,25 @@ const PostsPage: FC = () => {
             <p className="text-lg font-semibold">
               No se encontraron publicaciones
             </p>
-            {query && (
-              <button
-                type="button"
-                onClick={() => navigate("/posts")}
-                className="text-sm text-primary underline cursor-pointer"
-              >
-                Ver todas las publicaciones
-              </button>
+            {hasFilters ? (
+              <Button
+                label="Limpiar filtros"
+                variant="secondary"
+                size="sm"
+                onClick={() =>
+                  handleFiltersChange({ stateId: "", townshipId: "" })
+                }
+              />
+            ) : (
+              query && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/posts")}
+                  className="text-sm text-primary underline cursor-pointer"
+                >
+                  Ver todas las publicaciones
+                </button>
+              )
             )}
           </div>
         ) : (
