@@ -4,9 +4,6 @@ import { LuChevronDown } from "react-icons/lu";
 import LocationSelects from "@/presentation/ui/LocationSelects";
 import type { LocationFilterPanelProps } from "./LocationFilterPanelProps";
 
-// Panel desplegable de filtros de ubicación. Colapsado por defecto — cada
-// primera búsqueda remonta el componente (el padre solo lo renderiza cuando
-// hay `query`), así que siempre arranca escondido.
 const LocationFilterPanel: FC<LocationFilterPanelProps> = ({
   value,
   onChange,
