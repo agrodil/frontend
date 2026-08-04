@@ -11,6 +11,7 @@ export type MePost = {
   created_at: string;
   main_image_url: string | null;
   is_active: boolean;
+  township_id: number;
 };
 
 export type MeStat = {

@@ -15,6 +15,7 @@ export const getLandingData = async (): Promise<LandingPageLoaderData> => {
     saleTypeId: post.sale_type_id,
     price: Number(post.price_per_kg ?? post.price_per_unit ?? 0),
     owner: post.owner_name,
+    townshipId: post.township_id,
   }));
 
   return { posts };

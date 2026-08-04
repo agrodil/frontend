@@ -1,5 +1,6 @@
 ﻿import type { FormField } from "@/presentation/interfaces/ui/FormProps";
-import { townships } from "@/shared/constants/townships.catalog";
+import { states } from "@/shared/constants/state.catalog";
+import { townshipsByState } from "@/shared/constants/townships.catalog";
 
 export const registerFields: FormField[] = [
   {
@@ -54,11 +55,24 @@ export const registerFields: FormField[] = [
     dependsOn: { fieldName: "document_type", value: "V" },
   },
   {
+    name: "state_id",
+    type: "select",
+    label: "Estado",
+    placeholder: "Selecciona tu estado",
+    options: states,
+    required: true,
+  },
+  {
     name: "township_id",
     type: "select",
     label: "Municipio",
-    options: townships,
+    placeholder: "Selecciona tu municipio",
     required: true,
+    optionsFrom: {
+      fieldName: "state_id",
+      getOptions: (stateId) => townshipsByState[Number(stateId)] ?? [],
+      emptyPlaceholder: "Selecciona primero un estado",
+    },
   },
   {
     name: "phone",

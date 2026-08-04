@@ -31,6 +31,7 @@ export const registerSchema = z
       .string()
       .min(1, "El número de documento es requerido")
       .regex(/^\d+$/, "Solo se permiten números"),
+    state_id: z.string().min(1, "Selecciona un estado"),
     township_id: z.string().min(1, "Selecciona un municipio"),
     phone: z
       .string()

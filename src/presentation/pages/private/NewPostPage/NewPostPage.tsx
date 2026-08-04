@@ -4,13 +4,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LuCircleCheck, LuCircleX, LuLoader } from "react-icons/lu";
 import MinusForm from "@minusui/form";
 import Button from "@/presentation/ui/Button";
+import LocationFields from "./LocationFields";
 import { newPostFormFields, newPostSchema } from "./NewPostFormFields";
 import { useAuth } from "@/adapters/hooks/common/useAuth";
+import { TOWNSHIP_BY_ID } from "@/shared/constants/townships.catalog";
 import {
   uploadPost,
   type NewPostInput,
   type UploadProgress,
 } from "@/presentation/router/actions/post.actions";
+import type { LocationValue } from "@/presentation/interfaces/ui/LocationFieldsProps";
 
 type SubmitState = "idle" | "loading" | "success" | "error";
 
@@ -27,9 +30,23 @@ const labelForProgress = (progress: UploadProgress): string => {
   }
 };
 
+// El municipio del perfil solo precarga los selects: un usuario puede tener
+// ganado en fincas de varios municipios, así que la ubicación es editable y se
+// guarda por publicación, no se hereda del perfil.
+const initialLocation = (townshipId?: number): LocationValue => {
+  const township = townshipId ? TOWNSHIP_BY_ID[townshipId] : undefined;
+  return township
+    ? { stateId: String(township.stateId), townshipId: String(township.id) }
+    : { stateId: "", townshipId: "" };
+};
+
 const NewPostPage: FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [location, setLocation] = useState<LocationValue>(() =>
+    initialLocation(user?.townshipId),
+  );
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [pendingPayload, setPendingPayload] = useState<NewPostInput | null>(
     null,
@@ -44,19 +61,13 @@ const NewPostPage: FC = () => {
   const buildPayload = (
     data: Record<string, string | File | File[] | boolean>,
   ): { payload: NewPostInput | null; validationError: string | null } => {
-    const municipalityRaw = user?.municipality;
-    const townshipId = Number(municipalityRaw);
-
-    if (!municipalityRaw || !Number.isFinite(townshipId)) {
-      console.error("[NewPostPage] Falta el municipio del usuario en sesión.", {
-        user,
-      });
+    if (!location.stateId || !location.townshipId) {
       return {
         payload: null,
-        validationError:
-          "Tu perfil no tiene un municipio asignado. Actualiza tu perfil antes de publicar.",
+        validationError: "Debes indicar dónde se encuentra el ganado.",
       };
     }
+    const townshipId = Number(location.townshipId);
 
     const breedName = typeof data.breed === "string" ? data.breed.trim() : "";
     if (!breedName) {
@@ -130,6 +141,11 @@ const NewPostPage: FC = () => {
   };
 
   const handleSubmit = (data: Record<string, unknown>) => {
+    const isLocationMissing = !location.stateId || !location.townshipId;
+    setLocationError(
+      isLocationMissing ? "Debes indicar dónde se encuentra el ganado." : null,
+    );
+
     const { payload, validationError } = buildPayload(
       data as Record<string, string | File | File[] | boolean>,
     );
@@ -154,6 +170,19 @@ const NewPostPage: FC = () => {
       </div>
 
       <div className="p-4 border border-gray-200 shadow-sm rounded-2xl h-fit w-full lg:max-h-[75vh] overflow-y-auto">
+        {/* La ubicación vive fuera de MinusForm: el paquete no soporta opciones
+            derivadas de otro campo, que es lo que exige la cascada estado→municipio. */}
+        <div className="mb-4">
+          <LocationFields
+            value={location}
+            onChange={(next) => {
+              setLocation(next);
+              setLocationError(null);
+            }}
+            error={locationError}
+          />
+        </div>
+
         <MinusForm onSubmit={handleSubmit} schema={newPostSchema}>
           <MinusForm.Grid>
             {newPostFormFields.map((field) => (

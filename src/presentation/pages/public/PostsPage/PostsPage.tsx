@@ -71,6 +71,7 @@ const PostsPage: FC = () => {
         item.sale_type_id === 1 ? item.price_per_kg : item.price_per_unit,
       ) || 0,
     owner: isSearchResult(item) ? item.posted_by_name : item.posted_by,
+    townshipId: item.township_id,
   }));
 
   const selectedCard = postId

@@ -163,6 +163,10 @@ const AuthPage: FC = () => {
       delete raw.confirmPassword;
       delete raw.remember_me;
       delete raw.id_document;
+      // El estado solo filtra el select de municipios: township_id ya identifica
+      // al estado vía township.township_state_id, y el backend rechaza campos
+      // que no estén en el DTO.
+      delete raw.state_id;
 
       if (raw.document_type === "J") {
         delete raw.names;

@@ -7,4 +7,5 @@ export interface PostsPost {
   price_per_kg: number | null;
   price_per_unit: number | null;
   main_image_url?: string | null;
+  township_id: number;
 }
