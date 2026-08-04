@@ -30,6 +30,7 @@ const ProfileEditForm: FC<ProfileEditFormProps> = ({
             "lastName",
             "secondLastName",
             "email",
+            "stateId",
             "townshipId",
             "phone",
           ])}

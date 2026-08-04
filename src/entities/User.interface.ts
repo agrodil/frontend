@@ -34,9 +34,6 @@ export interface User {
   documentNumber?: string | number;
   document_number?: string | number;
 
-  // Location
-  municipality?: string;
-
   // Account Status
   isVerified?: boolean;
   is_verified?: boolean;

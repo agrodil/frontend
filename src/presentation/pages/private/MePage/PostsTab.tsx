@@ -12,6 +12,7 @@ const mapToCardPost = (post: MePost) => ({
   saleTypeId: post.sale_type_id,
   weight: Number(post.avg_weight_kg ?? 0),
   price: Number(post.price_per_kg ?? post.price_per_unit ?? 0),
+  townshipId: post.township_id,
 });
 
 const PostsTab: FC<PostsTabProps> = ({

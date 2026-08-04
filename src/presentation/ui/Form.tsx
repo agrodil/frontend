@@ -47,7 +47,15 @@ const Form: FC<FormProps> = ({
   const mediaInputRef = useRef<Record<string, HTMLInputElement | null>>({});
 
   const handleChange = (name: string, value: string) => {
-    setValues((prev) => ({ ...prev, [name]: value }));
+    setValues((prev) => {
+      const next = { ...prev, [name]: value };
+      // Cascada: si este campo alimenta las opciones de otro, el valor del hijo
+      // ya no pertenece a la nueva lista, así que se limpia.
+      for (const field of fields) {
+        if (field.optionsFrom?.fieldName === name) next[field.name] = "";
+      }
+      return next;
+    });
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -138,6 +146,21 @@ const Form: FC<FormProps> = ({
           }
 
           if (field.type === "select") {
+            const parentValue = field.optionsFrom
+              ? (values[field.optionsFrom.fieldName] ?? "")
+              : "";
+            const isLocked = !!field.optionsFrom && !parentValue;
+            const options = field.optionsFrom
+              ? parentValue
+                ? field.optionsFrom.getOptions(parentValue)
+                : []
+              : (field.options ?? []);
+            const placeholder = isLocked
+              ? (field.optionsFrom?.emptyPlaceholder ??
+                field.placeholder ??
+                field.label)
+              : (field.placeholder ?? field.label);
+
             return (
               <div
                 key={field.name}
@@ -157,17 +180,17 @@ const Form: FC<FormProps> = ({
                 <select
                   key={field.name}
                   name={field.name}
-                  title={field.placeholder ?? field.label ?? field.name}
+                  title={placeholder ?? field.name}
                   required={field.required}
-                  disabled={field.disabled}
+                  disabled={field.disabled || isLocked}
                   value={values[field.name]}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   className={`${baseInput} cursor-pointer ${field.className ?? ""}`}
                 >
                   <option value="" disabled>
-                    {field.placeholder ?? field.label}
+                    {placeholder}
                   </option>
-                  {field.options?.map((opt) => (
+                  {options.map((opt) => (
                     <option key={opt.value} value={opt.value}>
                       {opt.label}
                     </option>

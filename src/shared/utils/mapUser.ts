@@ -13,7 +13,6 @@ export function mapUser(raw: Record<string, unknown>): User {
     documentNumber:
       raw.document_number != null ? String(raw.document_number) : undefined,
     townshipId: raw.township_id != null ? Number(raw.township_id) : undefined,
-    municipality: raw.township_id != null ? String(raw.township_id) : undefined,
     phone: (raw.phone as string) ?? undefined,
   };
 }

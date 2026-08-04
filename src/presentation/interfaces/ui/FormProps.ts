@@ -37,6 +37,14 @@ export interface FormField {
     fieldName: string;
     value: string | number;
   };
+  // Para campos select: las opciones se derivan del valor de otro campo (cascada,
+  // p.ej. estado → municipio). Mientras el campo padre esté vacío el select queda
+  // deshabilitado, y al cambiar el padre este campo se limpia solo.
+  optionsFrom?: {
+    fieldName: string;
+    getOptions: (parentValue: string) => SelectOption[];
+    emptyPlaceholder?: string;
+  };
   onAsyncCheck?: (value: string) => void;
   // Para campos image: se dispara al seleccionar archivo (validación async con los
   // valores actuales del form, p.ej. cross-check OCR contra otro campo).

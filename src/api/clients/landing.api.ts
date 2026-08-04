@@ -8,6 +8,7 @@ export type LandingPost = {
   price_per_unit: number | null;
   main_image_url: string | null;
   owner_name: string;
+  township_id: number;
 };
 
 export const landingApi = {

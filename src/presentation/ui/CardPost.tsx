@@ -1,6 +1,7 @@
 ﻿import { useState, type FC } from "react";
 import { motion } from "framer-motion";
-import { LuPlay } from "react-icons/lu";
+import { LuMapPin, LuPlay } from "react-icons/lu";
+import { formatLocation } from "@/shared/utils/resolveLocation";
 import type { CardPostProps } from "@/presentation/interfaces/ui/CardPostProps";
 
 const SHADOW_DEFAULT = "0 4px 6px rgba(0,0,0,0.10)";
@@ -22,12 +23,14 @@ const CardPost: FC<CardPostProps> = ({
   img,
   title,
   saleTypeId,
+  townshipId,
   price,
   owner,
   onClick,
 }) => {
   const [hovered, setHovered] = useState(false);
   const isVideo = img ? isVideoUrl(img) : false;
+  const location = formatLocation(townshipId);
 
   return (
     <motion.div
@@ -65,6 +68,12 @@ const CardPost: FC<CardPostProps> = ({
         <div className="absolute inset-0 bg-primary/10" />
       )}
       <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
+      {location && (
+        <div className="absolute top-2 left-2 max-w-[calc(100%-1rem)] px-2 py-1 rounded-full bg-black/55 text-white text-[10px] font-semibold flex items-center gap-1 z-10">
+          <LuMapPin size={10} className="shrink-0" />
+          <span className="truncate">{location}</span>
+        </div>
+      )}
       <div className="absolute bottom-0 left-0 right-0 backdrop-blur-xs">
         <div className="p-2 text-white">
           <p className="font-bold text-[10px] text-xs uppercase leading-snug truncate">
