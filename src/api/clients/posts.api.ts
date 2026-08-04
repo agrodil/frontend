@@ -12,6 +12,12 @@ export type PostsPagination = {
   hasMore: boolean;
 };
 
+// Filtros opcionales de /posts/search. Cada campo ausente = sin filtrar.
+export type SearchFilters = {
+  stateId?: number;
+  townshipId?: number;
+};
+
 // Metadatos que el cliente manda a /presign (antes de subir a S3).
 export type PresignFileInput = {
   fileName: string;
@@ -226,10 +232,16 @@ export const postApi = {
     q: string,
     limit?: number,
     offset?: number,
+    filters?: SearchFilters,
   ): Promise<{ items: PostsSearchResult[]; pagination: PostsPagination }> => {
     const params = new URLSearchParams({ q });
     if (limit !== undefined) params.set("limit", String(limit));
     if (offset !== undefined) params.set("offset", String(offset));
+    // Sin valor = sin filtro: el backend interpreta el parámetro ausente como
+    // NULL y search_livestock_posts lo ignora.
+    if (filters?.stateId) params.set("stateId", String(filters.stateId));
+    if (filters?.townshipId)
+      params.set("townshipId", String(filters.townshipId));
     const response = await fetch(`${url}/posts/search?${params.toString()}`);
     if (!response.ok) throw new Error("Failed to search posts");
     const json = await response.json();

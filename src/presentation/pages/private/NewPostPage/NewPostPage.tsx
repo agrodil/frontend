@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { LuCircleCheck, LuCircleX, LuLoader } from "react-icons/lu";
 import MinusForm from "@minusui/form";
 import Button from "@/presentation/ui/Button";
-import LocationFields from "./LocationFields";
+import LocationSelects from "@/presentation/ui/LocationSelects";
 import { newPostFormFields, newPostSchema } from "./NewPostFormFields";
 import { useAuth } from "@/adapters/hooks/common/useAuth";
 import { TOWNSHIP_BY_ID } from "@/shared/constants/townships.catalog";
@@ -13,7 +13,7 @@ import {
   type NewPostInput,
   type UploadProgress,
 } from "@/presentation/router/actions/post.actions";
-import type { LocationValue } from "@/presentation/interfaces/ui/LocationFieldsProps";
+import type { LocationValue } from "@/presentation/interfaces/ui/LocationSelectsProps";
 
 type SubmitState = "idle" | "loading" | "success" | "error";
 
@@ -173,12 +173,14 @@ const NewPostPage: FC = () => {
         {/* La ubicación vive fuera de MinusForm: el paquete no soporta opciones
             derivadas de otro campo, que es lo que exige la cascada estado→municipio. */}
         <div className="mb-4">
-          <LocationFields
+          <LocationSelects
             value={location}
             onChange={(next) => {
               setLocation(next);
               setLocationError(null);
             }}
+            stateLabel="Estado del ganado"
+            townshipLabel="Municipio del ganado"
             error={locationError}
           />
         </div>

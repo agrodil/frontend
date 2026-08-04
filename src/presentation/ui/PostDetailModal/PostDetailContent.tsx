@@ -1,7 +1,9 @@
 ﻿import type { FC } from "react";
+import { LuMapPin } from "react-icons/lu";
 import type { PostDetail } from "@/api/interfaces/responses/PostDetail.interface";
 import { sales } from "@/shared/constants/sale-types.catalog";
 import { SEX_LABEL } from "@/shared/constants/sex.catalog";
+import { resolveLocation } from "@/shared/utils/resolveLocation";
 
 interface PostDetailContentProps {
   post: PostDetail;
@@ -42,6 +44,7 @@ export const PostDetailContent: FC<PostDetailContentProps> = ({
   const price =
     post.sale_type_id === 1 ? post.price_per_kg : post.price_per_unit;
   const details = getDetailsArray(post);
+  const location = resolveLocation(post.township_id);
 
   return (
     <div className="flex flex-col gap-4 h-full overflow-y-auto pr-2">
@@ -73,6 +76,23 @@ export const PostDetailContent: FC<PostDetailContentProps> = ({
           {previewOwner}
         </span>
       </div>
+
+      {location && (
+        <div className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-2xl shadow-sm">
+          <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
+            <LuMapPin size={18} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] text-gray-400 uppercase font-semibold">
+              Ubicación del ganado
+            </p>
+            <p className="text-sm font-semibold text-gray-800 mt-0.5">
+              {location.township},{" "}
+              <span className="font-normal text-gray-600">{location.state}</span>
+            </p>
+          </div>
+        </div>
+      )}
 
       {details.length > 0 && (
         <div className="grid grid-cols-2 gap-2">
