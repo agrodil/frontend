@@ -1,6 +1,6 @@
 ﻿import { useState, type FC } from "react";
 import { motion } from "framer-motion";
-import { LuMapPin, LuPlay } from "react-icons/lu";
+import { LuMapPin } from "react-icons/lu";
 import { formatLocation } from "@/shared/utils/resolveLocation";
 import type { CardPostProps } from "@/presentation/interfaces/ui/CardPostProps";
 
@@ -63,9 +63,6 @@ const CardPost: FC<CardPostProps> = ({
       )}
       <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
 
-      {/* Una sola fila para los badges: la ubicación se trunca y el badge de
-          video no se encoge, así nunca se solapan por más largo que sea el
-          nombre del municipio. */}
       {(location || isVideo) && (
         <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-2 z-10">
           {location ? (
@@ -76,12 +73,12 @@ const CardPost: FC<CardPostProps> = ({
           ) : (
             <span />
           )}
-          {isVideo && (
+          {/* {isVideo && (
             <div className="shrink-0 px-2 py-1 rounded-full bg-black/55 text-white text-[10px] font-semibold flex items-center gap-1">
               <LuPlay size={10} />
               Video
             </div>
-          )}
+          )} */}
         </div>
       )}
       <div className="absolute bottom-0 left-0 right-0 backdrop-blur-xs">
