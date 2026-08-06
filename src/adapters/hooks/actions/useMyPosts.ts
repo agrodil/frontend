@@ -56,10 +56,10 @@ export function useMyPosts(
   const applyUpdate = (updated: PostDetail) => {
     setPosts((prev) =>
       prev.map((item) =>
-        item.livestock_post_id === updated.livestock_post_id
+        item.post_id === updated.post_id
           ? {
               ...item,
-              livestock_post_name: updated.livestock_post_name,
+              post_name: updated.post_name,
               sale_type_id: updated.sale_type_id,
               avg_weight_kg: updated.avg_weight_kg,
               price_per_kg: updated.price_per_kg,
@@ -71,7 +71,7 @@ export function useMyPosts(
   };
 
   const removePost = (id: string) => {
-    setPosts((prev) => prev.filter((item) => item.livestock_post_id !== id));
+    setPosts((prev) => prev.filter((item) => item.post_id !== id));
   };
 
   return {

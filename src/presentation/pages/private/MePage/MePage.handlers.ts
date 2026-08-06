@@ -47,7 +47,7 @@ export function handlePostDeactivated(
   deactivatedId: string,
 ): void {
   const post = myPosts.posts.find(
-    (item) => item.livestock_post_id === deactivatedId,
+    (item) => item.post_id === deactivatedId,
   );
   if (post) deactivatedPosts.prepend(post);
   myPosts.removePost(deactivatedId);

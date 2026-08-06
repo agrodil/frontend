@@ -10,11 +10,27 @@ import {
 
 import Button from "./Button";
 
-import type { FormProps } from "@/presentation/interfaces/ui/FormProps";
+import type { FormField, FormProps } from "@/presentation/interfaces/ui/FormProps";
 import { Link } from "react-router-dom";
 
 const baseInput =
   "w-full bg-gray-100 rounded-full px-4 py-2.5 text-sm outline-none border border-gray-200 focus:border-primary/40 transition-colors placeholder:text-gray-400 disabled:opacity-50 disabled:cursor-not-allowed";
+
+const isFieldVisible = (
+  field: FormField,
+  values: Record<string, string>,
+): boolean => {
+  if (
+    field.dependsOn &&
+    values[field.dependsOn.fieldName] !== String(field.dependsOn.value)
+  ) {
+    return false;
+  }
+  if (field.visibleWhen && !field.visibleWhen(values)) {
+    return false;
+  }
+  return true;
+};
 
 const Form: FC<FormProps> = ({
   fields,
@@ -48,12 +64,29 @@ const Form: FC<FormProps> = ({
 
   const handleChange = (name: string, value: string) => {
     setValues((prev) => {
-      const next = { ...prev, [name]: value };
-      // Cascada: si este campo alimenta las opciones de otro, el valor del hijo
-      // ya no pertenece a la nueva lista, así que se limpia.
+      let next = { ...prev, [name]: value };
+
+      // optionsFrom: si este campo alimenta las opciones de otro, el valor del
+      // hijo ya no pertenece a la nueva lista, así que se limpia.
       for (const field of fields) {
         if (field.optionsFrom?.fieldName === name) next[field.name] = "";
       }
+
+      // dependsOn/visibleWhen: limpiar en cascada todo campo que deje de ser
+      // visible bajo los nuevos valores. Transitivo — repite hasta estabilizar,
+      // porque limpiar un campo puede a su vez ocultar otro que dependía de él
+      // (p.ej. categoría → tipo de venta → peso/precio por kg).
+      let changed = true;
+      while (changed) {
+        changed = false;
+        for (const field of fields) {
+          if (next[field.name] && !isFieldVisible(field, next)) {
+            next = { ...next, [field.name]: "" };
+            changed = true;
+          }
+        }
+      }
+
       return next;
     });
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -138,12 +171,7 @@ const Form: FC<FormProps> = ({
         className={`grid grid-cols-1 gap-4 ${singleColumn ? "" : "lg:grid-cols-2 lg:gap-6"}`}
       >
         {fields.map((field) => {
-          if (field.dependsOn) {
-            const shouldShow =
-              values[field.dependsOn.fieldName] ===
-              String(field.dependsOn.value);
-            if (!shouldShow) return null;
-          }
+          if (!isFieldVisible(field, values)) return null;
 
           if (field.type === "select") {
             const parentValue = field.optionsFrom

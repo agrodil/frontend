@@ -27,10 +27,10 @@ export const usePostPreviewModal = () => {
   const [fetchingCardId, setFetchingCardId] = useState<string | null>(null);
 
   const handleCardClick = async (msg: Message, card: PurchaseCardPayload) => {
-    if (!msg.livestock_post_id) return;
+    if (!msg.post_id) return;
     setFetchingCardId(msg.purchase_notification_id);
     try {
-      const post = await postApi.getPostById(msg.livestock_post_id);
+      const post = await postApi.getPostById(msg.post_id);
       setSelectedPost({ post, img: card.img ?? null, owner: card.owner });
     } catch {
       /* post may be deactivated — silently ignore */

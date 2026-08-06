@@ -6,11 +6,11 @@ export const usePostDeactivate = () => {
   const [isDeactivating, setIsDeactivating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleDeactivate = async (livestockPostId: string) => {
+  const handleDeactivate = async (postId: string) => {
     setIsDeactivating(true);
     setError(null);
     try {
-      await deactivatePost(livestockPostId);
+      await deactivatePost(postId);
       return true;
     } catch (err) {
       const msg =

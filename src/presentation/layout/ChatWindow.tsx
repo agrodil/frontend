@@ -221,7 +221,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
   useEffect(() => {
     const handler = (e: Event) => {
       const post = (e as CustomEvent<PostDetail>).detail;
-      setFreshCardPosts((prev) => ({ ...prev, [post.livestock_post_id]: post }));
+      setFreshCardPosts((prev) => ({ ...prev, [post.post_id]: post }));
     };
     window.addEventListener("postUpdated", handler);
     return () => window.removeEventListener("postUpdated", handler);
@@ -272,8 +272,8 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
     const uniquePostIds = [
       ...new Set(
         messages
-          .filter((m) => m.livestock_post_id && parsePurchaseCard(m.message))
-          .map((m) => m.livestock_post_id!),
+          .filter((m) => m.post_id && parsePurchaseCard(m.message))
+          .map((m) => m.post_id!),
       ),
     ];
 
@@ -297,12 +297,12 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
   }, [messages]);
 
   const handleCardClick = async (msg: Message, card: PurchaseCardPayload) => {
-    if (!msg.livestock_post_id) return;
+    if (!msg.post_id) return;
     try {
-      const post = await postApi.getPostById(msg.livestock_post_id);
+      const post = await postApi.getPostById(msg.post_id);
       setSelectedPost({
         post,
-        img: freshCardImages[msg.livestock_post_id] ?? card.img ?? null,
+        img: freshCardImages[msg.post_id] ?? card.img ?? null,
         owner: card.owner,
       });
     } catch {
@@ -320,13 +320,13 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
       );
       await notificationsApi.createNotification({
         sentTo: chat.other_user_id,
-        livestockPostId: confirmingSale.postDetail.livestock_post_id,
+        postId: confirmingSale.postDetail.post_id,
         purchaseNotificationTypeId: 2,
         message: JSON.stringify({
           __type: "PURCHASE_STATUS",
           purchaseRequestId: confirmingSale.purchaseRequestId,
           status: STATUS_APPROVED,
-          title: confirmingSale.postDetail.livestock_post_name,
+          title: confirmingSale.postDetail.post_name,
         }),
       });
       setConfirmingSale(null);
@@ -351,13 +351,13 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
       });
       await notificationsApi.createNotification({
         sentTo: chat.other_user_id,
-        livestockPostId: postDetail.livestock_post_id,
+        postId: postDetail.post_id,
         purchaseNotificationTypeId: 2,
         message: JSON.stringify({
           __type: "PURCHASE_STATUS",
           purchaseRequestId,
           status: STATUS_REJECTED,
-          title: postDetail.livestock_post_name,
+          title: postDetail.post_name,
         }),
       });
       setToast({ mode: "warning", message: "Solicitud rechazada." });
@@ -380,13 +380,13 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
       });
       await notificationsApi.createNotification({
         sentTo: chat.other_user_id,
-        livestockPostId: postDetail.livestock_post_id,
+        postId: postDetail.post_id,
         purchaseNotificationTypeId: 2,
         message: JSON.stringify({
           __type: "PURCHASE_STATUS",
           purchaseRequestId,
           status: STATUS_CANCELLED,
-          title: postDetail.livestock_post_name,
+          title: postDetail.post_name,
         }),
       });
       setToast({ mode: "info", message: "Solicitud cancelada." });
@@ -402,7 +402,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
     if (!postSalePost) return;
     setActionLoading(true);
     try {
-      await postApi.deactivatePost(postSalePost.livestock_post_id);
+      await postApi.deactivatePost(postSalePost.post_id);
       setPostSalePost(null);
       setToast({ mode: "info", message: "Publicación desactivada." });
     } catch {
@@ -495,11 +495,11 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
                 {card ? (
                   <div className="max-w-[75%] flex flex-col gap-1">
                     {(() => {
-                      const freshPost = msg.livestock_post_id
-                        ? freshCardPosts[msg.livestock_post_id]
+                      const freshPost = msg.post_id
+                        ? freshCardPosts[msg.post_id]
                         : undefined;
                       const displayTitle =
-                        freshPost?.livestock_post_name ?? card.title;
+                        freshPost?.post_name ?? card.title;
                       const displaySaleTypeId =
                         freshPost?.sale_type_id ?? card.saleTypeId;
                       const displayPrice = freshPost
@@ -508,8 +508,8 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
                           card.price)
                         : card.price;
                       const imgSrc =
-                        (msg.livestock_post_id &&
-                          freshCardImages[msg.livestock_post_id]) ||
+                        (msg.post_id &&
+                          freshCardImages[msg.post_id]) ||
                         card.img ||
                         null;
 
@@ -724,8 +724,8 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
 
       {confirmingSale && (
         <ConfirmSaleModal
-          postTitle={confirmingSale.postDetail.livestock_post_name}
-          quantity={confirmingSale.postDetail.quantity}
+          postTitle={confirmingSale.postDetail.post_name}
+          quantity={confirmingSale.postDetail.quantity ?? 0}
           onConfirm={handleConfirmSale}
           onClose={() => !actionLoading && setConfirmingSale(null)}
           loading={actionLoading}
@@ -734,13 +734,13 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
 
       {postSalePost && (
         <PostSaleActionsModal
-          postTitle={postSalePost.livestock_post_name}
+          postTitle={postSalePost.post_name}
           onDeactivate={handlePostSaleDeactivate}
           onEdit={() => {
             setSelectedPost({
               post: postSalePost,
-              img: freshCardImages[postSalePost.livestock_post_id] ?? null,
-              owner: postSalePost.livestock_post_name,
+              img: freshCardImages[postSalePost.post_id] ?? null,
+              owner: postSalePost.post_name,
             });
             setPostSalePost(null);
           }}

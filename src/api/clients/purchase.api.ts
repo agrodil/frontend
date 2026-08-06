@@ -3,7 +3,7 @@ import type { PurchaseRequest } from "@/api/interfaces/responses/PurchaseRequest
 import type { MyPostsPagination } from "./me.api";
 
 export type CreatePurchaseRequestPayload = {
-  livestockPostId: string;
+  postId: string;
   potentialBuyer: string;
   potentialBuyerName: string;
   requestedQuantity: number;
@@ -19,7 +19,7 @@ export type UpdatePurchaseRequestPayload = {
 export type UpdatePurchaseRequestResult = {
   purchaseRequest: {
     purchase_request_id: string;
-    livestock_post_id: string;
+    post_id: string;
     potential_buyer: string;
     requested_quantity: number;
     purchase_status_id: number;

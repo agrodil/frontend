@@ -85,7 +85,7 @@ export const postApi = {
   // devuelve su id. El binario NO pasa por aquí.
   createPost: async (
     post: Record<string, unknown>,
-  ): Promise<{ livestockPostId: string }> => {
+  ): Promise<{ postId: string }> => {
     const formData = new FormData();
     formData.append("post", JSON.stringify(post));
 
@@ -95,12 +95,11 @@ export const postApi = {
     });
     const json = await readEnvelope(response, "createPost");
 
-    const id = (json.data as { livestockPostId?: string } | undefined)
-      ?.livestockPostId;
+    const id = (json.data as { postId?: string } | undefined)?.postId;
     if (!id) {
-      throw new Error("Respuesta inválida del servidor (livestockPostId faltante)");
+      throw new Error("Respuesta inválida del servidor (postId faltante)");
     }
-    return { livestockPostId: id };
+    return { postId: id };
   },
 
   // Paso 2: pide URLs presigned PUT para subir los archivos del post a S3.
@@ -238,7 +237,7 @@ export const postApi = {
     if (limit !== undefined) params.set("limit", String(limit));
     if (offset !== undefined) params.set("offset", String(offset));
     // Sin valor = sin filtro: el backend interpreta el parámetro ausente como
-    // NULL y search_livestock_posts lo ignora.
+    // NULL y search_posts lo ignora.
     if (filters?.stateId) params.set("stateId", String(filters.stateId));
     if (filters?.townshipId)
       params.set("townshipId", String(filters.townshipId));

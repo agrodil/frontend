@@ -37,6 +37,12 @@ export interface FormField {
     fieldName: string;
     value: string | number;
   };
+  // Escape hatch para condiciones que dependsOn no puede expresar (una sola
+  // condición de igualdad): combinaciones OR/AND entre varios campos, p.ej.
+  // "precio plano visible si categoría∈{2,4} O (categoría=1 Y tipoVenta=2)".
+  // Si están ambos, el campo requiere que TODOS se cumplan (dependsOn AND
+  // visibleWhen).
+  visibleWhen?: (values: Record<string, string>) => boolean;
   // Para campos select: las opciones se derivan del valor de otro campo (cascada,
   // p.ej. estado → municipio). Mientras el campo padre esté vacío el select queda
   // deshabilitado, y al cambiar el padre este campo se limpia solo.

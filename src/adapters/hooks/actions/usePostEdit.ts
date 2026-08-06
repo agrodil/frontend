@@ -1,7 +1,72 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { updatePost } from "@/presentation/router/actions/post.actions";
 import type { PostDetail } from "@/api/interfaces/responses/PostDetail.interface";
 import type { UpdatePostPayload } from "@/api/interfaces/requests/UpdatePostPayload.interface";
+import { POST_CATEGORY } from "@/shared/utils/resolvePostPricing";
+
+type EditFormData = Record<string, string | File | File[] | boolean>;
+
+// Espejo de buildEditFields: cada categoría edita solo sus propios campos.
+// La categoría en sí es inmutable (ver comentario en buildEditFields.ts).
+const buildUpdatePayload = (
+  categoryId: number,
+  data: EditFormData,
+): UpdatePostPayload => {
+  const details =
+    typeof data.details === "string" && data.details.trim().length > 0
+      ? (data.details as string).trim()
+      : undefined;
+
+  const base: UpdatePostPayload = {
+    postName: (data.postName as string).trim(),
+    details,
+  };
+
+  switch (categoryId) {
+    case POST_CATEGORY.MAQUINARIA:
+      return {
+        ...base,
+        postBrand:
+          typeof data.postBrand === "string" && data.postBrand.trim()
+            ? data.postBrand.trim()
+            : undefined,
+        pricePerUnit: Number(data.pricePerUnit),
+      };
+
+    case POST_CATEGORY.FINCAS:
+      return {
+        ...base,
+        farmHectares: Number(data.farmHectares),
+        pricePerHectare: Number(data.pricePerHectare),
+      };
+
+    case POST_CATEGORY.INSUMOS:
+      return {
+        ...base,
+        pricePerUnit: Number(data.pricePerUnit),
+      };
+
+    case POST_CATEGORY.MINERALES:
+      return {
+        ...base,
+        avgWeightKg: Number(data.avgWeightKg),
+        pricePerUnit: Number(data.pricePerUnit),
+      };
+
+    default: // Ganado Bovino
+      return {
+        ...base,
+        sex: data.sex as string,
+        quantity: Number(data.quantity),
+        ...(data.avgWeightKg || data.pricePerKg
+          ? {
+              avgWeightKg: Number(data.avgWeightKg),
+              pricePerKg: Number(data.pricePerKg),
+            }
+          : { pricePerUnit: Number(data.pricePerUnit) }),
+      };
+  }
+};
 
 export const usePostEdit = (initialPost: PostDetail) => {
   const [currentPost, setCurrentPost] = useState<PostDetail>(initialPost);
@@ -9,30 +74,12 @@ export const usePostEdit = (initialPost: PostDetail) => {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSaveEdit = async (
-    data: Record<string, string | File | File[] | boolean>,
-  ) => {
+  const handleSaveEdit = async (data: EditFormData) => {
     setIsSaving(true);
     setError(null);
     try {
-      const payload: UpdatePostPayload = {
-        livestockPostName: (data.livestockPostName as string).trim(),
-        sex: data.sex as string,
-        quantity: Number(data.quantity),
-        details:
-          typeof data.details === "string" && data.details.trim().length > 0
-            ? (data.details as string).trim()
-            : undefined,
-      };
-
-      if (currentPost.sale_type_id === 1) {
-        payload.avgWeightKg = Number(data.avgWeightKg);
-        payload.pricePerKg = Number(data.pricePerKg);
-      } else {
-        payload.pricePerUnit = Number(data.pricePerUnit);
-      }
-
-      const updated = await updatePost(currentPost.livestock_post_id, payload);
+      const payload = buildUpdatePayload(currentPost.post_category_id, data);
+      const updated = await updatePost(currentPost.post_id, payload);
       setCurrentPost(updated);
       setIsEditing(false);
       return updated;

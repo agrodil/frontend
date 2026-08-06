@@ -3,13 +3,13 @@
 export const sendMessage = async (
   sentTo: string,
   message: string,
-  livestockPostId?: string,
+  postId?: string,
 ) =>
   notificationsApi.createNotification({
     sentTo,
     message,
     purchaseNotificationTypeId: 2,
-    ...(livestockPostId && { livestockPostId }),
+    ...(postId && { postId }),
   });
 
 export const markChatAsRead = async (otherUserId: string) =>

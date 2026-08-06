@@ -70,14 +70,14 @@ const AdminChatPage: FC = () => {
       purchase_notification_id: incident.purchase_notification_id,
       sent_by: incident.app_user_id,
       sent_to: incident.other_user_id,
-      livestock_post_id: null,
+      post_id: null,
       purchase_notification_type_id: 2,
       message: incident.message,
       is_read: true,
       created_at: incident.created_at,
       other_user_id: incident.other_user_id,
       other_user_name: incident.other_user_name || "Usuario",
-      livestock_post_name: null,
+      post_name: null,
     };
 
     userSearch.setFoundUserDirectly(offenderUser, incident.offender_name);

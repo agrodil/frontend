@@ -2,7 +2,7 @@
 import { getFilesByPost } from "@/presentation/router/actions/aws.actions";
 import type { PostFile } from "@/entities/PostFile.interface";
 
-export const useMediaFiles = (livestockPostId: string) => {
+export const useMediaFiles = (postId: string) => {
   const [mediaFiles, setMediaFiles] = useState<PostFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +14,7 @@ export const useMediaFiles = (livestockPostId: string) => {
 
     const loadFiles = async () => {
       try {
-        const files = await getFilesByPost(livestockPostId);
+        const files = await getFilesByPost(postId);
         if (!cancelled) setMediaFiles(files);
       } catch (err) {
         if (!cancelled) {
@@ -30,7 +30,7 @@ export const useMediaFiles = (livestockPostId: string) => {
     return () => {
       cancelled = true;
     };
-  }, [livestockPostId]);
+  }, [postId]);
 
   return { mediaFiles, isLoading, error };
 };

@@ -121,10 +121,10 @@ const LandingPage: FC = () => {
               setPostDetail(updated);
               setPosts((prev) =>
                 prev.map((p) =>
-                  p.id === updated.livestock_post_id
+                  p.id === updated.post_id
                     ? {
                         ...p,
-                        title: updated.livestock_post_name,
+                        title: updated.post_name,
                         saleTypeId: updated.sale_type_id,
                         price:
                           Number(

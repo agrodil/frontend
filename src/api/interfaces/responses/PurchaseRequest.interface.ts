@@ -1,7 +1,7 @@
 export interface PurchaseRequest {
   purchase_request_id: string;
-  livestock_post_id: string;
-  livestock_post_name: string;
+  post_id: string;
+  post_name: string;
   seller_id: string;
   seller_name: string;
   buyer_id: string;
@@ -15,5 +15,5 @@ export interface PurchaseRequest {
   price_per_kg: number | null;
   price_per_unit: number | null;
   avg_weight_kg: number | null;
-  breed_name: string | null;
+  post_subcategory_name: string | null;
 }
