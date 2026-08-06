@@ -2,16 +2,19 @@
 import { fetchWithAuth } from "../fetchWithAuth";
 
 export type MePost = {
-  livestock_post_id: string;
-  livestock_post_name: string;
+  post_id: string;
+  post_name: string;
+  post_category_id: number;
   avg_weight_kg: number | null;
   price_per_kg: number | null;
   price_per_unit: number | null;
-  sale_type_id: number;
+  farm_hectares: number | null;
+  price_per_hectare: number | null;
+  sale_type_id: number | null;
   created_at: string;
   main_image_url: string | null;
   is_active: boolean;
-  township_id: number;
+  township_id: number | null;
 };
 
 export type MeStat = {

@@ -24,7 +24,7 @@ export const usePostPurchase = () => {
         post.sale_type_id === 1 ? post.price_per_kg : post.price_per_unit;
 
       const { purchaseRequestId } = await createPurchaseRequest({
-        livestockPostId: post.livestock_post_id,
+        postId: post.post_id,
         potentialBuyer: user.id,
         potentialBuyerName: fullName(user),
         requestedQuantity: 1,
@@ -34,7 +34,7 @@ export const usePostPurchase = () => {
         __type: "PURCHASE_CARD",
         purchaseRequestId,
         postedBy: post.posted_by,
-        title: post.livestock_post_name,
+        title: post.post_name,
         saleTypeId: post.sale_type_id,
         price: Number(price ?? 0),
         owner: previewOwner ?? "",
@@ -44,14 +44,14 @@ export const usePostPurchase = () => {
       try {
         await notificationsApi.createNotification({
           sentTo: post.posted_by,
-          livestockPostId: post.livestock_post_id,
+          postId: post.post_id,
           purchaseNotificationTypeId: 1,
           message: cardMessage,
         });
 
         await notificationsApi.createNotification({
           sentTo: post.posted_by,
-          livestockPostId: post.livestock_post_id,
+          postId: post.post_id,
           purchaseNotificationTypeId: 2,
           message: `Has recibido una nueva solicitud de compra de ${fullName(user)}`,
         });

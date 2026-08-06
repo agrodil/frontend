@@ -90,7 +90,7 @@ const TransactionsTab: FC<TransactionsTabProps> = ({
                     {tx.buyer_name}
                   </td>
                   <td className="px-4 py-3 text-gray-700 max-w-44 truncate">
-                    {tx.livestock_post_name}
+                    {tx.post_name}
                   </td>
                   <td className="px-4 py-3 text-gray-500">
                     {sales[tx.sale_type_id] ?? "—"}

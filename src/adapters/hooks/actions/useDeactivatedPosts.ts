@@ -49,7 +49,7 @@ export function useDeactivatedPosts(): UseDeactivatedPostsResult {
   }, []);
 
   const removeLocal = (id: string) => {
-    setPosts((prev) => prev.filter((p) => p.livestock_post_id !== id));
+    setPosts((prev) => prev.filter((p) => p.post_id !== id));
   };
 
   const activate = async (id: string) => {

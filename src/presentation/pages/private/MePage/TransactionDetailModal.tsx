@@ -74,7 +74,7 @@ const TransactionDetailModal: FC<TransactionDetailModalProps> = ({
           <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <h2 className="font-bold text-gray-900 text-base truncate max-w-64">
-                {t.livestock_post_name}
+                {t.post_name}
               </h2>
               {status && (
                 <span
@@ -106,8 +106,8 @@ const TransactionDetailModal: FC<TransactionDetailModalProps> = ({
             <div className="grid grid-cols-2 gap-4">
               <Field label="Tipo de venta" value={sales[t.sale_type_id] ?? "—"} />
               <Field label="Precio" value={price} />
-              {t.breed_name && (
-                <Field label="Raza dominante" value={t.breed_name} />
+              {t.post_subcategory_name && (
+                <Field label="Raza dominante" value={t.post_subcategory_name} />
               )}
               {t.avg_weight_kg != null && (
                 <Field
@@ -119,7 +119,7 @@ const TransactionDetailModal: FC<TransactionDetailModalProps> = ({
                 label="Cantidad solicitada"
                 value={String(t.requested_quantity)}
               />
-              <Field label="ID publicación" value={t.livestock_post_id} />
+              <Field label="ID publicación" value={t.post_id} />
             </div>
 
             {/* Fechas */}

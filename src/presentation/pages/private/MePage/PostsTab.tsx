@@ -5,15 +5,19 @@ import CardPost from "@/presentation/ui/CardPost.tsx";
 import Button from "@/presentation/ui/Button.tsx";
 import type { MePost } from "@/api/clients/me.api.ts";
 import type { PostsTabProps } from "./PostsTabProps";
+import { resolvePostPricing } from "@/shared/utils/resolvePostPricing";
 
-const mapToCardPost = (post: MePost) => ({
-  img: post.main_image_url ?? null,
-  title: post.livestock_post_name,
-  saleTypeId: post.sale_type_id,
-  weight: Number(post.avg_weight_kg ?? 0),
-  price: Number(post.price_per_kg ?? post.price_per_unit ?? 0),
-  townshipId: post.township_id,
-});
+const mapToCardPost = (post: MePost) => {
+  const pricing = resolvePostPricing(post);
+  return {
+    img: post.main_image_url ?? null,
+    title: post.post_name,
+    priceLabel: pricing.priceLabel,
+    priceSuffix: pricing.priceSuffix,
+    price: pricing.price,
+    townshipId: post.township_id,
+  };
+};
 
 const PostsTab: FC<PostsTabProps> = ({
   myPosts,
@@ -49,10 +53,10 @@ const PostsTab: FC<PostsTabProps> = ({
         >
           {myPosts.posts.map((post) => (
             <CardPost
-              key={post.livestock_post_id}
+              key={post.post_id}
               {...mapToCardPost(post)}
               owner={displayName}
-              onClick={() => onCardClick(post.livestock_post_id)}
+              onClick={() => onCardClick(post.post_id)}
             />
           ))}
         </motion.div>
@@ -102,13 +106,13 @@ const PostsTab: FC<PostsTabProps> = ({
         className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
       >
         {deactivatedPosts.posts.map((post) => (
-          <div key={post.livestock_post_id} className="flex flex-col gap-2">
+          <div key={post.post_id} className="flex flex-col gap-2">
             {/* Card with grayscale overlay */}
             <div className="relative rounded-xl overflow-hidden border border-gray-200 grayscale opacity-70">
               <CardPost
                 {...mapToCardPost(post)}
                 owner={displayName}
-                onClick={() => onCardClick(post.livestock_post_id)}
+                onClick={() => onCardClick(post.post_id)}
               />
               <div className="absolute top-2 left-2">
                 <span className="text-[10px] font-bold bg-gray-700 text-white px-2 py-0.5 rounded-full uppercase">
@@ -121,7 +125,7 @@ const PostsTab: FC<PostsTabProps> = ({
             <div className="grid grid-cols-3 gap-1.5">
               <button
                 type="button"
-                onClick={() => onCardClick(post.livestock_post_id)}
+                onClick={() => onCardClick(post.post_id)}
                 className="flex items-center justify-center gap-1 text-[10px] font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg py-1.5 transition-colors border-0 cursor-pointer"
                 title="Editar"
               >
@@ -130,12 +134,12 @@ const PostsTab: FC<PostsTabProps> = ({
 
               <button
                 type="button"
-                onClick={() => onActivate(post.livestock_post_id)}
-                disabled={deactivatedPosts.activatingId === post.livestock_post_id}
+                onClick={() => onActivate(post.post_id)}
+                disabled={deactivatedPosts.activatingId === post.post_id}
                 className="flex items-center justify-center gap-1 text-[10px] font-semibold text-green-700 bg-green-50 hover:bg-green-100 rounded-lg py-1.5 transition-colors border-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Activar"
               >
-                {deactivatedPosts.activatingId === post.livestock_post_id ? (
+                {deactivatedPosts.activatingId === post.post_id ? (
                   <LuLoader size={10} className="animate-spin" />
                 ) : (
                   <LuRefreshCw size={10} />
@@ -143,19 +147,19 @@ const PostsTab: FC<PostsTabProps> = ({
                 Activar
               </button>
 
-              {deactivatedPosts.confirmDeleteId === post.livestock_post_id ? (
+              {deactivatedPosts.confirmDeleteId === post.post_id ? (
                 <button
                   type="button"
                   onClick={() =>
-                    deactivatedPosts.confirmDelete(post.livestock_post_id)
+                    deactivatedPosts.confirmDelete(post.post_id)
                   }
                   disabled={
-                    deactivatedPosts.deletingId === post.livestock_post_id
+                    deactivatedPosts.deletingId === post.post_id
                   }
                   className="flex items-center justify-center gap-1 text-[10px] font-bold text-white bg-red-500 hover:bg-red-600 rounded-lg py-1.5 transition-colors border-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                   title="Confirmar eliminación"
                 >
-                  {deactivatedPosts.deletingId === post.livestock_post_id ? (
+                  {deactivatedPosts.deletingId === post.post_id ? (
                     <LuLoader size={10} className="animate-spin" />
                   ) : (
                     <LuTrash2 size={10} />
@@ -166,7 +170,7 @@ const PostsTab: FC<PostsTabProps> = ({
                 <button
                   type="button"
                   onClick={() =>
-                    deactivatedPosts.requestDelete(post.livestock_post_id)
+                    deactivatedPosts.requestDelete(post.post_id)
                   }
                   className="flex items-center justify-center gap-1 text-[10px] font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg py-1.5 transition-colors border-0 cursor-pointer"
                   title="Eliminar permanentemente"

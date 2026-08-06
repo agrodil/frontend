@@ -35,7 +35,7 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
   const [isActivating, setIsActivating] = useState(false);
 
   // Custom hooks
-  const { mediaFiles } = useMediaFiles(post.livestock_post_id);
+  const { mediaFiles } = useMediaFiles(post.post_id);
   const {
     currentPost,
     isEditing,
@@ -88,9 +88,9 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
   };
 
   const handleDeactivateClick = async () => {
-    const success = await handleDeactivate(currentPost.livestock_post_id);
+    const success = await handleDeactivate(currentPost.post_id);
     if (success) {
-      onDeactivated?.(currentPost.livestock_post_id);
+      onDeactivated?.(currentPost.post_id);
       onClose();
     }
   };
@@ -98,8 +98,8 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
   const handleActivateClick = async () => {
     setIsActivating(true);
     try {
-      await activatePost(currentPost.livestock_post_id);
-      onActivated?.(currentPost.livestock_post_id);
+      await activatePost(currentPost.post_id);
+      onActivated?.(currentPost.post_id);
       onClose();
     } catch {
       // silently ignore — parent reloads state on success only
@@ -131,7 +131,7 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
               <MediaCarousel
                 items={mediaFiles}
                 fallbackImg={previewImg}
-                alt={currentPost.livestock_post_name}
+                alt={currentPost.post_name}
               />
             </div>
 
@@ -161,7 +161,7 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
                     </button>
                   </div>
                   <Form
-                    key={currentPost.livestock_post_id}
+                    key={currentPost.post_id}
                     singleColumn
                     fields={buildEditFields(currentPost)}
                     onSubmit={handleSaveEditClick}

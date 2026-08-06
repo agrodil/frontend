@@ -1,13 +1,15 @@
-﻿import { useState, type FC } from "react";
+import { useState, type FC } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { LuCircleCheck, LuCircleX, LuLoader } from "react-icons/lu";
-import MinusForm from "@minusui/form";
+import Form from "@/presentation/ui/Form";
 import Button from "@/presentation/ui/Button";
 import LocationSelects from "@/presentation/ui/LocationSelects";
-import { newPostFormFields, newPostSchema } from "./NewPostFormFields";
+import { buildNewPostFields } from "./NewPostFormFields";
 import { useAuth } from "@/adapters/hooks/common/useAuth";
+import { useCatalog } from "@/adapters/hooks/actions/useCatalog";
 import { TOWNSHIP_BY_ID } from "@/shared/constants/townships.catalog";
+import { POST_CATEGORY } from "@/shared/utils/resolvePostPricing";
 import {
   uploadPost,
   type NewPostInput,
@@ -31,7 +33,7 @@ const labelForProgress = (progress: UploadProgress): string => {
 };
 
 // El municipio del perfil solo precarga los selects: un usuario puede tener
-// ganado en fincas de varios municipios, así que la ubicación es editable y se
+// ganado/fincas en varios municipios, así que la ubicación es editable y se
 // guarda por publicación, no se hereda del perfil.
 const initialLocation = (townshipId?: number): LocationValue => {
   const township = townshipId ? TOWNSHIP_BY_ID[townshipId] : undefined;
@@ -43,6 +45,7 @@ const initialLocation = (townshipId?: number): LocationValue => {
 const NewPostPage: FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const catalog = useCatalog();
   const [location, setLocation] = useState<LocationValue>(() =>
     initialLocation(user?.townshipId),
   );
@@ -61,63 +64,192 @@ const NewPostPage: FC = () => {
   const buildPayload = (
     data: Record<string, string | File | File[] | boolean>,
   ): { payload: NewPostInput | null; validationError: string | null } => {
-    if (!location.stateId || !location.townshipId) {
+    const postCategoryId = Number(data.postCategoryId);
+    if (!postCategoryId) {
       return {
         payload: null,
-        validationError: "Debes indicar dónde se encuentra el ganado.",
-      };
-    }
-    const townshipId = Number(location.townshipId);
-
-    const breedName = typeof data.breed === "string" ? data.breed.trim() : "";
-    if (!breedName) {
-      return {
-        payload: null,
-        validationError: "Debes indicar la raza predominante del lote.",
+        validationError: "Selecciona qué quieres publicar.",
       };
     }
 
-    // Validación condicional según el tipo de venta. Estos campos van con
-    // `dependsOn` en el form, por lo que no pueden ser `required` en el schema.
-    const saleTypeId = Number(data.saleTypeId);
-    if (saleTypeId === 1) {
-      if (!data.avgWeightKg) {
-        return {
-          payload: null,
-          validationError: "Debes indicar el peso promedio (kg).",
-        };
-      }
-      if (!data.pricePerKg) {
-        return {
-          payload: null,
-          validationError: "Debes indicar el precio por kg.",
-        };
-      }
-    } else if (saleTypeId === 2) {
-      if (!data.pricePerUnit) {
-        return {
-          payload: null,
-          validationError: "Debes indicar el precio por unidad.",
-        };
-      }
+    // Insumos u Otros y Minerales son las únicas categorías con ubicación opcional.
+    if (
+      postCategoryId !== POST_CATEGORY.INSUMOS &&
+      postCategoryId !== POST_CATEGORY.MINERALES &&
+      (!location.stateId || !location.townshipId)
+    ) {
+      return {
+        payload: null,
+        validationError: "Debes indicar dónde se encuentra la publicación.",
+      };
+    }
+
+    const postName =
+      typeof data.postName === "string" ? data.postName.trim() : "";
+    if (!postName) {
+      return {
+        payload: null,
+        validationError: "Debes indicar un título para la publicación.",
+      };
     }
 
     const mediaFiles = Array.isArray(data.media) ? (data.media as File[]) : [];
 
-    const post = {
-      livestockTypeId: 1,
-      livestockPostName: data.livestockPostName,
-      sectorId: Number(data.sectorId),
-      saleTypeId: Number(data.saleTypeId),
-      sex: data.sex,
-      breedName,
-      quantity: Number(data.quantity),
-      townshipId,
-      ...(data.avgWeightKg ? { avgWeightKg: Number(data.avgWeightKg) } : {}),
-      ...(data.pricePerKg ? { pricePerKg: Number(data.pricePerKg) } : {}),
-      ...(data.pricePerUnit ? { pricePerUnit: Number(data.pricePerUnit) } : {}),
+    const post: Record<string, unknown> = {
+      postCategoryId,
+      postName,
+      ...(location.townshipId
+        ? { townshipId: Number(location.townshipId) }
+        : {}),
       ...(data.details ? { details: data.details } : {}),
     };
+
+    switch (postCategoryId) {
+      case POST_CATEGORY.GANADO_BOVINO: {
+        const postSubcategoryName =
+          typeof data.postSubcategoryName === "string"
+            ? data.postSubcategoryName.trim()
+            : "";
+        if (!postSubcategoryName) {
+          return {
+            payload: null,
+            validationError: "Debes indicar la raza predominante del lote.",
+          };
+        }
+        if (!data.livestockSectorId) {
+          return {
+            payload: null,
+            validationError: "Debes seleccionar el rubro.",
+          };
+        }
+        const saleTypeId = Number(data.saleTypeId);
+        if (!saleTypeId) {
+          return {
+            payload: null,
+            validationError: "Debes seleccionar el tipo de venta.",
+          };
+        }
+        if (!data.sex) {
+          return {
+            payload: null,
+            validationError: "Debes seleccionar el sexo del lote.",
+          };
+        }
+        if (!data.quantity) {
+          return {
+            payload: null,
+            validationError: "Debes indicar la cantidad de animales.",
+          };
+        }
+        if (saleTypeId === 1) {
+          if (!data.avgWeightKg) {
+            return {
+              payload: null,
+              validationError: "Debes indicar el peso promedio (kg).",
+            };
+          }
+          if (!data.pricePerKg) {
+            return {
+              payload: null,
+              validationError: "Debes indicar el precio por kg.",
+            };
+          }
+        } else if (!data.pricePerUnit) {
+          return {
+            payload: null,
+            validationError: "Debes indicar el precio por unidad.",
+          };
+        }
+
+        Object.assign(post, {
+          postSubcategoryName,
+          livestockSectorId: Number(data.livestockSectorId),
+          saleTypeId,
+          sex: data.sex,
+          quantity: Number(data.quantity),
+          ...(saleTypeId === 1
+            ? {
+                avgWeightKg: Number(data.avgWeightKg),
+                pricePerKg: Number(data.pricePerKg),
+              }
+            : { pricePerUnit: Number(data.pricePerUnit) }),
+        });
+        break;
+      }
+
+      case POST_CATEGORY.MAQUINARIA: {
+        if (!data.pricePerUnit) {
+          return {
+            payload: null,
+            validationError: "Debes indicar el precio.",
+          };
+        }
+        Object.assign(post, {
+          pricePerUnit: Number(data.pricePerUnit),
+          ...(typeof data.postBrand === "string" && data.postBrand.trim()
+            ? { postBrand: data.postBrand.trim() }
+            : {}),
+        });
+        break;
+      }
+
+      case POST_CATEGORY.FINCAS: {
+        if (!data.farmHectares) {
+          return {
+            payload: null,
+            validationError: "Debes indicar las hectáreas.",
+          };
+        }
+        if (!data.pricePerHectare) {
+          return {
+            payload: null,
+            validationError: "Debes indicar el precio por hectárea.",
+          };
+        }
+        Object.assign(post, {
+          farmHectares: Number(data.farmHectares),
+          pricePerHectare: Number(data.pricePerHectare),
+        });
+        break;
+      }
+
+      case POST_CATEGORY.INSUMOS: {
+        if (!data.pricePerUnit) {
+          return {
+            payload: null,
+            validationError: "Debes indicar el precio.",
+          };
+        }
+        Object.assign(post, { pricePerUnit: Number(data.pricePerUnit) });
+        break;
+      }
+
+      case POST_CATEGORY.MINERALES: {
+        if (!data.pricePerUnit) {
+          return {
+            payload: null,
+            validationError: "Debes indicar el precio.",
+          };
+        }
+        if (!data.avgWeightKg) {
+          return {
+            payload: null,
+            validationError: "Debes indicar el peso promedio (kg).",
+          };
+        }
+        Object.assign(post, {
+          pricePerUnit: Number(data.pricePerUnit),
+          avgWeightKg: Number(data.avgWeightKg),
+        });
+        break;
+      }
+
+      default:
+        return {
+          payload: null,
+          validationError: "Categoría inválida.",
+        };
+    }
 
     console.debug("[NewPostPage] Payload generado para /posts", post);
     return { payload: { post, media: mediaFiles }, validationError: null };
@@ -141,9 +273,15 @@ const NewPostPage: FC = () => {
   };
 
   const handleSubmit = (data: Record<string, unknown>) => {
-    const isLocationMissing = !location.stateId || !location.townshipId;
+    const postCategoryId = Number(data.postCategoryId);
+    const isLocationMissing =
+      postCategoryId !== POST_CATEGORY.INSUMOS &&
+      postCategoryId !== POST_CATEGORY.MINERALES &&
+      (!location.stateId || !location.townshipId);
     setLocationError(
-      isLocationMissing ? "Debes indicar dónde se encuentra el ganado." : null,
+      isLocationMissing
+        ? "Debes indicar dónde se encuentra la publicación."
+        : null,
     );
 
     const { payload, validationError } = buildPayload(
@@ -162,6 +300,11 @@ const NewPostPage: FC = () => {
     submit(payload);
   };
 
+  const fields = buildNewPostFields(
+    catalog.categories,
+    catalog.livestockSectors,
+  );
+
   return (
     <section className="flex flex-col min-h-screen w-[90vw] mx-auto">
       <div className="mt-8 lg:mt-0 p-4 text-center md:text-start text-lg md:text-2xl font-bold mb-4 border border-gray-200 shadow-sm rounded-2xl h-fit w-full">
@@ -170,8 +313,15 @@ const NewPostPage: FC = () => {
       </div>
 
       <div className="p-4 border border-gray-200 shadow-sm rounded-2xl h-fit w-full lg:max-h-[75vh] overflow-y-auto">
-        {/* La ubicación vive fuera de MinusForm: el paquete no soporta opciones
-            derivadas de otro campo, que es lo que exige la cascada estado→municipio. */}
+        {catalog.error && (
+          <p className="text-sm text-red-500 text-center mb-4">
+            No se pudo cargar el catálogo de categorías. Recarga la página.
+          </p>
+        )}
+
+        {/* La ubicación vive fuera de Form: el resto de campos usa dependsOn/
+            visibleWhen sobre postCategoryId, pero la ubicación reutiliza el
+            mismo LocationSelects ya construido para registro/perfil. */}
         <div className="mb-4">
           <LocationSelects
             value={location}
@@ -179,25 +329,18 @@ const NewPostPage: FC = () => {
               setLocation(next);
               setLocationError(null);
             }}
-            stateLabel="Estado del ganado"
-            townshipLabel="Municipio del ganado"
+            stateLabel="Estado"
+            townshipLabel="Municipio"
             error={locationError}
           />
         </div>
 
-        <MinusForm onSubmit={handleSubmit} schema={newPostSchema}>
-          <MinusForm.Grid>
-            {newPostFormFields.map((field) => (
-              <MinusForm.Field key={field.name} {...field} />
-            ))}
-          </MinusForm.Grid>
-          <MinusForm.Submit
-            isLoading={submitState === "loading"}
-            className="mt-2 w-full rounded-full font-semibold transition-colors duration-200 cursor-pointer bg-primary text-white hover:bg-primary-hover px-6 py-2.5 text-base"
-          >
-            Publicar
-          </MinusForm.Submit>
-        </MinusForm>
+        <Form
+          fields={fields}
+          onSubmit={handleSubmit}
+          isLoading={submitState === "loading" || catalog.isLoading}
+          submitLabel="Publicar"
+        />
       </div>
 
       {/* Overlay: loader + modals */}

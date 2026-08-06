@@ -7,11 +7,6 @@ import type { CardPostProps } from "@/presentation/interfaces/ui/CardPostProps";
 const SHADOW_DEFAULT = "0 4px 6px rgba(0,0,0,0.10)";
 const SHADOW_HOVER = "0 10px 20px rgba(0,0,0,0.18)";
 
-const SALE_LABEL: Record<number, string> = {
-  1: "Por Kilo",
-  2: "Por Unidad",
-};
-
 const isVideoUrl = (src: string) => {
   // S3 keys are signed; the path before "?" still includes the original
   // filename and extension (e.g. .mp4, .mov, .webm).
@@ -22,7 +17,8 @@ const isVideoUrl = (src: string) => {
 const CardPost: FC<CardPostProps> = ({
   img,
   title,
-  saleTypeId,
+  priceLabel,
+  priceSuffix,
   townshipId,
   price,
   owner,
@@ -85,11 +81,20 @@ const CardPost: FC<CardPostProps> = ({
         <div className="p-2 text-white">
           <p className="font-bold text-[10px] text-xs uppercase leading-snug truncate">
             {title}
-            <br />
-            {SALE_LABEL[saleTypeId] ?? "—"}
+            {priceLabel && (
+              <>
+                <br />
+                {priceLabel}
+              </>
+            )}
           </p>
           <p className="font-black text-xs lg:text-lg">
             USD ${Number.isInteger(price) ? price : price.toFixed(2)}
+            {priceSuffix && (
+              <span className="text-[10px] font-normal ml-0.5">
+                {priceSuffix}
+              </span>
+            )}
           </p>
           <p>
             <span className="text-xs leading-snug truncate">{owner}</span>

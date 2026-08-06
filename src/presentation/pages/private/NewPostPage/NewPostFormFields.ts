@@ -1,23 +1,47 @@
-﻿import { sectors } from "@/shared/constants/sectors.catalog";
+import type {
+  FormField,
+  SelectOption,
+} from "@/presentation/interfaces/ui/FormProps";
 import { SEX_LABEL } from "@/shared/constants/sex.catalog";
-import { buildSchema } from "@minusui/form";
-import type { FormField } from "@minusui/form";
+import { POST_CATEGORY } from "@/shared/utils/resolvePostPricing";
 
-export const newPostFormFields: FormField[] = [
+// Un solo listado de campos para las 4 categorías: cada campo se muestra según
+// `dependsOn`/`visibleWhen` sobre `postCategoryId` (y, para Ganado Bovino,
+// también sobre `saleTypeId`). Form.tsx limpia en cascada el valor de un campo
+// apenas deja de ser visible, así que no hace falta reconstruir este array por
+// categoría — cambiar de categoría ya vacía los campos de la anterior.
+export const buildNewPostFields = (
+  categories: SelectOption[],
+  livestockSectors: SelectOption[],
+): FormField[] => [
   {
-    name: "livestockPostName",
+    name: "postCategoryId",
+    label: "¿Qué quieres publicar?",
+    placeholder: "Selecciona una categoría",
+    type: "select",
+    required: true,
+    options: categories,
+  },
+  {
+    name: "postName",
     label: "Título de la publicación",
     placeholder: "Ingrese el título de la publicación",
     type: "text",
     required: true,
   },
+
+  // ---- Ganado Bovino ----
   {
-    name: "sectorId",
+    name: "livestockSectorId",
     label: "Rubro",
     placeholder: "Seleccione el rubro",
     type: "select",
     required: true,
-    options: sectors,
+    options: livestockSectors,
+    dependsOn: {
+      fieldName: "postCategoryId",
+      value: POST_CATEGORY.GANADO_BOVINO,
+    },
   },
   {
     name: "saleTypeId",
@@ -29,6 +53,10 @@ export const newPostFormFields: FormField[] = [
       { value: 1, label: "Por peso" },
       { value: 2, label: "Por unidad de animales" },
     ],
+    dependsOn: {
+      fieldName: "postCategoryId",
+      value: POST_CATEGORY.GANADO_BOVINO,
+    },
   },
   {
     name: "sex",
@@ -37,37 +65,21 @@ export const newPostFormFields: FormField[] = [
     type: "select",
     required: true,
     options: SEX_LABEL,
+    dependsOn: {
+      fieldName: "postCategoryId",
+      value: POST_CATEGORY.GANADO_BOVINO,
+    },
   },
   {
-    name: "breed",
+    name: "postSubcategoryName",
     label: "Raza predominante",
     placeholder: "Ej: Brahman, Mestizo, Cruza Brahman x Cebu",
     type: "text",
     required: true,
-  },
-  {
-    name: "avgWeightKg",
-    label: "Peso promedio (kg)",
-    placeholder: "Ej: 450",
-    type: "number",
-    required: true,
-    dependsOn: { fieldName: "saleTypeId", value: "1" },
-  },
-  {
-    name: "pricePerKg",
-    label: "Precio (USD $/Kg)",
-    placeholder: "Ej: 2.50",
-    type: "number",
-    required: true,
-    dependsOn: { fieldName: "saleTypeId", value: "1" },
-  },
-  {
-    name: "pricePerUnit",
-    label: "Precio (USD $/unidad)",
-    placeholder: "Ej: 1200",
-    type: "number",
-    required: true,
-    dependsOn: { fieldName: "saleTypeId", value: "2" },
+    dependsOn: {
+      fieldName: "postCategoryId",
+      value: POST_CATEGORY.GANADO_BOVINO,
+    },
   },
   {
     name: "quantity",
@@ -75,11 +87,85 @@ export const newPostFormFields: FormField[] = [
     placeholder: "Ingrese la cantidad de animales del lote",
     type: "number",
     required: true,
+    dependsOn: {
+      fieldName: "postCategoryId",
+      value: POST_CATEGORY.GANADO_BOVINO,
+    },
   },
+  // Ganado Bovino (tipo de venta "por peso") o Minerales (peso por saco).
+  // Condición compuesta → visibleWhen, no dependsOn.
+  {
+    name: "avgWeightKg",
+    label: "Peso promedio (kg)",
+    placeholder: "Ej: 450",
+    type: "number",
+    required: true,
+    visibleWhen: (v) =>
+      (v.postCategoryId === String(POST_CATEGORY.GANADO_BOVINO) &&
+        v.saleTypeId === "1") ||
+      v.postCategoryId === String(POST_CATEGORY.MINERALES),
+  },
+  {
+    name: "pricePerKg",
+    label: "Precio (USD $/Kg)",
+    placeholder: "Ej: 2.50",
+    type: "number",
+    required: true,
+    dependsOn: { fieldName: "saleTypeId", value: 1 },
+  },
+
+  // ---- Maquinarias e Implementos ----
+  {
+    name: "postBrand",
+    label: "Marca",
+    placeholder: "Ej: John Deere",
+    type: "text",
+    optional: true,
+    dependsOn: {
+      fieldName: "postCategoryId",
+      value: POST_CATEGORY.MAQUINARIA,
+    },
+  },
+
+  // Precio plano: Ganado Bovino con tipo de venta "por unidad", o Maquinaria,
+  // Insumos u Otros, o Minerales (precio por saco). Condición compuesta →
+  // visibleWhen, no dependsOn.
+  {
+    name: "pricePerUnit",
+    label: "Precio (USD)",
+    placeholder: "Ej: 1200",
+    type: "number",
+    required: true,
+    visibleWhen: (v) =>
+      v.postCategoryId === String(POST_CATEGORY.MAQUINARIA) ||
+      v.postCategoryId === String(POST_CATEGORY.INSUMOS) ||
+      v.postCategoryId === String(POST_CATEGORY.MINERALES) ||
+      (v.postCategoryId === String(POST_CATEGORY.GANADO_BOVINO) &&
+        v.saleTypeId === "2"),
+  },
+
+  // ---- Fincas ----
+  {
+    name: "farmHectares",
+    label: "Hectáreas",
+    placeholder: "Ej: 50",
+    type: "number",
+    required: true,
+    dependsOn: { fieldName: "postCategoryId", value: POST_CATEGORY.FINCAS },
+  },
+  {
+    name: "pricePerHectare",
+    label: "Precio por hectárea (USD)",
+    placeholder: "Ej: 1200",
+    type: "number",
+    required: true,
+    dependsOn: { fieldName: "postCategoryId", value: POST_CATEGORY.FINCAS },
+  },
+
   {
     name: "details",
     label: "Detalles",
-    placeholder: "Agrega detalles adicionales sobre el lote",
+    placeholder: "Agrega detalles adicionales",
     type: "textarea",
     required: false,
   },
@@ -93,18 +179,3 @@ export const newPostFormFields: FormField[] = [
     maxFiles: 10,
   },
 ];
-
-// NOTE: Los campos condicionales (avgWeightKg, pricePerKg, pricePerUnit) NO se
-// declaran aquí como `required`. MinusForm aborta el submit si el schema falla en
-// CUALQUIER campo, incluso uno oculto por `dependsOn`. Un `required` estático sobre
-// un campo oculto deja el botón habilitado pero bloquea onSubmit silenciosamente.
-// Su validación se hace condicionalmente en buildFormData (NewPostPage).
-export const newPostSchema = buildSchema({
-  livestockPostName: { required: "El título es requerido" },
-  sectorId: { required: "El rubro es requerido" },
-  saleTypeId: { required: "El tipo de venta es requerido" },
-  sex: { required: "El sexo es requerido" },
-  breed: { required: "La raza predominante es requerida" },
-  quantity: { required: "La cantidad es requerida" },
-  media: { required: "Debes agregar al menos una foto o video" },
-});

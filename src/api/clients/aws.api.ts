@@ -2,8 +2,8 @@
 import { url } from "..";
 
 export const awsApi = {
-  getFilesByPost: async (livestockPostId: string): Promise<PostFile[]> => {
-    const response = await fetch(`${url}/aws/files/post/${livestockPostId}`);
+  getFilesByPost: async (postId: string): Promise<PostFile[]> => {
+    const response = await fetch(`${url}/aws/files/post/${postId}`);
     if (!response.ok) throw new Error("Failed to fetch post files");
     const json = await response.json();
     return json.data.files;

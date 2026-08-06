@@ -1,14 +1,17 @@
 import { url } from "..";
 
 export type LandingPost = {
-  livestock_post_id: string;
-  livestock_post_name: string;
-  sale_type_id: number;
+  post_id: string;
+  post_name: string;
+  post_category_id: number;
+  sale_type_id: number | null;
   price_per_kg: number | null;
   price_per_unit: number | null;
+  farm_hectares: number | null;
+  price_per_hectare: number | null;
   main_image_url: string | null;
   owner_name: string;
-  township_id: number;
+  township_id: number | null;
 };
 
 export const landingApi = {

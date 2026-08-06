@@ -88,9 +88,9 @@ const ChatListView: FC<ChatListViewProps> = ({
           <p className="font-semibold text-sm text-gray-900 truncate">
             {chat.other_user_name}
           </p>
-          {chat.livestock_post_name && (
+          {chat.post_name && (
             <p className="text-xs text-gray-400 truncate">
-              {chat.livestock_post_name}
+              {chat.post_name}
             </p>
           )}
           <p className="text-xs text-gray-400 mt-0.5 truncate">

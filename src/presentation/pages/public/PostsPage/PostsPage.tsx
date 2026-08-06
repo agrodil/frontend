@@ -15,6 +15,7 @@ import type { PostsPageLoaderData } from "@/presentation/router/loaders/posts.lo
 import type { PostsPost } from "@/api/interfaces/requests/PostsPost.interface";
 import type { PostsSearchResult } from "@/api/interfaces/responses/PostsSearchResult.interface";
 import type { LocationValue } from "@/presentation/interfaces/ui/LocationSelectsProps";
+import { resolvePostPricing } from "@/shared/utils/resolvePostPricing";
 
 import {
   handleSearch,
@@ -47,18 +48,19 @@ const PostsPage: FC = () => {
   const filters: LocationValue = { stateId, townshipId };
   const hasFilters = !!(stateId || townshipId);
 
-  const cards = items.map((item) => ({
-    id: item.livestock_post_id,
-    img: item.main_image_url ?? null,
-    title: item.livestock_post_name,
-    saleTypeId: Number(item.sale_type_id),
-    price:
-      Number(
-        item.sale_type_id === 1 ? item.price_per_kg : item.price_per_unit,
-      ) || 0,
-    owner: isSearchResult(item) ? item.posted_by_name : item.posted_by,
-    townshipId: item.township_id,
-  }));
+  const cards = items.map((item) => {
+    const pricing = resolvePostPricing(item);
+    return {
+      id: item.post_id,
+      img: item.main_image_url ?? null,
+      title: item.post_name,
+      priceLabel: pricing.priceLabel,
+      priceSuffix: pricing.priceSuffix,
+      price: pricing.price,
+      owner: isSearchResult(item) ? item.posted_by_name : item.posted_by,
+      townshipId: item.township_id,
+    };
+  });
 
   const selectedCard = postId
     ? (cards.find((c) => c.id === postId) ?? null)
@@ -134,7 +136,8 @@ const PostsPage: FC = () => {
                 key={card.id}
                 img={card.img}
                 title={card.title}
-                saleTypeId={card.saleTypeId}
+                priceLabel={card.priceLabel}
+                priceSuffix={card.priceSuffix}
                 townshipId={card.townshipId}
                 price={card.price}
                 owner={card.owner}

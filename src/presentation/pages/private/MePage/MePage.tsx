@@ -79,16 +79,16 @@ const MePage: FC = () => {
 
   const isSelectedActive = postDetailModal.selectedPostId
     ? !deactivatedPosts.posts.some(
-        (p) => p.livestock_post_id === postDetailModal.selectedPostId,
+        (p) => p.post_id === postDetailModal.selectedPostId,
       )
     : true;
 
   const previewImg =
     myPosts.posts.find(
-      (p) => p.livestock_post_id === postDetailModal.selectedPostId,
+      (p) => p.post_id === postDetailModal.selectedPostId,
     )?.main_image_url ??
     deactivatedPosts.posts.find(
-      (p) => p.livestock_post_id === postDetailModal.selectedPostId,
+      (p) => p.post_id === postDetailModal.selectedPostId,
     )?.main_image_url ??
     null;
 
