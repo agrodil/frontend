@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 import { catalogApi } from "@/api/clients/catalog.api";
 import type { SelectOption } from "@/presentation/interfaces/ui/FormProps";
 
-const GANADO_BOVINO_ID = 1;
+const ANIMALES_ID = 1;
 
 export type CatalogState = {
   categories: SelectOption[];
   livestockSectors: SelectOption[];
-  // Solo Ganado Bovino tiene subcategorías (razas) hoy — ver
+  // Solo Animales tiene subcategorías (razas) hoy — ver
   // docs/Post-Restructure-Implementation-Plan.md en agrodil-database. Si el
   // catálogo crece a otras categorías, este hook debe pasar a resolver por
   // categoría en vez de precargar una sola.
@@ -34,7 +34,7 @@ export const useCatalog = (): CatalogState => {
     Promise.all([
       catalogApi.getPostCategories(),
       catalogApi.getLivestockSectors(),
-      catalogApi.getPostSubcategories(GANADO_BOVINO_ID),
+      catalogApi.getPostSubcategories(ANIMALES_ID),
     ])
       .then(([categories, sectors, subcategories]) => {
         if (cancelled) return;

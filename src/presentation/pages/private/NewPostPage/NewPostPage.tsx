@@ -72,10 +72,9 @@ const NewPostPage: FC = () => {
       };
     }
 
-    // Insumos u Otros y Minerales son las únicas categorías con ubicación opcional.
+    // Insumos u Otros es la única categoría con ubicación opcional.
     if (
       postCategoryId !== POST_CATEGORY.INSUMOS &&
-      postCategoryId !== POST_CATEGORY.MINERALES &&
       (!location.stateId || !location.townshipId)
     ) {
       return {
@@ -105,7 +104,7 @@ const NewPostPage: FC = () => {
     };
 
     switch (postCategoryId) {
-      case POST_CATEGORY.GANADO_BOVINO: {
+      case POST_CATEGORY.ANIMALES: {
         const postSubcategoryName =
           typeof data.postSubcategoryName === "string"
             ? data.postSubcategoryName.trim()
@@ -224,26 +223,6 @@ const NewPostPage: FC = () => {
         break;
       }
 
-      case POST_CATEGORY.MINERALES: {
-        if (!data.pricePerUnit) {
-          return {
-            payload: null,
-            validationError: "Debes indicar el precio.",
-          };
-        }
-        if (!data.avgWeightKg) {
-          return {
-            payload: null,
-            validationError: "Debes indicar el peso promedio (kg).",
-          };
-        }
-        Object.assign(post, {
-          pricePerUnit: Number(data.pricePerUnit),
-          avgWeightKg: Number(data.avgWeightKg),
-        });
-        break;
-      }
-
       default:
         return {
           payload: null,
@@ -276,7 +255,6 @@ const NewPostPage: FC = () => {
     const postCategoryId = Number(data.postCategoryId);
     const isLocationMissing =
       postCategoryId !== POST_CATEGORY.INSUMOS &&
-      postCategoryId !== POST_CATEGORY.MINERALES &&
       (!location.stateId || !location.townshipId);
     setLocationError(
       isLocationMissing

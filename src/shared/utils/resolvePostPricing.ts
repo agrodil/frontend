@@ -1,10 +1,9 @@
 // IDs de post_category (agrodil-database/seeds/catalog/008-insert-post-categories.sql).
 export const POST_CATEGORY = {
-  GANADO_BOVINO: 1,
+  ANIMALES: 1,
   MAQUINARIA: 2,
   FINCAS: 3,
   INSUMOS: 4,
-  MINERALES: 5,
 } as const;
 
 const SALE_LABEL: Record<number, string> = {
@@ -34,7 +33,7 @@ export interface PostPricing {
 // lógica adicional para esas dos categorías.
 export const resolvePostPricing = (post: PostPricingInput): PostPricing => {
   switch (post.post_category_id) {
-    case POST_CATEGORY.GANADO_BOVINO:
+    case POST_CATEGORY.ANIMALES:
       return {
         price:
           Number(
@@ -51,12 +50,6 @@ export const resolvePostPricing = (post: PostPricingInput): PostPricing => {
         price: Number(post.price_per_hectare) || 0,
         priceLabel: null,
         priceSuffix: "/ hectárea",
-      };
-    case POST_CATEGORY.MINERALES:
-      return {
-        price: Number(post.price_per_unit) || 0,
-        priceLabel: null,
-        priceSuffix: "/ saco",
       };
     default:
       return {
