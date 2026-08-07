@@ -184,6 +184,22 @@ export const authApi = {
     throw lastError ?? new Error("Refresh failed");
   },
   logout: () => authFetch("/auth/logout", {}),
+  // Ticket de 60s para el handshake del socket (el socket va directo al backend
+  // y no recibe la cookie). No usa fetchWithAuth para no crear un ciclo de
+  // imports: el refresh + retry ante 401 lo hace el caller (NotificationsSocket).
+  getWsTicket: async (): Promise<string> => {
+    const response = await fetch(`${url}/auth/ws-ticket`, {
+      credentials: "include",
+    });
+    if (!response.ok) {
+      throw new AuthError(
+        "No se pudo obtener el ticket del socket",
+        response.status,
+      );
+    }
+    const json = await response.json();
+    return json.data.token as string;
+  },
   getMe: async () => {
     const response = await fetchIdempotent(`${url}/auth/me`, {
       credentials: "include",
