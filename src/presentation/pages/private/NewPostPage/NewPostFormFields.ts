@@ -6,7 +6,7 @@ import { SEX_LABEL } from "@/shared/constants/sex.catalog";
 import { POST_CATEGORY } from "@/shared/utils/resolvePostPricing";
 
 // Un solo listado de campos para las 4 categorías: cada campo se muestra según
-// `dependsOn`/`visibleWhen` sobre `postCategoryId` (y, para Ganado Bovino,
+// `dependsOn`/`visibleWhen` sobre `postCategoryId` (y, para Animales,
 // también sobre `saleTypeId`). Form.tsx limpia en cascada el valor de un campo
 // apenas deja de ser visible, así que no hace falta reconstruir este array por
 // categoría — cambiar de categoría ya vacía los campos de la anterior.
@@ -30,7 +30,7 @@ export const buildNewPostFields = (
     required: true,
   },
 
-  // ---- Ganado Bovino ----
+  // ---- Animales ----
   {
     name: "livestockSectorId",
     label: "Rubro",
@@ -40,7 +40,7 @@ export const buildNewPostFields = (
     options: livestockSectors,
     dependsOn: {
       fieldName: "postCategoryId",
-      value: POST_CATEGORY.GANADO_BOVINO,
+      value: POST_CATEGORY.ANIMALES,
     },
   },
   {
@@ -55,7 +55,7 @@ export const buildNewPostFields = (
     ],
     dependsOn: {
       fieldName: "postCategoryId",
-      value: POST_CATEGORY.GANADO_BOVINO,
+      value: POST_CATEGORY.ANIMALES,
     },
   },
   {
@@ -67,7 +67,7 @@ export const buildNewPostFields = (
     options: SEX_LABEL,
     dependsOn: {
       fieldName: "postCategoryId",
-      value: POST_CATEGORY.GANADO_BOVINO,
+      value: POST_CATEGORY.ANIMALES,
     },
   },
   {
@@ -78,7 +78,7 @@ export const buildNewPostFields = (
     required: true,
     dependsOn: {
       fieldName: "postCategoryId",
-      value: POST_CATEGORY.GANADO_BOVINO,
+      value: POST_CATEGORY.ANIMALES,
     },
   },
   {
@@ -89,21 +89,16 @@ export const buildNewPostFields = (
     required: true,
     dependsOn: {
       fieldName: "postCategoryId",
-      value: POST_CATEGORY.GANADO_BOVINO,
+      value: POST_CATEGORY.ANIMALES,
     },
   },
-  // Ganado Bovino (tipo de venta "por peso") o Minerales (peso por saco).
-  // Condición compuesta → visibleWhen, no dependsOn.
   {
     name: "avgWeightKg",
     label: "Peso promedio (kg)",
     placeholder: "Ej: 450",
     type: "number",
     required: true,
-    visibleWhen: (v) =>
-      (v.postCategoryId === String(POST_CATEGORY.GANADO_BOVINO) &&
-        v.saleTypeId === "1") ||
-      v.postCategoryId === String(POST_CATEGORY.MINERALES),
+    dependsOn: { fieldName: "saleTypeId", value: 1 },
   },
   {
     name: "pricePerKg",
@@ -127,9 +122,8 @@ export const buildNewPostFields = (
     },
   },
 
-  // Precio plano: Ganado Bovino con tipo de venta "por unidad", o Maquinaria,
-  // Insumos u Otros, o Minerales (precio por saco). Condición compuesta →
-  // visibleWhen, no dependsOn.
+  // Precio plano: Animales con tipo de venta "por unidad", o Maquinaria,
+  // o Insumos u Otros. Condición compuesta → visibleWhen, no dependsOn.
   {
     name: "pricePerUnit",
     label: "Precio (USD)",
@@ -139,8 +133,7 @@ export const buildNewPostFields = (
     visibleWhen: (v) =>
       v.postCategoryId === String(POST_CATEGORY.MAQUINARIA) ||
       v.postCategoryId === String(POST_CATEGORY.INSUMOS) ||
-      v.postCategoryId === String(POST_CATEGORY.MINERALES) ||
-      (v.postCategoryId === String(POST_CATEGORY.GANADO_BOVINO) &&
+      (v.postCategoryId === String(POST_CATEGORY.ANIMALES) &&
         v.saleTypeId === "2"),
   },
 

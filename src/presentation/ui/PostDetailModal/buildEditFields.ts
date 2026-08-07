@@ -85,29 +85,7 @@ export const buildEditFields = (post: PostDetail): FormField[] => {
         trailingDetails,
       ];
 
-    case POST_CATEGORY.MINERALES:
-      return [
-        ...titleAndDetails,
-        {
-          name: "avgWeightKg",
-          type: "number",
-          label: "Peso promedio (kg)",
-          required: true,
-          defaultValue:
-            post.avg_weight_kg != null ? String(post.avg_weight_kg) : "",
-        },
-        {
-          name: "pricePerUnit",
-          type: "number",
-          label: "Precio (US$)",
-          required: true,
-          defaultValue:
-            post.price_per_unit != null ? String(post.price_per_unit) : "",
-        },
-        trailingDetails,
-      ];
-
-    default: // Ganado Bovino
+    default: // Animales
       return [
         ...titleAndDetails,
         {

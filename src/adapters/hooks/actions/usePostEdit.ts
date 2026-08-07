@@ -46,14 +46,7 @@ const buildUpdatePayload = (
         pricePerUnit: Number(data.pricePerUnit),
       };
 
-    case POST_CATEGORY.MINERALES:
-      return {
-        ...base,
-        avgWeightKg: Number(data.avgWeightKg),
-        pricePerUnit: Number(data.pricePerUnit),
-      };
-
-    default: // Ganado Bovino
+    default: // Animales
       return {
         ...base,
         sex: data.sex as string,

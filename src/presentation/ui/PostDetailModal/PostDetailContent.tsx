@@ -36,12 +36,7 @@ const getDetailsArray = (post: PostDetail): DetailItem[] => {
     case POST_CATEGORY.INSUMOS:
       return [];
 
-    case POST_CATEGORY.MINERALES:
-      return post.avg_weight_kg != null
-        ? [{ label: "Peso prom.", value: post.avg_weight_kg, suffix: " kg" }]
-        : [];
-
-    default: // Ganado Bovino
+    default: // Animales
       return [
         ...(post.post_subcategory_name
           ? [{ label: "Raza dominante", value: post.post_subcategory_name }]

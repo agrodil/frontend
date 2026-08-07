@@ -4,7 +4,7 @@ export interface PostDetail {
   post_name: string;
   posted_by: string;
 
-  // Ganado Bovino (post_category_id = 1)
+  // Animales (post_category_id = 1)
   post_subcategory_id: number | null;
   post_subcategory_name?: string | null;
   livestock_sector_id: number | null;
@@ -15,7 +15,7 @@ export interface PostDetail {
   avg_weight_kg: number | null;
   price_per_kg: number | null;
 
-  // Reutilizado: precio "por unidad" de Ganado Bovino, y precio plano de
+  // Reutilizado: precio "por unidad" de Animales, y precio plano de
   // Maquinarias e Implementos / Insumos u Otros.
   price_per_unit: number | null;
 
