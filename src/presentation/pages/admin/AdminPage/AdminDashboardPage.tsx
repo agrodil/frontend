@@ -10,6 +10,7 @@ import {
   LuTrendingUp,
   LuArrowLeft,
   LuWrench,
+  LuWallet,
 } from "react-icons/lu";
 import type { AdminDashboardLoaderData } from "@/presentation/interfaces/pages/AdminDashboardLoaderData";
 
@@ -122,6 +123,13 @@ const AdminDashboardPage: FC = () => {
       description: "Revisar fallas reportadas por usuarios",
       icon: <LuWrench size={22} className="text-red-600" />,
       color: "bg-red-50",
+    },
+    {
+      to: "/admin/wallet",
+      label: "Billetera",
+      description: "Revisar depósitos, ajustes y cuentas",
+      icon: <LuWallet size={22} className="text-emerald-600" />,
+      color: "bg-emerald-50",
     },
   ];
 

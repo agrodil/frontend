@@ -47,6 +47,24 @@ export const routes = [
               return { Component: module.default };
             },
           },
+          {
+            path: "/wallet",
+            lazy: async () => {
+              const module = await import(
+                "@/presentation/pages/private/WalletPage/WalletPage.tsx"
+              );
+              return { Component: module.default };
+            },
+          },
+          {
+            path: "/wallet/depositar",
+            lazy: async () => {
+              const module = await import(
+                "@/presentation/pages/private/DepositPage/DepositPage.tsx"
+              );
+              return { Component: module.default };
+            },
+          },
         ],
       },
     ],
@@ -79,6 +97,42 @@ export const routes = [
             lazy: async () => {
               const module = await import(
                 "@/presentation/pages/admin/AdminTroubleshootingPage/AdminTroubleshootingPage.tsx"
+              );
+              return { Component: module.default };
+            },
+          },
+          {
+            path: "/admin/wallet",
+            lazy: async () => {
+              const module = await import(
+                "@/presentation/pages/admin/AdminWalletPage/AdminWalletPage.tsx"
+              );
+              return { Component: module.default };
+            },
+          },
+          {
+            path: "/admin/wallet/cuentas",
+            lazy: async () => {
+              const module = await import(
+                "@/presentation/pages/admin/AdminWalletPage/AdminBankAccountsPage.tsx"
+              );
+              return { Component: module.default };
+            },
+          },
+          {
+            path: "/admin/wallet/ajustes",
+            lazy: async () => {
+              const module = await import(
+                "@/presentation/pages/admin/AdminWalletPage/AdminAdjustmentPage.tsx"
+              );
+              return { Component: module.default };
+            },
+          },
+          {
+            path: "/admin/wallet/conciliacion",
+            lazy: async () => {
+              const module = await import(
+                "@/presentation/pages/admin/AdminWalletPage/AdminReconciliationPage.tsx"
               );
               return { Component: module.default };
             },

@@ -14,4 +14,5 @@ export interface ProfileCardProps {
   onEdit: () => void;
   onLogout: () => void;
   onGoAdmin: () => void;
+  onGoWallet: () => void;
 }
