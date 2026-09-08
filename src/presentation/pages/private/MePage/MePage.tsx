@@ -115,6 +115,7 @@ const MePage: FC = () => {
           onEdit={() => setIsEditing((v) => !v)}
           onLogout={() => handleLogout(logout, navigate)}
           onGoAdmin={() => navigate("/admin")}
+          onGoWallet={() => navigate("/wallet")}
         />
 
         {/* ── Edit form ──────────────────────────────────────────────────── */}

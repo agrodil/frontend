@@ -10,6 +10,7 @@ const DEFAULT_SECTIONS = [
     links: [
       { label: "Inicio", href: "/" },
       { label: "Vender", href: "/new-post" },
+      { label: "Mi billetera", href: "/wallet" },
     ],
   },
   {

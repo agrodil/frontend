@@ -1,4 +1,4 @@
-﻿import type { FC } from "react";
+import type { FC } from "react";
 import { useNavigate } from "react-router-dom";
 
 import type { User } from "@/adapters/contexts/AuthProps";
@@ -6,6 +6,8 @@ import type { User } from "@/adapters/contexts/AuthProps";
 import { getInitials } from "@/shared/utils/getInitials";
 import { getAvatarColor } from "@/shared/utils/getAvatarColor";
 import { fullName } from "@/shared/utils/fullName";
+import { formatUsd } from "@/shared/utils/formatMoney";
+import { useWallet } from "@/adapters/hooks/actions/useWallet";
 
 interface UserMenuProps {
   user: User;
@@ -17,6 +19,7 @@ const UserMenu: FC<UserMenuProps> = ({ user, onNavigate }) => {
   const initials = getInitials(displayName);
   const avatarColor = getAvatarColor(user.email);
   const navigate = useNavigate();
+  const { wallet, loading } = useWallet();
 
   return (
     <div
@@ -31,9 +34,22 @@ const UserMenu: FC<UserMenuProps> = ({ user, onNavigate }) => {
       >
         {initials}
       </div>
-      <span className="text-sm font-medium text-primary truncate max-w-30">
-        {displayName}
-      </span>
+      <div className="flex flex-col min-w-0">
+        <span className="text-sm font-medium text-primary truncate max-w-30">
+          {displayName}
+        </span>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate("/wallet");
+            onNavigate?.();
+          }}
+          className="text-xs text-gray-500 hover:text-primary transition-colors text-left border-0 bg-transparent p-0 cursor-pointer"
+        >
+          {loading ? "…" : formatUsd(wallet?.balance ?? 0)}
+        </button>
+      </div>
     </div>
   );
 };
