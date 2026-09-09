@@ -9,8 +9,12 @@ import {
 } from "react-icons/lu";
 
 import Button from "./Button";
+import PillsField from "./PillsField";
 
-import type { FormField, FormProps } from "@/presentation/interfaces/ui/FormProps";
+import type {
+  FormField,
+  FormProps,
+} from "@/presentation/interfaces/ui/FormProps";
 import { Link } from "react-router-dom";
 
 const baseInput =
@@ -62,9 +66,6 @@ const Form: FC<FormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const mediaInputRef = useRef<Record<string, HTMLInputElement | null>>({});
 
-  // Valor efectivo de un `pills`: lo elegido, o la primera opción por defecto
-  // (para planes de publicación → el plan más corto). Las opciones llegan async,
-  // así que se deriva en cada render en vez de sembrarlo en el estado inicial.
   const pillValue = (field: FormField): string =>
     values[field.name] ||
     (field.options?.[0] ? String(field.options[0].value) : "");
@@ -72,17 +73,10 @@ const Form: FC<FormProps> = ({
   const handleChange = (name: string, value: string) => {
     setValues((prev) => {
       let next = { ...prev, [name]: value };
-
-      // optionsFrom: si este campo alimenta las opciones de otro, el valor del
-      // hijo ya no pertenece a la nueva lista, así que se limpia.
       for (const field of fields) {
         if (field.optionsFrom?.fieldName === name) next[field.name] = "";
       }
 
-      // dependsOn/visibleWhen: limpiar en cascada todo campo que deje de ser
-      // visible bajo los nuevos valores. Transitivo — repite hasta estabilizar,
-      // porque limpiar un campo puede a su vez ocultar otro que dependía de él
-      // (p.ej. categoría → tipo de venta → peso/precio por kg).
       let changed = true;
       while (changed) {
         changed = false;
@@ -127,10 +121,9 @@ const Form: FC<FormProps> = ({
     e.preventDefault();
 
     if (fields.some((f) => f.asyncError)) {
-      return; // Bloqueamos el submit si hay errores asíncronos pendientes
+      return;
     }
 
-    // `pills` sin tocar por el usuario cae en su opción por defecto (la primera).
     const pillDefaults = Object.fromEntries(
       fields
         .filter((f) => f.type === "pills" && !values[f.name] && f.options?.[0])
@@ -194,50 +187,17 @@ const Form: FC<FormProps> = ({
           if (!isFieldVisible(field, values)) return null;
 
           if (field.type === "pills") {
-            const options = field.options ?? [];
             return (
-              <div
-                key={field.name}
-                className={`flex flex-col gap-1.5 ${field.className ?? ""}`}
-              >
-                {field.label && (
-                  <label className="text-sm font-medium text-gray-700">
-                    {field.label}
-                    {field.optional && (
-                      <span className="italic text-gray-500 font-thin">
-                        {" "}
-                        {"(opcional)"}
-                      </span>
-                    )}
-                  </label>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  {options.map((opt) => {
-                    const active = pillValue(field) === String(opt.value);
-                    return (
-                      <button
-                        type="button"
-                        key={opt.value}
-                        onClick={() =>
-                          handleChange(field.name, String(opt.value))
-                        }
-                        disabled={field.disabled}
-                        className={`flex flex-col items-start rounded-2xl border px-4 py-2.5 text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                          active
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-gray-200 bg-gray-100 text-gray-600 hover:border-primary/40"
-                        }`}
-                      >
-                        <span className="font-semibold">{opt.label}</span>
-                        {opt.sublabel && (
-                          <span className="text-xs opacity-80">
-                            {opt.sublabel}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+              <div key={field.name} className={field.className ?? ""}>
+                <PillsField
+                  options={field.options ?? []}
+                  value={pillValue(field)}
+                  onChange={(v) => handleChange(field.name, v)}
+                  label={field.label}
+                  optional={field.optional}
+                  placeholder={field.placeholder}
+                  disabled={field.disabled}
+                />
                 <FieldError name={field.name} />
               </div>
             );

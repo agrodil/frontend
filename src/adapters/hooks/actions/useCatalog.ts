@@ -38,7 +38,7 @@ const postingFeeSublabel = (fee: {
   const discount = Number(fee.renewal_discount_percentage);
   const price = priceLabel(fee.price_usd);
   return discount > 0
-    ? `${price} · renovación -${Number.isInteger(discount) ? discount : discount.toFixed(1)}%`
+    ? `${price} · primera renovación -${Number.isInteger(discount) ? discount : discount.toFixed(1)}%`
     : price;
 };
 
