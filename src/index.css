@@ -119,7 +119,7 @@ body {
 }
 
 .hero-bg {
-  background-image: url("https://picsum.photos/id/107/1200/400");
+  background-image: url("./presentation//assets/images/landscape.jpeg");
   background-size: cover;
   background-position: center;
 }
