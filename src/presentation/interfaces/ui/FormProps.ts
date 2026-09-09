@@ -11,11 +11,14 @@ export type FieldType =
   | "textarea"
   | "image"
   | "media"
-  | "checkbox";
+  | "checkbox"
+  | "pills";
 
 export interface SelectOption {
   label: string;
   value: string | number;
+  // Solo lo usa el render de `pills`: segunda línea (precio, descuento, etc.).
+  sublabel?: string;
 }
 
 export interface FormField {

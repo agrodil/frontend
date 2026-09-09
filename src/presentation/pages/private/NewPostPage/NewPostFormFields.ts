@@ -13,6 +13,7 @@ import { POST_CATEGORY } from "@/shared/utils/resolvePostPricing";
 export const buildNewPostFields = (
   categories: SelectOption[],
   livestockSectors: SelectOption[],
+  postingFees: SelectOption[],
 ): FormField[] => [
   {
     name: "postCategoryId",
@@ -170,5 +171,16 @@ export const buildNewPostFields = (
     required: true,
     accept: "image/*,video/*",
     maxFiles: 10,
+  },
+
+  // Plan de publicación: se cobra de la cartera al crear el post. El más corto
+  // (primera opción) queda preseleccionado; Form lo consume por `postingFeeId`.
+  {
+    name: "postingFeeId",
+    label: "Duración de la publicación",
+    type: "pills",
+    required: true,
+    options: postingFees,
+    className: "lg:col-span-2",
   },
 ];
