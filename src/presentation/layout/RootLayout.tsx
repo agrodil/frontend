@@ -27,7 +27,6 @@ const RootLayout: FC = () => {
 
   const navSections: NavItem[] = useMemo(
     () => [
-      { label: "Inicio", path: "/" },
       { label: "Vender", path: "/new-post" },
       { label: "Notificaciones", path: "/notifications", badge: unreadCount },
       { label: "Mi Billetera", path: "/wallet" },

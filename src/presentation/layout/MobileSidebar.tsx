@@ -6,6 +6,7 @@ import type { NavItem } from "@/presentation/interfaces/ui/NavbarProps";
 import Button from "../ui/Button";
 import UserMenu from "../ui/UserMenu";
 import { useAuth } from "@/adapters/hooks/common/useAuth";
+import logoIcon from "@/presentation/assets/images/AGRODIL ENTREGA_ICONO PINCIPAL  PNG.png";
 
 interface MobileSidebarProps {
   isOpen: boolean;
@@ -51,9 +52,26 @@ const MobileSidebar: FC<MobileSidebarProps> = ({
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="fixed top-0 left-0 z-50 h-full w-72 bg-white shadow-xl flex flex-col"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
-              <span className="text-primary font-semibold text-lg">Menú</span>
+            {/* Header — el icono Agrodil actúa como botón de inicio */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <Link
+                to="/"
+                onClick={onClose}
+                aria-label="Ir al inicio"
+                className="flex min-w-0 items-center gap-2"
+              >
+                {/* Caja de recorte: solo envuelve el img para clipear su borde transparente */}
+                <span className="flex h-9 aspect-square shrink-0 items-center justify-center overflow-hidden">
+                  <img
+                    src={logoIcon}
+                    alt=""
+                    className="h-[155%] w-auto max-w-none object-contain"
+                  />
+                </span>
+                <span className="text-primary font-bold text-2xl truncate">
+                  Agrodil
+                </span>
+              </Link>
               <button
                 type="button"
                 onClick={onClose}
