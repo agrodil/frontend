@@ -38,17 +38,9 @@ const UserMenu: FC<UserMenuProps> = ({ user, onNavigate }) => {
         <span className="text-sm font-medium text-primary truncate max-w-30">
           {displayName}
         </span>
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            navigate("/wallet");
-            onNavigate?.();
-          }}
-          className="text-xs text-gray-500 hover:text-primary transition-colors text-left border-0 bg-transparent p-0 cursor-pointer"
-        >
+        <span className="text-xs text-gray-500 hover:text-primary transition-colors text-left border-0 bg-transparent p-0 cursor-pointer">
           {loading ? "…" : formatUsd(wallet?.balance ?? 0)}
-        </button>
+        </span>
       </div>
     </div>
   );
