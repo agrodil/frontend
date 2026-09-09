@@ -62,6 +62,13 @@ const Form: FC<FormProps> = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const mediaInputRef = useRef<Record<string, HTMLInputElement | null>>({});
 
+  // Valor efectivo de un `pills`: lo elegido, o la primera opción por defecto
+  // (para planes de publicación → el plan más corto). Las opciones llegan async,
+  // así que se deriva en cada render en vez de sembrarlo en el estado inicial.
+  const pillValue = (field: FormField): string =>
+    values[field.name] ||
+    (field.options?.[0] ? String(field.options[0].value) : "");
+
   const handleChange = (name: string, value: string) => {
     setValues((prev) => {
       let next = { ...prev, [name]: value };
@@ -123,7 +130,20 @@ const Form: FC<FormProps> = ({
       return; // Bloqueamos el submit si hay errores asíncronos pendientes
     }
 
-    const data = { ...values, ...files, ...multiFiles, ...booleans };
+    // `pills` sin tocar por el usuario cae en su opción por defecto (la primera).
+    const pillDefaults = Object.fromEntries(
+      fields
+        .filter((f) => f.type === "pills" && !values[f.name] && f.options?.[0])
+        .map((f) => [f.name, String(f.options![0].value)]),
+    );
+
+    const data = {
+      ...values,
+      ...pillDefaults,
+      ...files,
+      ...multiFiles,
+      ...booleans,
+    };
 
     if (schema) {
       const result = schema.safeParse(data);
@@ -172,6 +192,56 @@ const Form: FC<FormProps> = ({
       >
         {fields.map((field) => {
           if (!isFieldVisible(field, values)) return null;
+
+          if (field.type === "pills") {
+            const options = field.options ?? [];
+            return (
+              <div
+                key={field.name}
+                className={`flex flex-col gap-1.5 ${field.className ?? ""}`}
+              >
+                {field.label && (
+                  <label className="text-sm font-medium text-gray-700">
+                    {field.label}
+                    {field.optional && (
+                      <span className="italic text-gray-500 font-thin">
+                        {" "}
+                        {"(opcional)"}
+                      </span>
+                    )}
+                  </label>
+                )}
+                <div className="flex flex-wrap gap-2">
+                  {options.map((opt) => {
+                    const active = pillValue(field) === String(opt.value);
+                    return (
+                      <button
+                        type="button"
+                        key={opt.value}
+                        onClick={() =>
+                          handleChange(field.name, String(opt.value))
+                        }
+                        disabled={field.disabled}
+                        className={`flex flex-col items-start rounded-2xl border px-4 py-2.5 text-sm transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                          active
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-gray-200 bg-gray-100 text-gray-600 hover:border-primary/40"
+                        }`}
+                      >
+                        <span className="font-semibold">{opt.label}</span>
+                        {opt.sublabel && (
+                          <span className="text-xs opacity-80">
+                            {opt.sublabel}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                <FieldError name={field.name} />
+              </div>
+            );
+          }
 
           if (field.type === "select") {
             const parentValue = field.optionsFrom

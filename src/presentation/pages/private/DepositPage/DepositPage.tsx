@@ -27,8 +27,11 @@ const DepositPage: FC = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
 
-  const { accounts, loading: accountsLoading, error: accountsError } =
-    useDepositBankAccounts();
+  const {
+    accounts,
+    loading: accountsLoading,
+    error: accountsError,
+  } = useDepositBankAccounts();
   const { submit, submitting, error, fieldErrors, result, reset, onCooldown } =
     useCreateDeposit();
 
@@ -77,7 +80,7 @@ const DepositPage: FC = () => {
   };
 
   return (
-    <main className="flex-1 flex items-start justify-center px-6 py-10">
+    <main className="flex-1 flex items-start justify-center px-6 py-10 min-h-svh">
       <Loader visible={submitting} />
       <div className="w-full max-w-lg">
         {/* Header */}

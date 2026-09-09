@@ -12,8 +12,34 @@ export type CatalogState = {
   // catálogo crece a otras categorías, este hook debe pasar a resolver por
   // categoría en vez de precargar una sola.
   livestockSubcategories: SelectOption[];
+  // Planes de publicación (posting_fee): value = posting_fee_id (uuid), label =
+  // duración, sublabel = precio (+ descuento de renovación si aplica).
+  postingFees: SelectOption[];
   isLoading: boolean;
   error: string | null;
+};
+
+const durationLabel = (days: number): string => {
+  const months = Math.round(days / 30);
+  if (months >= 1) return months === 1 ? "1 mes" : `${months} meses`;
+  return days === 1 ? "1 día" : `${days} días`;
+};
+
+const priceLabel = (usd: string): string => {
+  const n = Number(usd);
+  if (!Number.isFinite(n) || n === 0) return "Gratis";
+  return `$${Number.isInteger(n) ? n : n.toFixed(2)}`;
+};
+
+const postingFeeSublabel = (fee: {
+  price_usd: string;
+  renewal_discount_percentage: string;
+}): string => {
+  const discount = Number(fee.renewal_discount_percentage);
+  const price = priceLabel(fee.price_usd);
+  return discount > 0
+    ? `${price} · renovación -${Number.isInteger(discount) ? discount : discount.toFixed(1)}%`
+    : price;
 };
 
 // Catálogo de post (categorías/subcategorías/sectores) — vive en la DB, se
@@ -24,6 +50,7 @@ export const useCatalog = (): CatalogState => {
     categories: [],
     livestockSectors: [],
     livestockSubcategories: [],
+    postingFees: [],
     isLoading: true,
     error: null,
   });
@@ -35,8 +62,9 @@ export const useCatalog = (): CatalogState => {
       catalogApi.getPostCategories(),
       catalogApi.getLivestockSectors(),
       catalogApi.getPostSubcategories(ANIMALES_ID),
+      catalogApi.getPostingFees(),
     ])
-      .then(([categories, sectors, subcategories]) => {
+      .then(([categories, sectors, subcategories, postingFees]) => {
         if (cancelled) return;
         setState({
           categories: categories.map((c) => ({
@@ -50,6 +78,11 @@ export const useCatalog = (): CatalogState => {
           livestockSubcategories: subcategories.map((s) => ({
             value: s.post_subcategory_id,
             label: s.post_subcategory_name,
+          })),
+          postingFees: postingFees.map((f) => ({
+            value: f.posting_fee_id,
+            label: durationLabel(f.duration_days),
+            sublabel: postingFeeSublabel(f),
           })),
           isLoading: false,
           error: null,

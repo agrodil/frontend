@@ -92,11 +92,21 @@ const NewPostPage: FC = () => {
       };
     }
 
+    const postingFeeId =
+      typeof data.postingFeeId === "string" ? data.postingFeeId : "";
+    if (!postingFeeId) {
+      return {
+        payload: null,
+        validationError: "Debes seleccionar la duración de la publicación.",
+      };
+    }
+
     const mediaFiles = Array.isArray(data.media) ? (data.media as File[]) : [];
 
     const post: Record<string, unknown> = {
       postCategoryId,
       postName,
+      postingFeeId,
       ...(location.townshipId
         ? { townshipId: Number(location.townshipId) }
         : {}),
@@ -281,6 +291,7 @@ const NewPostPage: FC = () => {
   const fields = buildNewPostFields(
     catalog.categories,
     catalog.livestockSectors,
+    catalog.postingFees,
   );
 
   return (
