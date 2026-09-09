@@ -5,12 +5,30 @@ import type { NavbarProps } from "@/presentation/interfaces/ui/NavbarProps";
 import Button from "../ui/Button";
 import UserMenu from "../ui/UserMenu";
 import { useAuth } from "@/adapters/hooks/common/useAuth";
+import logoPrincipal from "@/presentation/assets/images/AGRODIL ENTREGA_ICONO PINCIPAL  PNG.png";
 
 const Navbar: FC<NavbarProps> = ({ sections, onLoginClick }) => {
   const { user, isAuthenticated } = useAuth();
 
   return (
     <div className="flex items-center gap-4 w-[90vw] mx-auto pb-4">
+      <motion.div className="shrink-0">
+        <Link
+          to="/"
+          aria-label="Ir al inicio"
+          className="flex items-center justify-center overflow-hidden rounded-xl
+            [--nav-logo-h:2.25rem]
+            h-[var(--nav-logo-h)] w-[calc(var(--nav-logo-h)*1.19)]
+            transition-transform duration-200 hover:scale-105"
+        >
+          <img
+            src={logoPrincipal}
+            alt="Agrodil"
+            className="h-[calc(var(--nav-logo-h)*1.93)] w-auto max-w-none object-contain"
+          />
+        </Link>
+      </motion.div>
+
       <motion.nav
         className="bg-white border border-gray-200 px-8 py-1.5 flex items-center justify-between flex-1 rounded-2xl shadow-sm text-primary w-[80%]"
         initial={{ opacity: 0, y: -16 }}
