@@ -15,11 +15,9 @@ const isVideoUrl = (src: string) => {
 const CardPost: FC<CardPostProps> = ({
   img,
   title,
-  priceLabel,
   priceSuffix,
   townshipId,
   price,
-  owner,
   onClick,
 }) => {
   const [hovered, setHovered] = useState(false);
