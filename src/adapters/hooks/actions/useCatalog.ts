@@ -2,15 +2,15 @@ import { useEffect, useState } from "react";
 import { catalogApi } from "@/api/clients/catalog.api";
 import type { SelectOption } from "@/presentation/interfaces/ui/FormProps";
 
-const ANIMALES_ID = 1;
+const BOVINO_CATEGORY_ID = 1;
 
 export type CatalogState = {
   categories: SelectOption[];
   livestockSectors: SelectOption[];
-  // Solo Animales tiene subcategorías (razas) hoy — ver
-  // docs/Post-Restructure-Implementation-Plan.md en agrodil-database. Si el
-  // catálogo crece a otras categorías, este hook debe pasar a resolver por
-  // categoría en vez de precargar una sola.
+  // Solo Bovino tiene subcategorías (tipo de animal: Maute, Novillo) hoy —
+  // ver agrodil-database migrations/029-livestock-species-categories-manual-pricing.sql.
+  // Si otras especies ganan subcategorías, este hook debe pasar a resolver
+  // por categoría en vez de precargar una sola.
   livestockSubcategories: SelectOption[];
   // Planes de publicación (posting_fee): value = posting_fee_id (uuid), label =
   // duración, sublabel = precio (+ descuento de renovación si aplica).
@@ -61,7 +61,7 @@ export const useCatalog = (): CatalogState => {
     Promise.all([
       catalogApi.getPostCategories(),
       catalogApi.getLivestockSectors(),
-      catalogApi.getPostSubcategories(ANIMALES_ID),
+      catalogApi.getPostSubcategories(BOVINO_CATEGORY_ID),
       catalogApi.getPostingFees(),
     ])
       .then(([categories, sectors, subcategories, postingFees]) => {

@@ -43,6 +43,22 @@ export type AdminIncidentsResult = {
   pagination: ChatPagination;
 };
 
+// Precio promedio de ganado (en pie / en canal), control manual. A diferencia
+// de catalogApi.getCattlePriceAverages, incluye subcategorías sin precio
+// cargado todavía.
+export type AdminCattlePriceAverage = {
+  post_subcategory_id: number;
+  post_subcategory_name: string;
+  avg_price_per_kg_live: string | null;
+  avg_price_per_kg_carcass: string | null;
+  updated_at: string;
+};
+
+export type UpdateCattlePriceAverageInput = {
+  avgPricePerKgLive?: number;
+  avgPricePerKgCarcass?: number;
+};
+
 export const adminApi = {
   getStats: async (): Promise<AdminStats> => {
     const response = await fetchWithAuth("/admin/stats");
@@ -127,5 +143,35 @@ export const adminApi = {
       const body = await response.text().catch(() => "");
       throw new Error(`Failed to delete message (status ${response.status}): ${body}`);
     }
+  },
+
+  getCattlePriceAverages: async (): Promise<AdminCattlePriceAverage[]> => {
+    const response = await fetchWithAuth("/admin/cattle-price-averages");
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      throw new Error(
+        `Failed to fetch cattle price averages (status ${response.status}): ${body}`,
+      );
+    }
+    const json = await response.json();
+    return (json.data ?? json) as AdminCattlePriceAverage[];
+  },
+
+  updateCattlePriceAverage: async (
+    postSubcategoryId: number,
+    input: UpdateCattlePriceAverageInput,
+  ): Promise<AdminCattlePriceAverage> => {
+    const response = await fetchWithAuth(
+      `/admin/cattle-price-averages/${postSubcategoryId}`,
+      { method: "PATCH", body: JSON.stringify(input) },
+    );
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      throw new Error(
+        `Failed to update cattle price average (status ${response.status}): ${body}`,
+      );
+    }
+    const json = await response.json();
+    return (json.data ?? json) as AdminCattlePriceAverage;
   },
 };

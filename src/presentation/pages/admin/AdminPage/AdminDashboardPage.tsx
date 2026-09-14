@@ -11,6 +11,7 @@ import {
   LuArrowLeft,
   LuWrench,
   LuWallet,
+  LuBeef,
 } from "react-icons/lu";
 import type { AdminDashboardLoaderData } from "@/presentation/interfaces/pages/AdminDashboardLoaderData";
 
@@ -130,6 +131,13 @@ const AdminDashboardPage: FC = () => {
       description: "Revisar depósitos, ajustes y cuentas",
       icon: <LuWallet size={22} className="text-emerald-600" />,
       color: "bg-emerald-50",
+    },
+    {
+      to: "/admin/cattle-prices",
+      label: "Precio de ganado",
+      description: "Precio promedio en pie y en canal",
+      icon: <LuBeef size={22} className="text-orange-600" />,
+      color: "bg-orange-50",
     },
   ];
 

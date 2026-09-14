@@ -4,9 +4,10 @@ export interface PostDetail {
   post_name: string;
   posted_by: string;
 
-  // Animales (post_category_id = 1)
+  // Ganado (post_category_id IN (1,5,6,7,8): Bovino/Ovino/Caprino/Porcino/Equino)
   post_subcategory_id: number | null;
   post_subcategory_name?: string | null;
+  predominant_breed: string | null;
   livestock_sector_id: number | null;
   livestock_sector_name?: string | null;
   sale_type_id: number | null;
@@ -14,8 +15,11 @@ export interface PostDetail {
   quantity: number | null;
   avg_weight_kg: number | null;
   price_per_kg: number | null;
+  // Base del precio por kg: "Pie" (animal vivo) o "Canal" (animal faenado).
+  // Solo aplica a venta por kilaje (sale_type_id=1).
+  price_weight_basis: string | null;
 
-  // Reutilizado: precio "por unidad" de Animales, y precio plano de
+  // Reutilizado: precio "por unidad" de ganado, y precio plano de
   // Maquinarias e Implementos / Insumos u Otros.
   price_per_unit: number | null;
 

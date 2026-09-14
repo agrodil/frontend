@@ -3,16 +3,24 @@ import type {
   SelectOption,
 } from "@/presentation/interfaces/ui/FormProps";
 import { SEX_LABEL } from "@/shared/constants/sex.catalog";
-import { POST_CATEGORY } from "@/shared/utils/resolvePostPricing";
+import {
+  POST_CATEGORY,
+  LIVESTOCK_CATEGORY_IDS,
+} from "@/shared/utils/resolvePostPricing";
 
-// Un solo listado de campos para las 4 categorías: cada campo se muestra según
-// `dependsOn`/`visibleWhen` sobre `postCategoryId` (y, para Animales,
-// también sobre `saleTypeId`). Form.tsx limpia en cascada el valor de un campo
-// apenas deja de ser visible, así que no hace falta reconstruir este array por
+const isLivestock = (v: Record<string, string>) =>
+  LIVESTOCK_CATEGORY_IDS.includes(Number(v.postCategoryId));
+
+// Un solo listado de campos para las 8 categorías (Bovino/Ovino/Caprino/
+// Porcino/Equino + Maquinaria/Fincas/Insumos): cada campo se muestra según
+// `dependsOn`/`visibleWhen` sobre `postCategoryId` (y, para ganado, también
+// sobre `saleTypeId`). Form.tsx limpia en cascada el valor de un campo apenas
+// deja de ser visible, así que no hace falta reconstruir este array por
 // categoría — cambiar de categoría ya vacía los campos de la anterior.
 export const buildNewPostFields = (
   categories: SelectOption[],
   livestockSectors: SelectOption[],
+  livestockSubcategories: SelectOption[],
   postingFees: SelectOption[],
 ): FormField[] => [
   {
@@ -31,7 +39,7 @@ export const buildNewPostFields = (
     required: true,
   },
 
-  // ---- Animales ----
+  // ---- Ganado (Bovino/Ovino/Caprino/Porcino/Equino) ----
   {
     name: "livestockSectorId",
     label: "Rubro",
@@ -39,10 +47,7 @@ export const buildNewPostFields = (
     type: "select",
     required: true,
     options: livestockSectors,
-    dependsOn: {
-      fieldName: "postCategoryId",
-      value: POST_CATEGORY.ANIMALES,
-    },
+    visibleWhen: isLivestock,
   },
   {
     name: "saleTypeId",
@@ -54,10 +59,7 @@ export const buildNewPostFields = (
       { value: 1, label: "Por peso" },
       { value: 2, label: "Por unidad de animales" },
     ],
-    dependsOn: {
-      fieldName: "postCategoryId",
-      value: POST_CATEGORY.ANIMALES,
-    },
+    visibleWhen: isLivestock,
   },
   {
     name: "sex",
@@ -66,20 +68,34 @@ export const buildNewPostFields = (
     type: "select",
     required: true,
     options: SEX_LABEL,
-    dependsOn: {
-      fieldName: "postCategoryId",
-      value: POST_CATEGORY.ANIMALES,
-    },
+    visibleWhen: isLivestock,
   },
   {
-    name: "postSubcategoryName",
+    name: "predominantBreed",
     label: "Raza predominante",
     placeholder: "Ej: Brahman, Mestizo, Cruza Brahman x Cebu",
     type: "text",
     required: true,
-    dependsOn: {
+    visibleWhen: isLivestock,
+  },
+  // Tipo de animal dentro de la especie (ej. Maute/Novillo para Bovino).
+  // Opcional y solo hay opciones para Bovino por ahora — para las demás
+  // especies el select queda sin opciones y el campo simplemente no aplica.
+  {
+    name: "postSubcategoryId",
+    label: "Tipo de animal (opcional)",
+    placeholder: "Ej: Maute, Novillo",
+    type: "select",
+    optional: true,
+    visibleWhen: (v) =>
+      isLivestock(v) && v.postCategoryId === String(POST_CATEGORY.BOVINO),
+    optionsFrom: {
       fieldName: "postCategoryId",
-      value: POST_CATEGORY.ANIMALES,
+      getOptions: (parentValue) =>
+        parentValue === String(POST_CATEGORY.BOVINO)
+          ? livestockSubcategories
+          : [],
+      emptyPlaceholder: "Selecciona la especie primero",
     },
   },
   {
@@ -88,10 +104,7 @@ export const buildNewPostFields = (
     placeholder: "Ingrese la cantidad de animales del lote",
     type: "number",
     required: true,
-    dependsOn: {
-      fieldName: "postCategoryId",
-      value: POST_CATEGORY.ANIMALES,
-    },
+    visibleWhen: isLivestock,
   },
   {
     name: "avgWeightKg",
@@ -109,6 +122,20 @@ export const buildNewPostFields = (
     required: true,
     dependsOn: { fieldName: "saleTypeId", value: 1 },
   },
+  // Solo aplica a venta por kilaje: precio en pie (animal vivo) o en canal
+  // (animal faenado).
+  {
+    name: "priceWeightBasis",
+    label: "Base del precio",
+    placeholder: "Seleccione la base del precio",
+    type: "select",
+    required: true,
+    options: [
+      { value: "Pie", label: "En pie (animal vivo)" },
+      { value: "Canal", label: "En canal (animal faenado)" },
+    ],
+    dependsOn: { fieldName: "saleTypeId", value: 1 },
+  },
 
   // ---- Maquinarias e Implementos ----
   {
@@ -123,7 +150,7 @@ export const buildNewPostFields = (
     },
   },
 
-  // Precio plano: Animales con tipo de venta "por unidad", o Maquinaria,
+  // Precio plano: ganado con tipo de venta "por unidad", o Maquinaria,
   // o Insumos u Otros. Condición compuesta → visibleWhen, no dependsOn.
   {
     name: "pricePerUnit",
@@ -134,8 +161,7 @@ export const buildNewPostFields = (
     visibleWhen: (v) =>
       v.postCategoryId === String(POST_CATEGORY.MAQUINARIA) ||
       v.postCategoryId === String(POST_CATEGORY.INSUMOS) ||
-      (v.postCategoryId === String(POST_CATEGORY.ANIMALES) &&
-        v.saleTypeId === "2"),
+      (isLivestock(v) && v.saleTypeId === "2"),
   },
 
   // ---- Fincas ----
