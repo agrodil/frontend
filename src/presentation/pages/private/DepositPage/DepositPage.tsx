@@ -106,7 +106,7 @@ const DepositPage: FC = () => {
           </div>
         </div>
 
-        <div className="bg-white rounded-3xl border border-gray-200 p-8 shadow-2xl">
+        <div className="bg-white rounded-2xl border border-gray-300 p-8">
           {result ? (
             <DepositResult
               status={result.status}

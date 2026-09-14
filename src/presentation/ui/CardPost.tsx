@@ -80,9 +80,6 @@ const CardPost: FC<CardPostProps> = ({
               </span>
             )}
           </p>
-          <p>
-            {/* <span className="text-xs leading-snug truncate">{owner}</span> */}
-          </p>
         </div>
       </div>
     </motion.div>

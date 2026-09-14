@@ -45,7 +45,7 @@ const DepositBankAccountPicker: FC<DepositBankAccountPickerProps> = ({
           key={acc.bank_account_id}
           type="button"
           onClick={() => onSelect(acc)}
-          className="flex items-center gap-3 w-full text-left border border-gray-200 rounded-xl p-4
+          className="flex items-center gap-3 w-full text-left rounded-xl p-4
                      hover:border-primary/40 hover:bg-gray-50 transition-colors cursor-pointer bg-white"
         >
           <div className="bg-primary/10 text-primary rounded-full w-10 h-10 flex items-center justify-center shrink-0">

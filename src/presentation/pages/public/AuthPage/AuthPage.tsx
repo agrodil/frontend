@@ -174,9 +174,7 @@ const AuthPage: FC = () => {
       } else {
         delete raw.company_name;
 
-        const [firstName = "", middleName = ""] = raw.names
-          .trim()
-          .split(/\s+/);
+        const [firstName = "", middleName = ""] = raw.names.trim().split(/\s+/);
         const [firstSurname = "", secondSurname = ""] = raw.surnames
           .trim()
           .split(/\s+/);
@@ -206,8 +204,7 @@ const AuthPage: FC = () => {
           idDoc.validatedFor !== String(payload.document_number)
         ) {
           setRegisterErrors({
-            id_document:
-              idDoc.error ?? "Sube y valida la foto de tu cédula",
+            id_document: idDoc.error ?? "Sube y valida la foto de tu cédula",
           });
           return;
         }
@@ -408,8 +405,8 @@ const AuthPage: FC = () => {
   return (
     <>
       <Loader visible={isLoading} />
-      <main className="flex-1 flex items-center justify-center px-6 py-10">
-        <div className="relative w-full max-w-lg">
+      <main className="flex-1 flex items-center justify-center min-h-screen p-4">
+        <div className="relative w-full max-w-lg mx-auto">
           <AnimatePresence>
             <motion.button
               key={view}
@@ -419,7 +416,7 @@ const AuthPage: FC = () => {
               exit={{ opacity: 0, scale: 0.6 }}
               transition={{ duration: 0.2 }}
               onClick={handleBack}
-              className={`${arrowBtn} -top-4 -left-4`}
+              className={`${arrowBtn} -top-4 -left-4 shadow-sm`}
               aria-label="Volver"
             >
               <LuChevronLeft size={20} />
@@ -434,7 +431,7 @@ const AuthPage: FC = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.28, ease: "easeInOut" }}
-              className="bg-white rounded-3xl border border-gray-200 p-8 w-full overflow-y-auto max-h-[75vh] shadow-2xl"
+              className="bg-white rounded-3xl border border-gray-300 p-8 w-full overflow-y-auto max-h-[75vh]"
             >
               <Form
                 title={current.title}
