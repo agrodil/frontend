@@ -65,7 +65,7 @@ const WalletPage: FC = () => {
           balance={wallet?.balance ?? null}
           updatedAt={wallet?.updated_at}
           loading={walletLoading}
-          onDeposit={() => navigate("/wallet/depositar")}
+          onDeposit={() => navigate("/wallet/deposit")}
         />
 
         {!pendingDeposits.loading && (
@@ -80,7 +80,9 @@ const WalletPage: FC = () => {
           className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 min-w-0 flex flex-col gap-4"
         >
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <h2 className="font-bold text-gray-900">Historial de movimientos</h2>
+            <h2 className="font-bold text-gray-900">
+              Historial de movimientos
+            </h2>
             <select
               value={ledger.typeFilter ?? ""}
               onChange={(e) =>

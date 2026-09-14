@@ -11,12 +11,6 @@ import {
 const isLivestock = (v: Record<string, string>) =>
   LIVESTOCK_CATEGORY_IDS.includes(Number(v.postCategoryId));
 
-// Un solo listado de campos para las 8 categorías (Bovino/Ovino/Caprino/
-// Porcino/Equino + Maquinaria/Fincas/Insumos): cada campo se muestra según
-// `dependsOn`/`visibleWhen` sobre `postCategoryId` (y, para ganado, también
-// sobre `saleTypeId`). Form.tsx limpia en cascada el valor de un campo apenas
-// deja de ser visible, así que no hace falta reconstruir este array por
-// categoría — cambiar de categoría ya vacía los campos de la anterior.
 export const buildNewPostFields = (
   categories: SelectOption[],
   livestockSectors: SelectOption[],
@@ -78,13 +72,10 @@ export const buildNewPostFields = (
     required: true,
     visibleWhen: isLivestock,
   },
-  // Tipo de animal dentro de la especie (ej. Maute/Novillo para Bovino).
-  // Opcional y solo hay opciones para Bovino por ahora — para las demás
-  // especies el select queda sin opciones y el campo simplemente no aplica.
   {
     name: "postSubcategoryId",
-    label: "Tipo de animal (opcional)",
-    placeholder: "Ej: Maute, Novillo",
+    label: "Tipo de animal",
+    placeholder: "Seleccione el tipo de animal",
     type: "select",
     optional: true,
     visibleWhen: (v) =>

@@ -8,8 +8,9 @@ const sizeClasses = {
 };
 
 const variantClasses = {
-  primary: "bg-primary text-white hover:bg-primary-hover",
-  secondary: "bg-white text-primary border border-primary hover:bg-green-50",
+  primary: "bg-primary text-background hover:bg-primary-hover",
+  secondary:
+    "bg-background text-primary border border-primary hover:bg-green-50",
 };
 
 const Button: FC<ButtonProps> = ({

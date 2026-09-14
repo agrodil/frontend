@@ -41,27 +41,24 @@ export const routes = [
           {
             path: "/reportar-problema",
             lazy: async () => {
-              const module = await import(
-                "@/presentation/pages/private/ReportProblemPage/ReportProblemPage.tsx"
-              );
+              const module =
+                await import("@/presentation/pages/private/ReportProblemPage/ReportProblemPage.tsx");
               return { Component: module.default };
             },
           },
           {
             path: "/wallet",
             lazy: async () => {
-              const module = await import(
-                "@/presentation/pages/private/WalletPage/WalletPage.tsx"
-              );
+              const module =
+                await import("@/presentation/pages/private/WalletPage/WalletPage.tsx");
               return { Component: module.default };
             },
           },
           {
-            path: "/wallet/depositar",
+            path: "/wallet/deposit",
             lazy: async () => {
-              const module = await import(
-                "@/presentation/pages/private/DepositPage/DepositPage.tsx"
-              );
+              const module =
+                await import("@/presentation/pages/private/DepositPage/DepositPage.tsx");
               return { Component: module.default };
             },
           },
@@ -95,54 +92,48 @@ export const routes = [
           {
             path: "/admin/troubleshooting",
             lazy: async () => {
-              const module = await import(
-                "@/presentation/pages/admin/AdminTroubleshootingPage/AdminTroubleshootingPage.tsx"
-              );
+              const module =
+                await import("@/presentation/pages/admin/AdminTroubleshootingPage/AdminTroubleshootingPage.tsx");
               return { Component: module.default };
             },
           },
           {
             path: "/admin/wallet",
             lazy: async () => {
-              const module = await import(
-                "@/presentation/pages/admin/AdminWalletPage/AdminWalletPage.tsx"
-              );
+              const module =
+                await import("@/presentation/pages/admin/AdminWalletPage/AdminWalletPage.tsx");
               return { Component: module.default };
             },
           },
           {
             path: "/admin/wallet/cuentas",
             lazy: async () => {
-              const module = await import(
-                "@/presentation/pages/admin/AdminWalletPage/AdminBankAccountsPage.tsx"
-              );
+              const module =
+                await import("@/presentation/pages/admin/AdminWalletPage/AdminBankAccountsPage.tsx");
               return { Component: module.default };
             },
           },
           {
             path: "/admin/wallet/ajustes",
             lazy: async () => {
-              const module = await import(
-                "@/presentation/pages/admin/AdminWalletPage/AdminAdjustmentPage.tsx"
-              );
+              const module =
+                await import("@/presentation/pages/admin/AdminWalletPage/AdminAdjustmentPage.tsx");
               return { Component: module.default };
             },
           },
           {
             path: "/admin/wallet/conciliacion",
             lazy: async () => {
-              const module = await import(
-                "@/presentation/pages/admin/AdminWalletPage/AdminReconciliationPage.tsx"
-              );
+              const module =
+                await import("@/presentation/pages/admin/AdminWalletPage/AdminReconciliationPage.tsx");
               return { Component: module.default };
             },
           },
           {
             path: "/admin/cattle-prices",
             lazy: async () => {
-              const module = await import(
-                "@/presentation/pages/admin/AdminCattlePricesPage/AdminCattlePricesPage.tsx"
-              );
+              const module =
+                await import("@/presentation/pages/admin/AdminCattlePricesPage/AdminCattlePricesPage.tsx");
               return { Component: module.default };
             },
           },

@@ -170,8 +170,7 @@ const NewPostPage: FC = () => {
         if (!data.priceWeightBasis) {
           return {
             payload: null,
-            validationError:
-              "Debes indicar si el precio es en pie o en canal.",
+            validationError: "Debes indicar si el precio es en pie o en canal.",
           };
         }
         weightFields = {
@@ -194,8 +193,7 @@ const NewPostPage: FC = () => {
         saleTypeId,
         sex: data.sex,
         quantity: Number(data.quantity),
-        ...(typeof data.postSubcategoryId === "string" &&
-        data.postSubcategoryId
+        ...(typeof data.postSubcategoryId === "string" && data.postSubcategoryId
           ? { postSubcategoryId: Number(data.postSubcategoryId) }
           : {}),
         ...weightFields,
@@ -314,21 +312,13 @@ const NewPostPage: FC = () => {
 
   return (
     <section className="flex flex-col min-h-screen w-[90vw] mx-auto">
-      <div className="mt-8 lg:mt-0 p-4 text-center md:text-start text-lg md:text-2xl font-bold mb-4 border border-gray-200 shadow-sm rounded-2xl h-fit w-full">
-        Para realizar una publicación, completa el{" "}
-        <span className="text-primary">formulario de venta.</span>
-      </div>
-
-      <div className="p-4 border border-gray-200 shadow-sm rounded-2xl h-fit w-full lg:max-h-[75vh] overflow-y-auto">
+      <div className="p-4 border border-gray-300 rounded-2xl h-fit w-full max-w-[90vw] mx-auto lg:max-h-[80vh] overflow-y-auto">
         {catalog.error && (
           <p className="text-sm text-red-500 text-center mb-4">
             No se pudo cargar el catálogo de categorías. Recarga la página.
           </p>
         )}
 
-        {/* La ubicación vive fuera de Form: el resto de campos usa dependsOn/
-            visibleWhen sobre postCategoryId, pero la ubicación reutiliza el
-            mismo LocationSelects ya construido para registro/perfil. */}
         <div className="mb-4">
           <LocationSelects
             value={location}
@@ -365,7 +355,7 @@ const NewPostPage: FC = () => {
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="bg-white rounded-3xl border border-gray-200 p-8 w-[90vw] max-w-sm shadow-2xl flex flex-col items-center gap-4 text-center"
+              className="bg-background rounded-3xl border border-gray-300 p-8 w-[90vw] max-w-sm flex flex-col items-center gap-4 text-center"
             >
               {submitState === "loading" && (
                 <>
@@ -398,7 +388,7 @@ const NewPostPage: FC = () => {
                   <h2 className="text-xl font-bold text-gray-800">
                     Error al publicar
                   </h2>
-                  <p className="text-gray-500 text-sm wrap-break-word">
+                  <p className="text-primary text-sm wrap-break-word">
                     {errorMessage}
                   </p>
                   <div className="flex gap-3 w-full mt-2">

@@ -585,7 +585,7 @@ const Form: FC<FormProps> = ({
           fields.some((f) => f.asyncError || f.isChecking) ||
           Object.values(errors).some((err) => !!err)
         }
-        className="mt-2 w-full"
+        className="mt-2 w-full max-w-md mx-auto"
       />
 
       {footer && <div className="mt-1 text-center">{footer}</div>}
