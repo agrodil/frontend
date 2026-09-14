@@ -9,7 +9,10 @@ import { buildNewPostFields } from "./NewPostFormFields";
 import { useAuth } from "@/adapters/hooks/common/useAuth";
 import { useCatalog } from "@/adapters/hooks/actions/useCatalog";
 import { TOWNSHIP_BY_ID } from "@/shared/constants/townships.catalog";
-import { POST_CATEGORY } from "@/shared/utils/resolvePostPricing";
+import {
+  POST_CATEGORY,
+  isLivestockCategory,
+} from "@/shared/utils/resolvePostPricing";
 import {
   uploadPost,
   type NewPostInput,
@@ -113,131 +116,145 @@ const NewPostPage: FC = () => {
       ...(data.details ? { details: data.details } : {}),
     };
 
-    switch (postCategoryId) {
-      case POST_CATEGORY.ANIMALES: {
-        const postSubcategoryName =
-          typeof data.postSubcategoryName === "string"
-            ? data.postSubcategoryName.trim()
-            : "";
-        if (!postSubcategoryName) {
-          return {
-            payload: null,
-            validationError: "Debes indicar la raza predominante del lote.",
-          };
-        }
-        if (!data.livestockSectorId) {
-          return {
-            payload: null,
-            validationError: "Debes seleccionar el rubro.",
-          };
-        }
-        const saleTypeId = Number(data.saleTypeId);
-        if (!saleTypeId) {
-          return {
-            payload: null,
-            validationError: "Debes seleccionar el tipo de venta.",
-          };
-        }
-        if (!data.sex) {
-          return {
-            payload: null,
-            validationError: "Debes seleccionar el sexo del lote.",
-          };
-        }
-        if (!data.quantity) {
-          return {
-            payload: null,
-            validationError: "Debes indicar la cantidad de animales.",
-          };
-        }
-        if (saleTypeId === 1) {
-          if (!data.avgWeightKg) {
-            return {
-              payload: null,
-              validationError: "Debes indicar el peso promedio (kg).",
-            };
-          }
-          if (!data.pricePerKg) {
-            return {
-              payload: null,
-              validationError: "Debes indicar el precio por kg.",
-            };
-          }
-        } else if (!data.pricePerUnit) {
-          return {
-            payload: null,
-            validationError: "Debes indicar el precio por unidad.",
-          };
-        }
-
-        Object.assign(post, {
-          postSubcategoryName,
-          livestockSectorId: Number(data.livestockSectorId),
-          saleTypeId,
-          sex: data.sex,
-          quantity: Number(data.quantity),
-          ...(saleTypeId === 1
-            ? {
-                avgWeightKg: Number(data.avgWeightKg),
-                pricePerKg: Number(data.pricePerKg),
-              }
-            : { pricePerUnit: Number(data.pricePerUnit) }),
-        });
-        break;
-      }
-
-      case POST_CATEGORY.MAQUINARIA: {
-        if (!data.pricePerUnit) {
-          return {
-            payload: null,
-            validationError: "Debes indicar el precio.",
-          };
-        }
-        Object.assign(post, {
-          pricePerUnit: Number(data.pricePerUnit),
-          ...(typeof data.postBrand === "string" && data.postBrand.trim()
-            ? { postBrand: data.postBrand.trim() }
-            : {}),
-        });
-        break;
-      }
-
-      case POST_CATEGORY.FINCAS: {
-        if (!data.farmHectares) {
-          return {
-            payload: null,
-            validationError: "Debes indicar las hectáreas.",
-          };
-        }
-        if (!data.pricePerHectare) {
-          return {
-            payload: null,
-            validationError: "Debes indicar el precio por hectárea.",
-          };
-        }
-        Object.assign(post, {
-          farmHectares: Number(data.farmHectares),
-          pricePerHectare: Number(data.pricePerHectare),
-        });
-        break;
-      }
-
-      case POST_CATEGORY.INSUMOS: {
-        if (!data.pricePerUnit) {
-          return {
-            payload: null,
-            validationError: "Debes indicar el precio.",
-          };
-        }
-        Object.assign(post, { pricePerUnit: Number(data.pricePerUnit) });
-        break;
-      }
-
-      default:
+    if (isLivestockCategory(postCategoryId)) {
+      const predominantBreed =
+        typeof data.predominantBreed === "string"
+          ? data.predominantBreed.trim()
+          : "";
+      if (!predominantBreed) {
         return {
           payload: null,
-          validationError: "Categoría inválida.",
+          validationError: "Debes indicar la raza predominante del lote.",
         };
+      }
+      if (!data.livestockSectorId) {
+        return {
+          payload: null,
+          validationError: "Debes seleccionar el rubro.",
+        };
+      }
+      const saleTypeId = Number(data.saleTypeId);
+      if (!saleTypeId) {
+        return {
+          payload: null,
+          validationError: "Debes seleccionar el tipo de venta.",
+        };
+      }
+      if (!data.sex) {
+        return {
+          payload: null,
+          validationError: "Debes seleccionar el sexo del lote.",
+        };
+      }
+      if (!data.quantity) {
+        return {
+          payload: null,
+          validationError: "Debes indicar la cantidad de animales.",
+        };
+      }
+
+      let weightFields: Record<string, unknown> = {};
+      if (saleTypeId === 1) {
+        if (!data.avgWeightKg) {
+          return {
+            payload: null,
+            validationError: "Debes indicar el peso promedio (kg).",
+          };
+        }
+        if (!data.pricePerKg) {
+          return {
+            payload: null,
+            validationError: "Debes indicar el precio por kg.",
+          };
+        }
+        if (!data.priceWeightBasis) {
+          return {
+            payload: null,
+            validationError:
+              "Debes indicar si el precio es en pie o en canal.",
+          };
+        }
+        weightFields = {
+          avgWeightKg: Number(data.avgWeightKg),
+          pricePerKg: Number(data.pricePerKg),
+          priceWeightBasis: data.priceWeightBasis,
+        };
+      } else if (!data.pricePerUnit) {
+        return {
+          payload: null,
+          validationError: "Debes indicar el precio por unidad.",
+        };
+      } else {
+        weightFields = { pricePerUnit: Number(data.pricePerUnit) };
+      }
+
+      Object.assign(post, {
+        predominantBreed,
+        livestockSectorId: Number(data.livestockSectorId),
+        saleTypeId,
+        sex: data.sex,
+        quantity: Number(data.quantity),
+        ...(typeof data.postSubcategoryId === "string" &&
+        data.postSubcategoryId
+          ? { postSubcategoryId: Number(data.postSubcategoryId) }
+          : {}),
+        ...weightFields,
+      });
+    } else {
+      switch (postCategoryId) {
+        case POST_CATEGORY.MAQUINARIA: {
+          if (!data.pricePerUnit) {
+            return {
+              payload: null,
+              validationError: "Debes indicar el precio.",
+            };
+          }
+          Object.assign(post, {
+            pricePerUnit: Number(data.pricePerUnit),
+            ...(typeof data.postBrand === "string" && data.postBrand.trim()
+              ? { postBrand: data.postBrand.trim() }
+              : {}),
+          });
+          break;
+        }
+
+        case POST_CATEGORY.FINCAS: {
+          if (!data.farmHectares) {
+            return {
+              payload: null,
+              validationError: "Debes indicar las hectáreas.",
+            };
+          }
+          if (!data.pricePerHectare) {
+            return {
+              payload: null,
+              validationError: "Debes indicar el precio por hectárea.",
+            };
+          }
+          Object.assign(post, {
+            farmHectares: Number(data.farmHectares),
+            pricePerHectare: Number(data.pricePerHectare),
+          });
+          break;
+        }
+
+        case POST_CATEGORY.INSUMOS: {
+          if (!data.pricePerUnit) {
+            return {
+              payload: null,
+              validationError: "Debes indicar el precio.",
+            };
+          }
+          Object.assign(post, { pricePerUnit: Number(data.pricePerUnit) });
+          break;
+        }
+
+        default:
+          return {
+            payload: null,
+            validationError: "Categoría inválida.",
+          };
+      }
     }
 
     console.debug("[NewPostPage] Payload generado para /posts", post);
@@ -291,6 +308,7 @@ const NewPostPage: FC = () => {
   const fields = buildNewPostFields(
     catalog.categories,
     catalog.livestockSectors,
+    catalog.livestockSubcategories,
     catalog.postingFees,
   );
 

@@ -137,6 +137,15 @@ export const routes = [
               return { Component: module.default };
             },
           },
+          {
+            path: "/admin/cattle-prices",
+            lazy: async () => {
+              const module = await import(
+                "@/presentation/pages/admin/AdminCattlePricesPage/AdminCattlePricesPage.tsx"
+              );
+              return { Component: module.default };
+            },
+          },
         ],
       },
     ],

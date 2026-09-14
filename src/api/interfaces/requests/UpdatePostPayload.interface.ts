@@ -1,13 +1,15 @@
 export type UpdatePostPayload = Partial<{
   postCategoryId: number;
   postName: string;
-  postSubcategoryName: string;
+  postSubcategoryId: number;
+  predominantBreed: string;
   livestockSectorId: number;
   saleTypeId: number;
   sex: string;
   quantity: number;
   avgWeightKg: number;
   pricePerKg: number;
+  priceWeightBasis: string;
   pricePerUnit: number;
   postBrand: string;
   farmHectares: number;

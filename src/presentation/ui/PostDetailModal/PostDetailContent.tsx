@@ -41,10 +41,13 @@ const getDetailsArray = (post: PostDetail): DetailItem[] => {
     case POST_CATEGORY.INSUMOS:
       return [];
 
-    default: // Animales
+    default: // Ganado
       return [
+        ...(post.predominant_breed
+          ? [{ label: "Raza dominante", value: post.predominant_breed }]
+          : []),
         ...(post.post_subcategory_name
-          ? [{ label: "Raza dominante", value: post.post_subcategory_name }]
+          ? [{ label: "Tipo", value: post.post_subcategory_name }]
           : []),
         ...(post.livestock_sector_name
           ? [{ label: "Rubro", value: post.livestock_sector_name }]
@@ -64,6 +67,17 @@ const getDetailsArray = (post: PostDetail): DetailItem[] => {
           : []),
         ...(post.avg_weight_kg != null
           ? [{ label: "Peso prom.", value: post.avg_weight_kg, suffix: " kg" }]
+          : []),
+        ...(post.price_weight_basis
+          ? [
+              {
+                label: "Base del precio",
+                value:
+                  post.price_weight_basis === "Pie"
+                    ? "En pie (animal vivo)"
+                    : "En canal (animal faenado)",
+              },
+            ]
           : []),
       ];
   }
