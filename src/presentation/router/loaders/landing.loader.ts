@@ -14,7 +14,12 @@ export const getLandingData = async (): Promise<LandingPageLoaderData> => {
     CattlePriceAverage[],
   ] = await Promise.all([
     landingApi.getLandingPage(),
-    catalogApi.getCattlePriceAverages(),
+    // Data secundaria: si falla, la landing igual se renderiza sin la fila de
+    // promedios en vez de caer al ErrorBoundary.
+    catalogApi.getCattlePriceAverages().catch((error: unknown) => {
+      console.error("No se pudieron cargar los promedios de precio:", error);
+      return [];
+    }),
   ]);
 
   const posts: CardPostProps[] = landingPosts.map((post) => {

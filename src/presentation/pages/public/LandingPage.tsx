@@ -104,17 +104,19 @@ const LandingPage: FC = () => {
           </motion.div>
         </motion.section>
 
-        <motion.section
-          className="py-0 max-w-[90vw] mx-auto"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }}
-        >
-          <h2 className="text-primary my-4 font-avant font-bold text-lg md:text-2xl">
-            Precios promedio de hoy
-          </h2>
-          <CattlePriceAveragesRow averages={cattlePriceAverages} />
-        </motion.section>
+        {cattlePriceAverages.length > 0 && (
+          <motion.section
+            className="py-0 max-w-[90vw] mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }}
+          >
+            <h2 className="text-primary my-4 font-avant font-bold text-lg md:text-2xl">
+              Precios promedio de hoy
+            </h2>
+            <CattlePriceAveragesRow averages={cattlePriceAverages} />
+          </motion.section>
+        )}
 
         <motion.section
           className="py-0 max-w-[90vw] mx-auto"
