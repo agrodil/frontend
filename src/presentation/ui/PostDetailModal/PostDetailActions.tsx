@@ -34,7 +34,7 @@ export const PostDetailActions: FC<PostDetailActionsProps> = ({
 }) => {
   if (isOwnPost) {
     return (
-      <div className="mt-auto flex flex-col gap-2">
+      <div className="mt-auto shrink-0 flex flex-col gap-2">
         {!isActive ? (
           <div className="flex gap-2">
             <button
@@ -113,7 +113,7 @@ export const PostDetailActions: FC<PostDetailActionsProps> = ({
         type="button"
         onClick={onBuy}
         disabled={buying}
-        className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-colors cursor-pointer border-0 disabled:opacity-60 disabled:cursor-not-allowed mt-auto"
+        className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-colors cursor-pointer border-0 disabled:opacity-60 disabled:cursor-not-allowed mt-auto shrink-0"
       >
         {buying ? "Enviando solicitud..." : "Solicitar compra"}
       </button>

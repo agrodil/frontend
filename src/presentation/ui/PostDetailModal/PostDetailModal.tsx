@@ -120,14 +120,14 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
         onClick={(e) => e.target === e.currentTarget && onClose()}
       >
         <motion.div
-          className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[92vh] overflow-y-auto"
+          className="bg-background rounded-2xl shadow-2xl w-full max-w-lg lg:max-w-4xl max-h-[88vh] overflow-y-auto lg:h-[88vh] lg:overflow-hidden"
           initial={{ scale: 0.95, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.2 }}
         >
           <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-0 h-full">
-            <div className="relative aspect-square lg:aspect-auto lg:min-h-164 rounded-bl-none rounded-tl-2xl overflow-hidden bg-gray-100">
+            <div className="relative h-[50vh] lg:h-full rounded-bl-none rounded-tl-2xl overflow-hidden bg-gray-100">
               <MediaCarousel
                 items={mediaFiles}
                 fallbackImg={previewImg}
@@ -135,7 +135,7 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
               />
             </div>
 
-            <div className="p-6 lg:p-8 flex flex-col gap-4 relative overflow-y-auto min-h-0">
+            <div className="p-6 lg:p-8 flex flex-col gap-4 relative overflow-y-auto min-h-0 lg:h-full">
               <button
                 aria-label="Cerrar"
                 type="button"
