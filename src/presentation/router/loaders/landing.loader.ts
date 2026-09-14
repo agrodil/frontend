@@ -1,13 +1,21 @@
 ﻿import { landingApi, type LandingPost } from "@/api/clients/landing.api";
+import { catalogApi, type CattlePriceAverage } from "@/api/clients/catalog.api";
 import { resolvePostPricing } from "@/shared/utils/resolvePostPricing";
 import type { CardPostProps } from "@/presentation/interfaces/ui/CardPostProps";
 
 export type LandingPageLoaderData = {
   posts: CardPostProps[];
+  cattlePriceAverages: CattlePriceAverage[];
 };
 
 export const getLandingData = async (): Promise<LandingPageLoaderData> => {
-  const landingPosts: LandingPost[] = await landingApi.getLandingPage();
+  const [landingPosts, cattlePriceAverages]: [
+    LandingPost[],
+    CattlePriceAverage[],
+  ] = await Promise.all([
+    landingApi.getLandingPage(),
+    catalogApi.getCattlePriceAverages(),
+  ]);
 
   const posts: CardPostProps[] = landingPosts.map((post) => {
     const pricing = resolvePostPricing(post);
@@ -23,5 +31,5 @@ export const getLandingData = async (): Promise<LandingPageLoaderData> => {
     };
   });
 
-  return { posts };
+  return { posts, cattlePriceAverages };
 };

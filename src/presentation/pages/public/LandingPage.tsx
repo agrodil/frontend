@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 
 import SearchInput from "@/presentation/ui/SearchInput";
 import PostsCarousel from "@/presentation/ui/PostsCarousel";
+import CattlePriceAveragesRow from "@/presentation/ui/CattlePriceAveragesRow";
 import PostDetailModal from "@/presentation/ui/PostDetailModal/PostDetailModal";
 
 import type { PostDetail } from "@/api/interfaces/responses/PostDetail.interface";
@@ -21,7 +22,8 @@ const LandingPage: FC = () => {
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { posts: loadedPosts } = useLoaderData() as LandingPageLoaderData;
+  const { posts: loadedPosts, cattlePriceAverages } =
+    useLoaderData() as LandingPageLoaderData;
   const [posts, setPosts] = useState(loadedPosts);
 
   useEffect(() => {
@@ -57,8 +59,7 @@ const LandingPage: FC = () => {
         <motion.section
           className="relative my-8 lg:my-2 rounded-2xl overflow-hidden max-w-[90vw] mx-auto
             flex flex-col items-center
-            px-4 pt-10 pb-12 lg:pt-12
-            min-h-[22rem] lg:min-h-[26rem]"
+            pt-8 pb-8 lg:pt-10"
           initial={{ opacity: 0, scale: 0.98 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
@@ -86,22 +87,10 @@ const LandingPage: FC = () => {
               focus-within:[&_svg]:text-gray-400
               focus-within:[&_input]:text-gray-700 focus-within:[&_input]:placeholder-gray-400"
           />
-
-          {/*
-            Logo: se sitúa siempre debajo del search input (hijos apilados en
-            flex-col). El PNG entregado tiene un borde transparente grande, así
-            que el <img> se renderiza sobredimensionado (~1.7x) y este contenedor
-            lo recorta con overflow-hidden.
-
-            REDIMENSIONAR = cambiar solo `--logo-h` (alto visible del logo).
-            El wrapper toma ese alto y el <img> se escala solo con el calc().
-            No toques el multiplicador 1.7 salvo que el recorte deje de calzar
-            con el arte visible del PNG.
-          */}
           <motion.div
             className="relative z-10 mt-8 lg:mt-10 overflow-hidden
               flex items-center justify-center
-              [--logo-h:12rem] md:[--logo-h:14rem] lg:[--logo-h:18rem]
+              [--logo-h:12rem] md:[--logo-h:14rem] lg:[--logo-h:16rem]
               h-[var(--logo-h)]"
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -115,14 +104,25 @@ const LandingPage: FC = () => {
           </motion.div>
         </motion.section>
 
-        {/* Posts carousel */}
+        <motion.section
+          className="py-0 max-w-[90vw] mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.3 }}
+        >
+          <h2 className="text-primary my-4 font-avant font-bold text-lg md:text-2xl">
+            Precios promedio de hoy
+          </h2>
+          <CattlePriceAveragesRow averages={cattlePriceAverages} />
+        </motion.section>
+
         <motion.section
           className="py-0 max-w-[90vw] mx-auto"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: "easeOut", delay: 0.4 }}
         >
-          <h2 className="text-primary my-4 font-avant font-bold text-lg md:text-4xl">
+          <h2 className="text-primary my-4 font-avant font-bold text-lg md:text-2xl">
             Publicaciones recientes
           </h2>
           <p></p>

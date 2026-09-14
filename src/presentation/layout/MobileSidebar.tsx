@@ -39,7 +39,7 @@ const MobileSidebar: FC<MobileSidebarProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
-            className="fixed inset-0 z-40 bg-black/50"
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -50,17 +50,15 @@ const MobileSidebar: FC<MobileSidebarProps> = ({
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="fixed top-0 left-0 z-50 h-full w-72 bg-white shadow-xl flex flex-col"
+            className="fixed top-0 left-0 z-50 h-full w-72 bg-white shadow-2xl flex flex-col"
           >
-            {/* Header — el icono Agrodil actúa como botón de inicio */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-300">
               <Link
                 to="/"
                 onClick={onClose}
                 aria-label="Ir al inicio"
                 className="flex min-w-0 items-center gap-2"
               >
-                {/* Caja de recorte: solo envuelve el img para clipear su borde transparente */}
                 <span className="flex h-9 aspect-square shrink-0 items-center justify-center overflow-hidden">
                   <img
                     src={logoIcon}
@@ -120,7 +118,7 @@ const MobileSidebar: FC<MobileSidebarProps> = ({
             </nav>
 
             {/* Auth section */}
-            <div className="px-6 py-5 border-t border-gray-100">
+            <div className="px-6 py-5">
               {isAuthenticated && user ? (
                 <UserMenu user={user} onNavigate={onClose} />
               ) : (

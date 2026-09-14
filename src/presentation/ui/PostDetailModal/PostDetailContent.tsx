@@ -3,7 +3,10 @@ import { LuMapPin } from "react-icons/lu";
 import type { PostDetail } from "@/api/interfaces/responses/PostDetail.interface";
 import { SEX_LABEL } from "@/shared/constants/sex.catalog";
 import { resolveLocation } from "@/shared/utils/resolveLocation";
-import { POST_CATEGORY, resolvePostPricing } from "@/shared/utils/resolvePostPricing";
+import {
+  POST_CATEGORY,
+  resolvePostPricing,
+} from "@/shared/utils/resolvePostPricing";
 
 interface PostDetailContentProps {
   post: PostDetail;
@@ -15,7 +18,9 @@ type DetailItem = { label: string; value: string | number; suffix?: string };
 const getDetailsArray = (post: PostDetail): DetailItem[] => {
   switch (post.post_category_id) {
     case POST_CATEGORY.MAQUINARIA:
-      return post.post_brand ? [{ label: "Marca", value: post.post_brand }] : [];
+      return post.post_brand
+        ? [{ label: "Marca", value: post.post_brand }]
+        : [];
 
     case POST_CATEGORY.FINCAS:
       return [
@@ -73,7 +78,7 @@ export const PostDetailContent: FC<PostDetailContentProps> = ({
   const location = resolveLocation(post.township_id);
 
   return (
-    <div className="flex flex-col gap-4 h-full overflow-y-auto pr-2">
+    <div className="flex flex-col gap-4 shrink-0">
       <div>
         {priceLabel && (
           <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
@@ -93,7 +98,7 @@ export const PostDetailContent: FC<PostDetailContentProps> = ({
         </p>
       </div>
 
-      <div className="flex items-center gap-3 p-2 bg-gray-50 border border-gray-200 rounded-2xl shadow-sm">
+      <div className="flex items-center gap-3 p-2 bg-gray-50 border border-gray-300 rounded-2xl">
         <div className="w-10 h-10 rounded-full bg-primary/10 text-primary font-bold text-sm flex items-center justify-center shrink-0">
           {previewOwner
             .split(" ")
@@ -108,7 +113,7 @@ export const PostDetailContent: FC<PostDetailContentProps> = ({
       </div>
 
       {location && (
-        <div className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-2xl shadow-sm">
+        <div className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-300 rounded-2xl">
           <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center shrink-0">
             <LuMapPin size={18} />
           </div>
@@ -118,7 +123,9 @@ export const PostDetailContent: FC<PostDetailContentProps> = ({
             </p>
             <p className="text-sm font-semibold text-gray-800 mt-0.5">
               {location.township},{" "}
-              <span className="font-normal text-gray-600">{location.state}</span>
+              <span className="font-normal text-gray-600">
+                {location.state}
+              </span>
             </p>
           </div>
         </div>
@@ -129,7 +136,7 @@ export const PostDetailContent: FC<PostDetailContentProps> = ({
           {details.map((detail, idx) => (
             <div
               key={idx}
-              className=" bg-gray-50 border rounded-2xl shadow-sm border-gray-200 p-3"
+              className=" bg-gray-50 border rounded-2xl border-gray-300 p-3"
             >
               <p className="text-[10px] text-gray-400 uppercase font-semibold">
                 {detail.label}
@@ -144,11 +151,11 @@ export const PostDetailContent: FC<PostDetailContentProps> = ({
       )}
 
       {post.details && (
-        <div className="flex-1 flex flex-col min-h-0">
-          <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">
+        <div className=" bg-gray-50 border rounded-2xl border-gray-300 p-3">
+          <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1 ">
             Descripción
           </p>
-          <p className="text-sm text-gray-600 leading-relaxed overflow-y-auto">
+          <p className="text-sm text-gray-600 leading-relaxed">
             {post.details}
           </p>
         </div>

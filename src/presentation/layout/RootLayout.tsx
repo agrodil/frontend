@@ -51,7 +51,7 @@ const RootLayout: FC = () => {
           type="button"
           onClick={() => setSidebarOpen(true)}
           aria-label="Abrir menú"
-          className="shrink-0 p-2 rounded-2xl bg-white shadow-sm border border-gray-100 text-primary cursor-pointer"
+          className="shrink-0 p-2 rounded-2xl bg-white shadow-sm border border-gray-300 text-primary cursor-pointer"
           initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, ease: "easeOut" }}

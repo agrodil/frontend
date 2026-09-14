@@ -26,6 +26,14 @@ export type PostingFee = {
   renewal_discount_percentage: string;
 };
 
+export type CattlePriceAverage = {
+  post_subcategory_id: number;
+  post_subcategory_name: string;
+  observation_count: number;
+  avg_kg_price: string;
+  updated_at: string;
+};
+
 const getJson = async <T>(path: string): Promise<T> => {
   const response = await fetch(`${url}${path}`);
   if (!response.ok) throw new Error(`Failed to fetch ${path}`);
@@ -42,4 +50,6 @@ export const catalogApi = {
   getLivestockSectors: () =>
     getJson<LivestockSector[]>("/catalog/livestock-sectors"),
   getPostingFees: () => getJson<PostingFee[]>("/catalog/posting-fees"),
+  getCattlePriceAverages: () =>
+    getJson<CattlePriceAverage[]>("/catalog/cattle-price-averages"),
 };

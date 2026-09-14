@@ -94,7 +94,7 @@ const MediaCarousel: FC<MediaCarouselProps> = ({
             src={fallbackImg}
             controls
             playsInline
-            className="absolute inset-0 w-full h-full object-contain bg-black"
+            className="absolute inset-0 w-full h-full object-cover bg-black"
           />
         ) : fallbackImg ? (
           <img
@@ -140,7 +140,7 @@ const MediaCarousel: FC<MediaCarouselProps> = ({
             onEnded={() => {
               isVideoPlayingRef.current = false;
             }}
-            className="absolute inset-0 w-full h-full object-contain bg-black"
+            className="absolute inset-0 w-full h-full object-cover bg-black"
           />
         ) : current ? (
           <motion.img

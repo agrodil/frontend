@@ -8,13 +8,15 @@ export interface FooterSection {
   links: FooterLink[];
 }
 
+export interface FooterSocialLinks {
+  instagram?: string;
+  facebook?: string;
+  whatsapp?: string;
+}
+
 export interface FooterProps {
   sections?: FooterSection[];
   contactEmail?: string;
   contactPhone?: string;
-  socialLinks?: {
-    instagram?: string;
-    facebook?: string;
-    whatsapp?: string;
-  };
+  socialLinks?: FooterSocialLinks;
 }
