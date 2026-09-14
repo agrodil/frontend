@@ -18,10 +18,18 @@ const CattlePriceAveragesRow: FC<CattlePriceAveragesRowProps> = ({
           <p className="text-md md:text-lg font-avant font-bold text-accent">
             {average.post_subcategory_name}
           </p>
-          <p className="text-2xl md:text-4xl font-bold text-primary">
-            ${Number(average.avg_kg_price).toFixed(2)}
-            <span className="text-sm font-normal"> / kg</span>
-          </p>
+          {average.avg_price_per_kg_live !== null && (
+            <p className="text-2xl md:text-4xl font-bold text-primary">
+              ${Number(average.avg_price_per_kg_live).toFixed(2)}
+              <span className="text-sm font-normal"> / kg en pie</span>
+            </p>
+          )}
+          {average.avg_price_per_kg_carcass !== null && (
+            <p className="text-xl md:text-2xl font-bold text-primary/80">
+              ${Number(average.avg_price_per_kg_carcass).toFixed(2)}
+              <span className="text-sm font-normal"> / kg en canal</span>
+            </p>
+          )}
         </div>
       ))}
     </div>

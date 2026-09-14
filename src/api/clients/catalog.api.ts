@@ -26,11 +26,14 @@ export type PostingFee = {
   renewal_discount_percentage: string;
 };
 
+// Precio de referencia por kg, por subcategoría (ej. Maute, Novillo), en pie
+// (animal vivo) y en canal (animal faenado). Cargado a mano desde el panel
+// de administración — ver backend migrations/029.
 export type CattlePriceAverage = {
   post_subcategory_id: number;
   post_subcategory_name: string;
-  observation_count: number;
-  avg_kg_price: string;
+  avg_price_per_kg_live: string | null;
+  avg_price_per_kg_carcass: string | null;
   updated_at: string;
 };
 
