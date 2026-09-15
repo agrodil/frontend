@@ -262,8 +262,13 @@ const NewPostPage: FC = () => {
   const submit = async (payload: NewPostInput) => {
     setSubmitState("loading");
     setProgressLabel("Preparando archivos...");
+    const postingFeeId = payload.post.postingFeeId as string | undefined;
+    const fee = catalog.postingFees.find(
+      (f) => f.posting_fee_id === postingFeeId,
+    );
+    const expectedCostUsd = fee ? Number(fee.price_usd) : 0;
     try {
-      await uploadPost(payload, (progress) =>
+      await uploadPost(payload, expectedCostUsd, (progress) =>
         setProgressLabel(labelForProgress(progress)),
       );
       setSubmitState("success");

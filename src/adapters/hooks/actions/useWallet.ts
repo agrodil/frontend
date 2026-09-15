@@ -4,7 +4,38 @@ import { walletApi, type UserWalletRow } from "@/api/clients/wallet.api";
 // Evento global para forzar recarga del saldo tras un depósito acreditado o un
 // ajuste (mismo patrón que "postUpdated" en post.actions.ts). Lo escucha este
 // hook estén donde estén sus instancias (card del header, página de billetera).
+// `detail.silent` pide un refetch sin pasar por `loading` (para no tapar un
+// valor optimista con el spinner mientras se reconcilia con el servidor).
 export const WALLET_REFRESH_EVENT = "wallet:refresh";
+
+export interface WalletRefreshDetail {
+  silent?: boolean;
+}
+
+// Evento global para aplicar un ajuste optimista al saldo (antes de que el
+// servidor confirme). `deltaUsd` > 0 acredita, < 0 descuenta. Todas las
+// instancias de useWallet lo reciben, así el header y el sidebar mobile se
+// actualizan a la vez. Si la operación falla, quien la disparó debe volver a
+// emitir el evento con el signo invertido para revertir.
+export const WALLET_OPTIMISTIC_EVENT = "wallet:optimistic";
+
+export interface WalletOptimisticDetail {
+  deltaUsd: number;
+}
+
+export function dispatchWalletOptimistic(deltaUsd: number): void {
+  window.dispatchEvent(
+    new CustomEvent<WalletOptimisticDetail>(WALLET_OPTIMISTIC_EVENT, {
+      detail: { deltaUsd },
+    }),
+  );
+}
+
+export function dispatchWalletRefresh(detail?: WalletRefreshDetail): void {
+  window.dispatchEvent(
+    new CustomEvent<WalletRefreshDetail>(WALLET_REFRESH_EVENT, { detail }),
+  );
+}
 
 export interface UseWalletResult {
   wallet: UserWalletRow | null;
@@ -48,10 +79,43 @@ export function useWallet(): UseWalletResult {
   }, [reloadKey]);
 
   useEffect(() => {
-    const handler = () => refetch();
+    const handler = (e: Event) => {
+      const silent = (e as CustomEvent<WalletRefreshDetail>).detail?.silent;
+      if (!silent) {
+        refetch();
+        return;
+      }
+      // Reconciliación silenciosa: no pisa el saldo optimista con el spinner,
+      // solo lo reemplaza por el valor real cuando llega.
+      walletApi
+        .getWallet()
+        .then((w) => setWallet(w))
+        .catch(() => {
+          /* si falla, se queda el valor optimista hasta el próximo refresh */
+        });
+    };
     window.addEventListener(WALLET_REFRESH_EVENT, handler);
     return () => window.removeEventListener(WALLET_REFRESH_EVENT, handler);
   }, [refetch]);
+
+  // Ajuste optimista: suma/resta al saldo mostrado sin esperar al servidor.
+  // Es la única aritmética de dinero en el cliente en toda la app — a
+  // propósito, y siempre transitoria: se reconcilia con WALLET_REFRESH_EVENT
+  // apenas responde el servidor, o se revierte si la operación falla.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<WalletOptimisticDetail>).detail;
+      if (!detail) return;
+      setWallet((prev) => {
+        if (!prev) return prev;
+        const next = Number(prev.balance) + detail.deltaUsd;
+        if (!Number.isFinite(next)) return prev;
+        return { ...prev, balance: next.toFixed(2) };
+      });
+    };
+    window.addEventListener(WALLET_OPTIMISTIC_EVENT, handler);
+    return () => window.removeEventListener(WALLET_OPTIMISTIC_EVENT, handler);
+  }, []);
 
   return { wallet, loading, error, refetch };
 }
