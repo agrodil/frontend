@@ -1,5 +1,9 @@
 ﻿import { postApi } from "@/api/clients/posts.api";
 import { compressMedia } from "@/shared/utils/compressMedia";
+import {
+  dispatchWalletOptimistic,
+  dispatchWalletRefresh,
+} from "@/adapters/hooks/actions/useWallet";
 
 import type { PostDetail } from "@/api/interfaces/responses/PostDetail.interface";
 import type { UpdatePostPayload } from "@/api/interfaces/requests/UpdatePostPayload.interface";
@@ -17,19 +21,41 @@ export type NewPostInput = {
 
 // Orquesta el flujo presigned de creación de publicación:
 //  1. comprime media (imágenes → ~1MB; videos passthrough)
-//  2. crea el post (solo JSON)
+//  2. crea el post (solo JSON) — el backend cobra el plan en la misma
+//     transacción que crea el post (charge_post_publication)
 //  3. pide URLs presigned
 //  4. sube cada binario DIRECTO a S3 (salta el proxy → sin 413)
 //  5. confirma para persistir la metadata
+//
+// `expectedCostUsd` es el precio del plan elegido (0 si no aplica cobro).
+// Se descuenta del saldo optimistamente ANTES de llamar al backend; si crear
+// el post falla, se revierte (nunca se cobró). Si el post se crea, el cobro
+// ya es real e irreversible aunque falle la subida de archivos después —
+// ahí no se revierte, se reconcilia con el saldo real del servidor.
 export const uploadPost = async (
   input: NewPostInput,
+  expectedCostUsd: number,
   onProgress?: (progress: UploadProgress) => void,
 ): Promise<{ postId: string; uploadedCount: number }> => {
-  onProgress?.({ phase: "compressing" });
-  const files = await compressMedia(input.media);
+  if (expectedCostUsd > 0) dispatchWalletOptimistic(-expectedCostUsd);
 
-  onProgress?.({ phase: "creating" });
-  const { postId } = await postApi.createPost(input.post);
+  let postId: string;
+  let files: File[];
+  try {
+    onProgress?.({ phase: "compressing" });
+    files = await compressMedia(input.media);
+
+    onProgress?.({ phase: "creating" });
+    ({ postId } = await postApi.createPost(input.post));
+  } catch (error) {
+    if (expectedCostUsd > 0) dispatchWalletOptimistic(expectedCostUsd);
+    throw error;
+  }
+
+  // El post ya existe y el cobro (si hubo) ya se aplicó: reemplaza el
+  // estimado optimista por el saldo real (cubre el primer plan gratis y
+  // redondeos de tasa) sin mostrar el spinner de carga.
+  dispatchWalletRefresh({ silent: true });
 
   if (files.length === 0) {
     return { postId, uploadedCount: 0 };
