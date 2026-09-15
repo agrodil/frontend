@@ -15,6 +15,9 @@ export type CatalogState = {
   // Planes de publicación (posting_fee): value = posting_fee_id (uuid), label =
   // duración, sublabel = precio (+ descuento de renovación si aplica).
   postingFees: SelectOption[];
+  // posting_fee_id -> price_usd (número), para calcular el descuento
+  // optimista de la cartera al publicar sin repetir el fetch del catálogo.
+  postingFeePrices: Record<string, number>;
   isLoading: boolean;
   error: string | null;
 };
@@ -51,6 +54,7 @@ export const useCatalog = (): CatalogState => {
     livestockSectors: [],
     livestockSubcategories: [],
     postingFees: [],
+    postingFeePrices: {},
     isLoading: true,
     error: null,
   });
@@ -84,6 +88,9 @@ export const useCatalog = (): CatalogState => {
             label: durationLabel(f.duration_days),
             sublabel: postingFeeSublabel(f),
           })),
+          postingFeePrices: Object.fromEntries(
+            postingFees.map((f) => [f.posting_fee_id, Number(f.price_usd)]),
+          ),
           isLoading: false,
           error: null,
         });
