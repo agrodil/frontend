@@ -79,14 +79,6 @@ const PostsCarousel: FC<PostsCarouselProps> = ({
             </div>
           ))}
         </div>
-
-        {/* Progress bar */}
-        <div className="h-1 bg-gray-200 rounded-full mx-4 mt-1">
-          <div
-            ref={progressBarRef}
-            className="h-1 w-0 bg-primary rounded-full transition-all duration-150"
-          />
-        </div>
       </div>
 
       {/* Desktop: paginated with buttons */}

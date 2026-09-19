@@ -27,7 +27,7 @@ const UserMenu: FC<UserMenuProps> = ({ user, onNavigate }) => {
         navigate("/me");
         onNavigate?.();
       }}
-      className="flex items-center gap-2.5 border border-gray-200 rounded-2xl p-2 bg-white shadow-sm cursor-pointer hover:border-primary/40 transition-colors"
+      className="flex items-center gap-2.5 border border-gray-300 rounded-xl p-2 bg-white shadow-sm cursor-pointer hover:border-primary/40 transition-colors"
     >
       <div
         className={`${avatarColor} w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-semibold shrink-0`}

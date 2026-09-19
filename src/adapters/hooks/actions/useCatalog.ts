@@ -49,9 +49,6 @@ const postingFeeSublabel = (fee: {
     : price;
 };
 
-// Catálogo de post (categorías/subcategorías/sectores) — vive en la DB, se
-// trae una sola vez al montar. Mismo motivo que townshipsByState: pocas filas,
-// bajo movimiento, no justifica refetch por interacción.
 export const useCatalog = (): CatalogState => {
   const [state, setState] = useState<CatalogState>({
     categories: [],

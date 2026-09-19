@@ -406,7 +406,7 @@ const AuthPage: FC = () => {
     <>
       <Loader visible={isLoading} />
       <main className="flex-1 flex items-center justify-center min-h-screen p-4">
-        <div className="relative w-full max-w-lg mx-auto">
+        <div className="relative w-full max-w-lg mx-4">
           <AnimatePresence>
             <motion.button
               key={view}
@@ -431,7 +431,7 @@ const AuthPage: FC = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -40 }}
               transition={{ duration: 0.28, ease: "easeInOut" }}
-              className="bg-white rounded-3xl border border-gray-300 p-8 w-full overflow-y-auto max-h-[75vh]"
+              className="bg-white rounded-xl border border-gray-300 p-8 w-full overflow-y-auto max-h-[75vh]"
             >
               <Form
                 title={current.title}
