@@ -27,6 +27,21 @@ export async function handleActivatePost(
   }
 }
 
+// Renovar un post vencido desde la lista de desactivadas: cobra el plan
+// elegido (deactivatedPosts.activate) y, si sale bien, refresca "activas" —
+// mismo cruce de hooks que handleActivatePost, pero SIN tragarse el error:
+// el modal de renovación necesita mostrarlo (saldo insuficiente, etc).
+export async function handleRenewPost(
+  deactivatedPosts: UseDeactivatedPostsResult,
+  myPosts: UseMyPostsResult,
+  postId: string,
+  postingFeeId: string,
+  expectedCostUsd: number,
+): Promise<void> {
+  await deactivatedPosts.activate(postId, postingFeeId, expectedCostUsd);
+  await myPosts.refresh();
+}
+
 // Callback onUpdated del PostDetailModal: refleja la edición en el modal y en
 // la card de la lista activa.
 export function handlePostUpdated(
@@ -39,7 +54,10 @@ export function handlePostUpdated(
 }
 
 // Callback onDeactivated del PostDetailModal: mueve el post (optimista) de
-// activas a desactivadas y cierra el modal.
+// activas a desactivadas y cierra el modal. El post que se prepend viene del
+// snapshot de "activas" (aún trae is_active: true) — se fuerza a false acá,
+// si no resolvePostStatus lo sigue leyendo como "active" y PostsTab lo
+// filtra de la lista de desactivadas (ver visibleDeactivatedPosts).
 export function handlePostDeactivated(
   myPosts: UseMyPostsResult,
   deactivatedPosts: UseDeactivatedPostsResult,
@@ -49,7 +67,7 @@ export function handlePostDeactivated(
   const post = myPosts.posts.find(
     (item) => item.post_id === deactivatedId,
   );
-  if (post) deactivatedPosts.prepend(post);
+  if (post) deactivatedPosts.prepend({ ...post, is_active: false });
   myPosts.removePost(deactivatedId);
   postDetailModal.close();
 }

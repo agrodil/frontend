@@ -22,11 +22,13 @@ import type { PurchaseRequest } from "@/api/interfaces/responses/PurchaseRequest
 
 import { getAvatarColor } from "@/shared/utils/getAvatarColor.ts";
 import { getInitials } from "@/shared/utils/getInitials.ts";
+import { resolvePostStatus } from "@/shared/utils/resolvePostStatus";
 import { ADMIN_ROLE_ID } from "@/shared/constants/roles.catalog";
 
 import {
   parseTab,
   handleActivatePost,
+  handleRenewPost,
   handlePostUpdated,
   handlePostDeactivated,
   handlePostActivatedFromModal,
@@ -77,10 +79,21 @@ const MePage: FC = () => {
     initials = getInitials(user.firstName + " " + user.lastName),
     avatarColor = getAvatarColor(user.email);
 
-  const isSelectedActive = postDetailModal.selectedPostId
-    ? !deactivatedPosts.posts.some(
-        (p) => p.post_id === postDetailModal.selectedPostId,
-      )
+  // deactivatedPosts.posts trae el historial COMPLETO a propósito (incluye
+  // activos vigentes, ver PostsTab.tsx / get_user_posts.sql) — un simple
+  // ".some()" contra esa lista marca cualquier post como inactivo. Hay que
+  // resolver el estado real del post seleccionado, priorizando el snapshot
+  // de "activas" cuando está ahí.
+  const selectedPost =
+    myPosts.posts.find(
+      (p) => p.post_id === postDetailModal.selectedPostId,
+    ) ??
+    deactivatedPosts.posts.find(
+      (p) => p.post_id === postDetailModal.selectedPostId,
+    ) ??
+    null;
+  const isSelectedActive = selectedPost
+    ? resolvePostStatus(selectedPost) === "active"
     : true;
 
   const previewImg =
@@ -157,6 +170,15 @@ const MePage: FC = () => {
             onCardClick={postDetailModal.open}
             onActivate={(postId) =>
               handleActivatePost(deactivatedPosts, myPosts, postId)
+            }
+            onRenew={(postId, postingFeeId, expectedCostUsd) =>
+              handleRenewPost(
+                deactivatedPosts,
+                myPosts,
+                postId,
+                postingFeeId,
+                expectedCostUsd,
+              )
             }
           />
         )}

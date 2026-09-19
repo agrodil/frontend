@@ -55,4 +55,7 @@ export const catalogApi = {
   getPostingFees: () => getJson<PostingFee[]>("/catalog/posting-fees"),
   getCattlePriceAverages: () =>
     getJson<CattlePriceAverage[]>("/catalog/cattle-price-averages"),
+  // Tasa vigente, para estimar en USD un monto cargado en Bs (ej. depósito)
+  // antes de confirmar. El backend recalcula con la tasa exacta al cobrar.
+  getUsdRate: () => getJson<{ usd_rate: number }>("/catalog/usd-rate"),
 };

@@ -120,10 +120,25 @@ export const updatePost = async (
 export const deactivatePost = async (id: string): Promise<PostDetail> =>
   postApi.deactivatePost(id);
 
-export const activatePost = async (id: string): Promise<PostDetail> => {
-  const post = await postApi.activatePost(id);
-  window.dispatchEvent(new CustomEvent("postUpdated", { detail: post }));
-  return post;
+// Reactivación gratis si no venció; si venció, `postingFeeId` +
+// `expectedCostUsd` disparan la renovación paga con el mismo patrón
+// optimista de `uploadPost`: descuenta de la cartera antes de llamar al
+// backend, revierte si falla (saldo insuficiente, plan inactivo, etc).
+export const activatePost = async (
+  id: string,
+  postingFeeId?: string,
+  expectedCostUsd = 0,
+): Promise<PostDetail> => {
+  if (expectedCostUsd > 0) dispatchWalletOptimistic(-expectedCostUsd);
+  try {
+    const post = await postApi.activatePost(id, postingFeeId);
+    window.dispatchEvent(new CustomEvent("postUpdated", { detail: post }));
+    if (expectedCostUsd > 0) dispatchWalletRefresh({ silent: true });
+    return post;
+  } catch (error) {
+    if (expectedCostUsd > 0) dispatchWalletOptimistic(expectedCostUsd);
+    throw error;
+  }
 };
 
 export const deletePost = async (id: string): Promise<void> =>

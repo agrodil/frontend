@@ -13,7 +13,11 @@ export interface UseDeactivatedPostsResult {
   activatingId: string | null;
   deletingId: string | null;
   confirmDeleteId: string | null;
-  activate: (id: string) => Promise<void>;
+  activate: (
+    id: string,
+    postingFeeId?: string,
+    expectedCostUsd?: number,
+  ) => Promise<void>;
   requestDelete: (id: string) => void;
   cancelDelete: () => void;
   confirmDelete: (id: string) => Promise<void>;
@@ -52,10 +56,14 @@ export function useDeactivatedPosts(): UseDeactivatedPostsResult {
     setPosts((prev) => prev.filter((p) => p.post_id !== id));
   };
 
-  const activate = async (id: string) => {
+  const activate = async (
+    id: string,
+    postingFeeId?: string,
+    expectedCostUsd?: number,
+  ) => {
     setActivatingId(id);
     try {
-      await activatePostAction(id);
+      await activatePostAction(id, postingFeeId, expectedCostUsd);
       removeLocal(id);
     } finally {
       setActivatingId(null);

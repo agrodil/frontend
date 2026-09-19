@@ -87,9 +87,6 @@ const RootLayout: FC = () => {
       <Footer
         contactEmail="admin@agrodilmarket.com"
         contactPhone="+58 412-0634175"
-        socialLinks={{
-          instagram: "https://instagram.com/agrodil",
-        }}
       />
       <ScrollRestoration />
     </div>

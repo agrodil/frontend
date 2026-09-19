@@ -12,6 +12,13 @@ import { AuthError } from "@/api/clients/auth.api";
 import { refreshSession } from "@/api/refreshSession";
 import { mapUser } from "@/shared/utils/mapUser";
 import { notificationsSocket } from "@/infrastructure/NotificationsSocket";
+import { walletApi, type UserWalletRow } from "@/api/clients/wallet.api";
+import {
+  WALLET_REFRESH_EVENT,
+  WALLET_OPTIMISTIC_EVENT,
+  type WalletRefreshDetail,
+  type WalletOptimisticDetail,
+} from "@/adapters/hooks/actions/useWallet";
 
 interface Props {
   children: ReactNode;
@@ -47,6 +54,8 @@ const isDefinitive = (e: unknown): boolean =>
 export const AuthProvider: React.FC<Props> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [wallet, setWallet] = useState<UserWalletRow | null>(null);
+  const [walletLoading, setWalletLoading] = useState(false);
 
   const recheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const recheckAttempt = useRef(0);
@@ -54,6 +63,21 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
   // Ref al último runResolve, para que el timer de recheck se llame a sí mismo
   // sin crear un ciclo de declaración entre callbacks.
   const resolveRef = useRef<() => Promise<void>>(() => Promise.resolve());
+
+  // Fetch único del saldo por sesión (resolve inicial o login) — no lo
+  // dispara cada componente que necesita mostrar el saldo, ver useWallet.ts.
+  const loadWallet = useCallback(async () => {
+    setWalletLoading(true);
+    try {
+      const w = await walletApi.getWallet();
+      setWallet(w);
+    } catch {
+      // se queda con el último valor conocido (o null); WALLET_REFRESH_EVENT
+      // permite reintentar sin recargar la página.
+    } finally {
+      setWalletLoading(false);
+    }
+  }, []);
 
   const loadMe = useCallback(async (): Promise<SessionResult> => {
     try {
@@ -102,6 +126,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
         clearRecheck();
         setUser(result.user);
         notificationsSocket.connect();
+        void loadWallet();
         // Desliza la ventana de 7 días en cada entrada (rota el token).
         void refreshSession().catch(() => {});
       } else if (result.status === "unauthorized") {
@@ -109,6 +134,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
         clearRecheck();
         removeSessionStorage();
         setUser(null);
+        setWallet(null);
       } else {
         const attempt = recheckAttempt.current;
         if (attempt < RECHECK_DELAYS_MS.length) {
@@ -122,7 +148,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     } finally {
       isResolving.current = false;
     }
-  }, [resolveSession, clearRecheck]);
+  }, [resolveSession, clearRecheck, loadWallet]);
 
   useEffect(() => {
     resolveRef.current = runResolve;
@@ -163,6 +189,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     const fullUser = await fetchMe();
     setUser(fullUser ?? user);
     notificationsSocket.connect();
+    void loadWallet();
   };
 
   const logout = async () => {
@@ -176,6 +203,7 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     notificationsSocket.disconnect();
     removeSessionStorage();
     setUser(null);
+    setWallet(null);
   };
 
   const updateUser = async (data: Partial<User>) => {
@@ -207,6 +235,44 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     return false;
   }, [resolveSession]);
 
+  // Reconciliación con el servidor: refetch completo, o silenciosa (no pisa
+  // un valor optimista con el loading) si detail.silent.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const silent = (e as CustomEvent<WalletRefreshDetail>).detail?.silent;
+      if (!silent) {
+        void loadWallet();
+        return;
+      }
+      walletApi
+        .getWallet()
+        .then((w) => setWallet(w))
+        .catch(() => {
+          /* si falla, se queda el valor optimista hasta el próximo refresh */
+        });
+    };
+    window.addEventListener(WALLET_REFRESH_EVENT, handler);
+    return () => window.removeEventListener(WALLET_REFRESH_EVENT, handler);
+  }, [loadWallet]);
+
+  // Ajuste optimista: suma/resta al saldo mostrado sin esperar al servidor.
+  // Única aritmética de dinero en el cliente — siempre transitoria, se
+  // reconcilia con WALLET_REFRESH_EVENT o se revierte si la operación falla.
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent<WalletOptimisticDetail>).detail;
+      if (!detail) return;
+      setWallet((prev) => {
+        if (!prev) return prev;
+        const next = Number(prev.balance) + detail.deltaUsd;
+        if (!Number.isFinite(next)) return prev;
+        return { ...prev, balance: next.toFixed(2) };
+      });
+    };
+    window.addEventListener(WALLET_OPTIMISTIC_EVENT, handler);
+    return () => window.removeEventListener(WALLET_OPTIMISTIC_EVENT, handler);
+  }, []);
+
   const value: AuthContextType = {
     user,
     login,
@@ -215,6 +281,8 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     checkSession,
     isAuthenticated: !!user,
     loading,
+    wallet,
+    walletLoading,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
