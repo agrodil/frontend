@@ -77,6 +77,9 @@ const parsePurchaseStatus = (text: string): PurchaseStatusPayload | null => {
 
 const MESSAGES_LIMIT = 50;
 
+const isVideoFile = (mime: string | undefined, name?: string) =>
+  mime?.startsWith("video/") || /\.(mp4|webm|mov|m4v|ogg)$/i.test(name ?? "");
+
 const formatTime = (iso: string) =>
   new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
@@ -89,9 +92,9 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
     [text, setText] = useState(""),
     [sending, setSending] = useState(false),
     [brokenImgs, setBrokenImgs] = useState<Set<string>>(new Set()),
-    [freshCardImages, setFreshCardImages] = useState<Record<string, string>>(
-      {},
-    ),
+    [freshCardImages, setFreshCardImages] = useState<
+      Record<string, { url: string; isVideo: boolean }>
+    >({}),
     [freshCardPosts, setFreshCardPosts] = useState<Record<string, PostDetail>>(
       {},
     ),
@@ -287,7 +290,13 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
         ]);
         const main = files.find((f) => f.is_main_file) ?? files[0];
         if (main?.url) {
-          setFreshCardImages((prev) => ({ ...prev, [postId]: main.url }));
+          setFreshCardImages((prev) => ({
+            ...prev,
+            [postId]: {
+              url: main.url,
+              isVideo: isVideoFile(main.mime_type, main.app_file_name),
+            },
+          }));
         }
         setFreshCardPosts((prev) => ({ ...prev, [postId]: post }));
       } catch {
@@ -507,11 +516,13 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
                           freshPost.price_per_unit ??
                           card.price)
                         : card.price;
-                      const imgSrc =
-                        (msg.post_id &&
-                          freshCardImages[msg.post_id]) ||
-                        card.img ||
-                        null;
+                      const freshMedia = msg.post_id
+                        ? freshCardImages[msg.post_id]
+                        : undefined;
+                      const imgSrc = freshMedia?.url || card.img || null;
+                      const imgIsVideo = freshMedia
+                        ? freshMedia.isVideo
+                        : false;
 
                       // El card lo envía el comprador; quien NO lo envió es el vendedor
                       const isSeller = !isOwn;
@@ -556,18 +567,34 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
                             <div className="w-48 h-36 relative bg-gray-100">
                               {imgSrc &&
                               !brokenImgs.has(msg.purchase_notification_id) ? (
-                                <img
-                                  src={imgSrc}
-                                  alt={displayTitle}
-                                  className="absolute inset-0 w-full h-full object-cover"
-                                  onError={() =>
-                                    setBrokenImgs((prev) =>
-                                      new Set(prev).add(
-                                        msg.purchase_notification_id,
-                                      ),
-                                    )
-                                  }
-                                />
+                                imgIsVideo ? (
+                                  <video
+                                    src={imgSrc}
+                                    muted
+                                    playsInline
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                    onError={() =>
+                                      setBrokenImgs((prev) =>
+                                        new Set(prev).add(
+                                          msg.purchase_notification_id,
+                                        ),
+                                      )
+                                    }
+                                  />
+                                ) : (
+                                  <img
+                                    src={imgSrc}
+                                    alt={displayTitle}
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                    onError={() =>
+                                      setBrokenImgs((prev) =>
+                                        new Set(prev).add(
+                                          msg.purchase_notification_id,
+                                        ),
+                                      )
+                                    }
+                                  />
+                                )
                               ) : (
                                 <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
                                   <LuImageOff
@@ -739,7 +766,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
           onEdit={() => {
             setSelectedPost({
               post: postSalePost,
-              img: freshCardImages[postSalePost.post_id] ?? null,
+              img: freshCardImages[postSalePost.post_id]?.url ?? null,
               owner: postSalePost.post_name,
             });
             setPostSalePost(null);
