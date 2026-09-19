@@ -15,6 +15,7 @@ import { resolvePostPricing } from "@/shared/utils/resolvePostPricing";
 import { resolvePostStatus } from "@/shared/utils/resolvePostStatus";
 import { POST_STATUS } from "@/shared/constants/post-status.catalog";
 import { useCatalog } from "@/adapters/hooks/actions/useCatalog";
+import { resolveRenewalDiscountPlanId } from "@/shared/utils/resolveRenewalDiscountPlanId";
 
 const mapToCardPost = (post: MePost) => {
   const pricing = resolvePostPricing(post);
@@ -245,6 +246,7 @@ const PostsTab: FC<PostsTabProps> = ({
         postTitle={renewTarget.post_name}
         plans={catalog.postingFees}
         planPrices={catalog.postingFeePrices}
+        recommendedPlanId={resolveRenewalDiscountPlanId(renewTarget, catalog)}
         onConfirm={handleConfirmRenew}
         onClose={() => setRenewTarget(null)}
         loading={renewing}

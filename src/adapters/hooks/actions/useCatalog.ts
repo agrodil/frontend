@@ -18,6 +18,10 @@ export type CatalogState = {
   // posting_fee_id -> price_usd (número), para calcular el descuento
   // optimista de la cartera al publicar sin repetir el fetch del catálogo.
   postingFeePrices: Record<string, number>;
+  // posting_fee_id -> duration_days, para resolver qué plan activo coincide
+  // en duración con el plan original de un post al renovar (ver
+  // resolveRenewalDiscountPlanId).
+  postingFeeDurations: Record<string, number>;
   isLoading: boolean;
   error: string | null;
 };
@@ -55,6 +59,7 @@ export const useCatalog = (): CatalogState => {
     livestockSubcategories: [],
     postingFees: [],
     postingFeePrices: {},
+    postingFeeDurations: {},
     isLoading: true,
     error: null,
   });
@@ -90,6 +95,9 @@ export const useCatalog = (): CatalogState => {
           })),
           postingFeePrices: Object.fromEntries(
             postingFees.map((f) => [f.posting_fee_id, Number(f.price_usd)]),
+          ),
+          postingFeeDurations: Object.fromEntries(
+            postingFees.map((f) => [f.posting_fee_id, f.duration_days]),
           ),
           isLoading: false,
           error: null,

@@ -8,6 +8,11 @@ interface RenewPostModalProps {
   postTitle: string;
   plans: SelectOption[];
   planPrices: Record<string, number>;
+  // Plan que conserva la misma duración que el plan original del post y
+  // califica al descuento de primera renovación (ver
+  // resolveRenewalDiscountPlanId). null si el post ya no es elegible o no
+  // hay match — en ese caso no se resalta ni preselecciona nada.
+  recommendedPlanId?: string | null;
   onConfirm: (postingFeeId: string) => Promise<void>;
   onClose: () => void;
   loading: boolean;
@@ -20,13 +25,18 @@ const RenewPostModal: FC<RenewPostModalProps> = ({
   postTitle,
   plans,
   planPrices,
+  recommendedPlanId = null,
   onConfirm,
   onClose,
   loading,
   error,
 }) => {
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string | null>(recommendedPlanId);
   const price = selected != null ? planPrices[selected] : undefined;
+  const losesDiscount =
+    recommendedPlanId != null &&
+    selected != null &&
+    selected !== recommendedPlanId;
 
   return (
     <AnimatePresence>
@@ -66,35 +76,45 @@ const RenewPostModal: FC<RenewPostModalProps> = ({
           </p>
 
           <div className="flex flex-col gap-2">
-            {plans.map((plan) => (
-              <label
-                key={plan.value}
-                className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
-                  selected === plan.value
-                    ? "border-amber-400 bg-amber-50"
-                    : "border-gray-200 hover:bg-gray-50"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    name="postingFeeId"
-                    checked={selected === plan.value}
-                    onChange={() => setSelected(String(plan.value))}
-                    disabled={loading}
-                    className="cursor-pointer"
-                  />
-                  <span className="text-sm font-semibold text-gray-900">
-                    {plan.label}
-                  </span>
-                </div>
-                {plan.sublabel && (
-                  <span className="text-xs text-gray-500">
-                    {plan.sublabel}
-                  </span>
-                )}
-              </label>
-            ))}
+            {plans.map((plan) => {
+              const isRecommended = recommendedPlanId === String(plan.value);
+              return (
+                <label
+                  key={plan.value}
+                  className={`flex items-center justify-between gap-3 rounded-xl border px-3 py-2.5 cursor-pointer transition-colors ${
+                    selected === plan.value
+                      ? "border-amber-400 bg-amber-50"
+                      : isRecommended
+                        ? "border-green-300 bg-green-50/60"
+                        : "border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="radio"
+                      name="postingFeeId"
+                      checked={selected === plan.value}
+                      onChange={() => setSelected(String(plan.value))}
+                      disabled={loading}
+                      className="cursor-pointer"
+                    />
+                    <span className="text-sm font-semibold text-gray-900">
+                      {plan.label}
+                    </span>
+                    {isRecommended && (
+                      <span className="text-[10px] font-bold uppercase text-green-700 bg-green-100 rounded-full px-2 py-0.5">
+                        Descuento aplica
+                      </span>
+                    )}
+                  </div>
+                  {plan.sublabel && (
+                    <span className="text-xs text-gray-500">
+                      {plan.sublabel}
+                    </span>
+                  )}
+                </label>
+              );
+            })}
           </div>
 
           {price !== undefined && (
@@ -103,9 +123,10 @@ const RenewPostModal: FC<RenewPostModalProps> = ({
               <span className="font-semibold text-gray-900">
                 {formatUsd(price)}
               </span>
-              . Se cobrará a tu cartera — si es tu primera renovación con esta
-              misma duración, el descuento se aplica automáticamente al
-              confirmar.
+              .{" "}
+              {losesDiscount
+                ? "Este plan cambia la duración original del post — no aplica el descuento de primera renovación."
+                : "Se cobrará a tu cartera — si es tu primera renovación con esta misma duración, el descuento se aplica automáticamente al confirmar."}
             </p>
           )}
 
