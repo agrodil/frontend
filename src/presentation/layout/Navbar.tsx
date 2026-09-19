@@ -30,7 +30,7 @@ const Navbar: FC<NavbarProps> = ({ sections, onLoginClick }) => {
       </motion.div>
 
       <motion.nav
-        className="bg-white border border-gray-200 px-8 py-1.5 flex items-center justify-between flex-1 rounded-2xl shadow-sm text-primary w-[80%]"
+        className="bg-white border border-gray-300 px-8 py-1.5 flex items-center justify-between flex-1 rounded-xl shadow-sm text-primary w-[80%]"
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: "easeOut" }}

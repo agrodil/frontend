@@ -79,15 +79,8 @@ const MePage: FC = () => {
     initials = getInitials(user.firstName + " " + user.lastName),
     avatarColor = getAvatarColor(user.email);
 
-  // deactivatedPosts.posts trae el historial COMPLETO a propósito (incluye
-  // activos vigentes, ver PostsTab.tsx / get_user_posts.sql) — un simple
-  // ".some()" contra esa lista marca cualquier post como inactivo. Hay que
-  // resolver el estado real del post seleccionado, priorizando el snapshot
-  // de "activas" cuando está ahí.
   const selectedPost =
-    myPosts.posts.find(
-      (p) => p.post_id === postDetailModal.selectedPostId,
-    ) ??
+    myPosts.posts.find((p) => p.post_id === postDetailModal.selectedPostId) ??
     deactivatedPosts.posts.find(
       (p) => p.post_id === postDetailModal.selectedPostId,
     ) ??
@@ -115,7 +108,7 @@ const MePage: FC = () => {
 
   return (
     <>
-      <main className="flex-1 w-[90vw] mx-auto py-[clamp(1.5rem,4vw,3rem)] flex flex-col gap-[clamp(0.75rem,2vw,1.5rem)]">
+      <main className="flex-1 w-[90vw] min-h-[90vh] mx-auto flex flex-col gap-[clamp(0.75rem,2vw,1.5rem)]">
         <ProfileCard
           displayName={displayName}
           documentType={user.documentType ?? ""}
@@ -144,7 +137,7 @@ const MePage: FC = () => {
         </AnimatePresence>
 
         {/* ── Tabs ──────────────────────────────────────────────────────── */}
-        <div className="flex flex-nowrap gap-1 border-b border-gray-200 overflow-x-auto">
+        <div className="flex flex-nowrap gap-4 border-b border-gray-200 overflow-x-auto overflow-y-hidden">
           {TAB_LIST.map((tab) => (
             <button
               key={tab}

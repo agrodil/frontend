@@ -23,7 +23,7 @@ const PreferencesTab: FC<PreferencesTabProps> = ({
         <LuLoader size={24} className="animate-spin text-gray-400" />
       </div>
     ) : (
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 flex flex-col gap-6">
+      <div className="bg-white rounded-xl border border-gray-300 p-6 flex flex-col gap-6">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
           Notificaciones
         </p>

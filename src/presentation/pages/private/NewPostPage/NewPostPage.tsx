@@ -1,43 +1,44 @@
 import { useState, type FC } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { LuCircleCheck, LuCircleX, LuLoader } from "react-icons/lu";
+import {
+  LuArrowLeft,
+  LuCircleCheck,
+  LuCircleX,
+  LuLoader,
+} from "react-icons/lu";
+
 import Form from "@/presentation/ui/Form";
 import Button from "@/presentation/ui/Button";
 import LocationSelects from "@/presentation/ui/LocationSelects";
-import { buildNewPostFields } from "./NewPostFormFields";
+import NewPostProgress from "./NewPostProgress";
+import DurationPlanPicker from "./DurationPlanPicker";
+import ConfirmPublishModal from "./ConfirmPublishModal";
+import { buildStep1Fields, buildStep2Fields } from "./NewPostFormFields";
+import {
+  buildPayload,
+  findMissingRequiredField,
+  labelForProgress,
+} from "./NewPostPage.handlers";
 import { useAuth } from "@/adapters/hooks/common/useAuth";
 import { useCatalog } from "@/adapters/hooks/actions/useCatalog";
 import { TOWNSHIP_BY_ID } from "@/shared/constants/townships.catalog";
-import {
-  POST_CATEGORY,
-  isLivestockCategory,
-} from "@/shared/utils/resolvePostPricing";
+import { POST_CATEGORY } from "@/shared/utils/resolvePostPricing";
 import {
   uploadPost,
   type NewPostInput,
-  type UploadProgress,
 } from "@/presentation/router/actions/post.actions";
 import type { LocationValue } from "@/presentation/interfaces/ui/LocationSelectsProps";
 
+type Step = 1 | 2 | 3;
 type SubmitState = "idle" | "loading" | "success" | "error";
 
-const labelForProgress = (progress: UploadProgress): string => {
-  switch (progress.phase) {
-    case "compressing":
-      return "Optimizando imágenes...";
-    case "creating":
-      return "Creando publicación...";
-    case "uploading":
-      return `Subiendo archivo ${progress.index + 1} de ${progress.total}...`;
-    case "confirming":
-      return "Finalizando...";
-  }
+const STEP_TITLES: Record<Step, string> = {
+  1: "Datos generales",
+  2: "Datos particulares",
+  3: "Duración de la publicación",
 };
 
-// El municipio del perfil solo precarga los selects: un usuario puede tener
-// ganado/fincas en varios municipios, así que la ubicación es editable y se
-// guarda por publicación, no se hereda del perfil.
 const initialLocation = (townshipId?: number): LocationValue => {
   const township = townshipId ? TOWNSHIP_BY_ID[townshipId] : undefined;
   return township
@@ -49,10 +50,18 @@ const NewPostPage: FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const catalog = useCatalog();
+
+  const [step, setStep] = useState<Step>(1);
+  const [hasReachedStep2, setHasReachedStep2] = useState(false);
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [location, setLocation] = useState<LocationValue>(() =>
     initialLocation(user?.townshipId),
   );
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [stepError, setStepError] = useState<string | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+
   const [submitState, setSubmitState] = useState<SubmitState>("idle");
   const [pendingPayload, setPendingPayload] = useState<NewPostInput | null>(
     null,
@@ -64,200 +73,24 @@ const NewPostPage: FC = () => {
     "No se pudo crear la publicación. Intenta de nuevo.",
   );
 
-  const buildPayload = (
-    data: Record<string, string | File | File[] | boolean>,
-  ): { payload: NewPostInput | null; validationError: string | null } => {
-    const postCategoryId = Number(data.postCategoryId);
-    if (!postCategoryId) {
-      return {
-        payload: null,
-        validationError: "Selecciona qué quieres publicar.",
-      };
-    }
+  const postCategoryId = Number(formData.postCategoryId) || 0;
+  const saleTypeId =
+    typeof formData.saleTypeId === "string" && formData.saleTypeId
+      ? Number(formData.saleTypeId)
+      : null;
+  const selectedPostingFeeId =
+    (typeof formData.postingFeeId === "string" && formData.postingFeeId) ||
+    (catalog.postingFees[0] ? String(catalog.postingFees[0].value) : "");
 
-    // Insumos u Otros es la única categoría con ubicación opcional.
-    if (
-      postCategoryId !== POST_CATEGORY.INSUMOS &&
-      (!location.stateId || !location.townshipId)
-    ) {
-      return {
-        payload: null,
-        validationError: "Debes indicar dónde se encuentra la publicación.",
-      };
-    }
-
-    const postName =
-      typeof data.postName === "string" ? data.postName.trim() : "";
-    if (!postName) {
-      return {
-        payload: null,
-        validationError: "Debes indicar un título para la publicación.",
-      };
-    }
-
-    const postingFeeId =
-      typeof data.postingFeeId === "string" ? data.postingFeeId : "";
-    if (!postingFeeId) {
-      return {
-        payload: null,
-        validationError: "Debes seleccionar la duración de la publicación.",
-      };
-    }
-
-    const mediaFiles = Array.isArray(data.media) ? (data.media as File[]) : [];
-
-    const post: Record<string, unknown> = {
-      postCategoryId,
-      postName,
-      postingFeeId,
-      ...(location.townshipId
-        ? { townshipId: Number(location.townshipId) }
-        : {}),
-      ...(data.details ? { details: data.details } : {}),
-    };
-
-    if (isLivestockCategory(postCategoryId)) {
-      const predominantBreed =
-        typeof data.predominantBreed === "string"
-          ? data.predominantBreed.trim()
-          : "";
-      if (!predominantBreed) {
-        return {
-          payload: null,
-          validationError: "Debes indicar la raza predominante del lote.",
-        };
-      }
-      if (!data.livestockSectorId) {
-        return {
-          payload: null,
-          validationError: "Debes seleccionar el rubro.",
-        };
-      }
-      const saleTypeId = Number(data.saleTypeId);
-      if (!saleTypeId) {
-        return {
-          payload: null,
-          validationError: "Debes seleccionar el tipo de venta.",
-        };
-      }
-      if (!data.sex) {
-        return {
-          payload: null,
-          validationError: "Debes seleccionar el sexo del lote.",
-        };
-      }
-      if (!data.quantity) {
-        return {
-          payload: null,
-          validationError: "Debes indicar la cantidad de animales.",
-        };
-      }
-
-      let weightFields: Record<string, unknown> = {};
-      if (saleTypeId === 1) {
-        if (!data.avgWeightKg) {
-          return {
-            payload: null,
-            validationError: "Debes indicar el peso promedio (kg).",
-          };
-        }
-        if (!data.pricePerKg) {
-          return {
-            payload: null,
-            validationError: "Debes indicar el precio por kg.",
-          };
-        }
-        if (!data.priceWeightBasis) {
-          return {
-            payload: null,
-            validationError: "Debes indicar si el precio es en pie o en canal.",
-          };
-        }
-        weightFields = {
-          avgWeightKg: Number(data.avgWeightKg),
-          pricePerKg: Number(data.pricePerKg),
-          priceWeightBasis: data.priceWeightBasis,
-        };
-      } else if (!data.pricePerUnit) {
-        return {
-          payload: null,
-          validationError: "Debes indicar el precio por unidad.",
-        };
-      } else {
-        weightFields = { pricePerUnit: Number(data.pricePerUnit) };
-      }
-
-      Object.assign(post, {
-        predominantBreed,
-        livestockSectorId: Number(data.livestockSectorId),
-        saleTypeId,
-        sex: data.sex,
-        quantity: Number(data.quantity),
-        ...(typeof data.postSubcategoryId === "string" && data.postSubcategoryId
-          ? { postSubcategoryId: Number(data.postSubcategoryId) }
-          : {}),
-        ...weightFields,
-      });
-    } else {
-      switch (postCategoryId) {
-        case POST_CATEGORY.MAQUINARIA: {
-          if (!data.pricePerUnit) {
-            return {
-              payload: null,
-              validationError: "Debes indicar el precio.",
-            };
-          }
-          Object.assign(post, {
-            pricePerUnit: Number(data.pricePerUnit),
-            ...(typeof data.postBrand === "string" && data.postBrand.trim()
-              ? { postBrand: data.postBrand.trim() }
-              : {}),
-          });
-          break;
-        }
-
-        case POST_CATEGORY.FINCAS: {
-          if (!data.farmHectares) {
-            return {
-              payload: null,
-              validationError: "Debes indicar las hectáreas.",
-            };
-          }
-          if (!data.pricePerHectare) {
-            return {
-              payload: null,
-              validationError: "Debes indicar el precio por hectárea.",
-            };
-          }
-          Object.assign(post, {
-            farmHectares: Number(data.farmHectares),
-            pricePerHectare: Number(data.pricePerHectare),
-          });
-          break;
-        }
-
-        case POST_CATEGORY.INSUMOS: {
-          if (!data.pricePerUnit) {
-            return {
-              payload: null,
-              validationError: "Debes indicar el precio.",
-            };
-          }
-          Object.assign(post, { pricePerUnit: Number(data.pricePerUnit) });
-          break;
-        }
-
-        default:
-          return {
-            payload: null,
-            validationError: "Categoría inválida.",
-          };
-      }
-    }
-
-    console.debug("[NewPostPage] Payload generado para /posts", post);
-    return { payload: { post, media: mediaFiles }, validationError: null };
-  };
+  const step1Fields = buildStep1Fields(
+    catalog.categories,
+    catalog.livestockSectors,
+  );
+  const step2Fields = buildStep2Fields({
+    postCategoryId,
+    saleTypeId,
+    livestockSubcategories: catalog.livestockSubcategories,
+  });
 
   const submit = async (payload: NewPostInput) => {
     setSubmitState("loading");
@@ -280,69 +113,186 @@ const NewPostPage: FC = () => {
     }
   };
 
-  const handleSubmit = (data: Record<string, unknown>) => {
-    const postCategoryId = Number(data.postCategoryId);
+  const handleStep1Continue = (data: Record<string, unknown>) => {
+    const missing = findMissingRequiredField(data, step1Fields);
+    if (missing) {
+      setStepError(missing);
+      return;
+    }
+
+    const catId = Number(data.postCategoryId);
     const isLocationMissing =
-      postCategoryId !== POST_CATEGORY.INSUMOS &&
+      catId !== POST_CATEGORY.INSUMOS &&
       (!location.stateId || !location.townshipId);
     setLocationError(
       isLocationMissing
         ? "Debes indicar dónde se encuentra la publicación."
         : null,
     );
+    if (isLocationMissing) return;
 
-    const { payload, validationError } = buildPayload(
-      data as Record<string, string | File | File[] | boolean>,
-    );
+    setStepError(null);
+    setFormData((prev) => ({ ...prev, ...data }));
+    setHasReachedStep2(true);
+    setStep(2);
+  };
 
-    if (validationError || !payload) {
-      console.warn("[NewPostPage] Validación previa falló:", validationError);
-      setErrorMessage(validationError ?? "Datos inválidos.");
-      setPendingPayload(null);
-      setSubmitState("error");
+  const handleStep2Continue = (data: Record<string, unknown>) => {
+    const missing = findMissingRequiredField(data, step2Fields);
+    if (missing) {
+      setStepError(missing);
       return;
     }
 
+    setStepError(null);
+    setFormData((prev) => ({ ...prev, ...data }));
+    setStep(3);
+  };
+
+  const handleStep3Continue = () => {
+    setFormData((prev) => ({ ...prev, postingFeeId: selectedPostingFeeId }));
+    setConfirmError(null);
+    setShowConfirmModal(true);
+  };
+
+  const handleBack = () => {
+    setStepError(null);
+    if (step === 2) setStep(1);
+    else if (step === 3) setStep(2);
+  };
+
+  const handlePublish = () => {
+    const { payload, validationError } = buildPayload(
+      formData as Record<string, string | File | File[] | boolean>,
+      location,
+    );
+
+    if (validationError || !payload) {
+      setConfirmError(validationError ?? "Datos inválidos.");
+      return;
+    }
+
+    setShowConfirmModal(false);
     setPendingPayload(payload);
     submit(payload);
   };
 
-  const fields = buildNewPostFields(
-    catalog.categories,
-    catalog.livestockSectors,
-    catalog.livestockSubcategories,
-    catalog.postingFees,
-  );
+  const mediaCount = Array.isArray(formData.media)
+    ? (formData.media as File[]).length
+    : 0;
 
   return (
-    <section className="flex flex-col min-h-screen w-[90vw] mx-auto">
-      <div className="p-4 border border-gray-300 rounded-2xl h-fit w-full max-w-[90vw] mx-auto lg:max-h-[80vh] overflow-y-auto">
+    <section className="flex flex-col min-h-screen w-[90vw] mx-auto py-8">
+      <div className="w-full max-w-2xl mx-auto">
+        <div className="flex items-center gap-3 mb-5">
+          {step > 1 && (
+            <button
+              type="button"
+              onClick={handleBack}
+              aria-label="Atrás"
+              className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors shrink-0 bg-white cursor-pointer"
+            >
+              <LuArrowLeft size={18} className="text-gray-600" />
+            </button>
+          )}
+          <div>
+            <h1 className="text-primary font-bold text-xl">
+              Nueva publicación
+            </h1>
+            <p className="text-gray-500 text-sm mt-0.5">
+              Paso {step} de 3 · {STEP_TITLES[step]}
+            </p>
+          </div>
+        </div>
+
+        <NewPostProgress step={step} />
+
         {catalog.error && (
           <p className="text-sm text-red-500 text-center mb-4">
             No se pudo cargar el catálogo de categorías. Recarga la página.
           </p>
         )}
 
-        <div className="mb-4">
-          <LocationSelects
-            value={location}
-            onChange={(next) => {
-              setLocation(next);
-              setLocationError(null);
-            }}
-            stateLabel="Estado"
-            townshipLabel="Municipio"
-            error={locationError}
-          />
-        </div>
+        {stepError && (
+          <p className="text-sm text-red-500 bg-red-50 border border-red-200 rounded-lg p-2.5 text-center mb-4">
+            {stepError}
+          </p>
+        )}
 
-        <Form
-          fields={fields}
-          onSubmit={handleSubmit}
-          isLoading={submitState === "loading" || catalog.isLoading}
-          submitLabel="Publicar"
-        />
+        <div className="p-4 sm:p-6 border border-gray-300 rounded-xl bg-white">
+          <div className={step === 1 ? "" : "hidden"}>
+            {hasReachedStep2 && (
+              <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mb-4">
+                Si cambias la categoría o el tipo de venta, se reiniciarán los
+                campos de la siguiente sección.
+              </p>
+            )}
+            <div className="mb-4">
+              <LocationSelects
+                value={location}
+                onChange={(next) => {
+                  setLocation(next);
+                  setLocationError(null);
+                }}
+                stateLabel="Estado"
+                townshipLabel="Municipio"
+                error={locationError}
+              />
+            </div>
+            <Form
+              fields={step1Fields}
+              onSubmit={handleStep1Continue}
+              isLoading={catalog.isLoading}
+              submitLabel="Continuar"
+            />
+          </div>
+
+          {hasReachedStep2 && (
+            <div className={step === 2 ? "" : "hidden"}>
+              <Form
+                key={`step2-${postCategoryId}-${saleTypeId}`}
+                fields={step2Fields}
+                onSubmit={handleStep2Continue}
+                submitLabel="Continuar"
+              />
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="flex flex-col gap-5">
+              <p className="text-sm text-gray-600">
+                Elige por cuánto tiempo quieres que tu publicación esté activa.
+              </p>
+              <DurationPlanPicker
+                options={catalog.postingFees}
+                value={selectedPostingFeeId}
+                onChange={(v) =>
+                  setFormData((prev) => ({ ...prev, postingFeeId: v }))
+                }
+              />
+              <Button
+                label="Continuar"
+                onClick={handleStep3Continue}
+                disabled={catalog.postingFees.length === 0}
+                className="w-full max-w-md mx-auto mt-2"
+              />
+            </div>
+          )}
+        </div>
       </div>
+
+      {showConfirmModal && (
+        <ConfirmPublishModal
+          formData={formData}
+          location={location}
+          catalog={catalog}
+          mediaCount={mediaCount}
+          onClose={() => setShowConfirmModal(false)}
+          onConfirm={handlePublish}
+          loading={submitState === "loading"}
+          error={confirmError}
+        />
+      )}
 
       {/* Overlay: loader + modals */}
       <AnimatePresence>

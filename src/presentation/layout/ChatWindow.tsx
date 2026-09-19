@@ -77,6 +77,13 @@ const parsePurchaseStatus = (text: string): PurchaseStatusPayload | null => {
 
 const MESSAGES_LIMIT = 50;
 
+// Mensaje propio optimista: aparece de una vez en la lista al enviar. Si el
+// POST falla, se marca "failed" in place (borde rojo) en vez de desaparecer
+// — el siguiente loadMessages() de un envío exitoso reemplaza igual todo el
+// array con la lista real del server, así que el optimista nunca convive con
+// su versión persistida.
+type ChatMessage = Message & { status?: "sending" | "failed" };
+
 const isVideoFile = (mime: string | undefined, name?: string) =>
   mime?.startsWith("video/") || /\.(mp4|webm|mov|m4v|ogg)$/i.test(name ?? "");
 
@@ -88,7 +95,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
   const { refresh: refreshUnreadCount } = useUnreadCount();
   const { moderate, reportViolations } = useMessageModeration();
 
-  const [messages, setMessages] = useState<Message[]>([]),
+  const [messages, setMessages] = useState<ChatMessage[]>([]),
     [text, setText] = useState(""),
     [sending, setSending] = useState(false),
     [brokenImgs, setBrokenImgs] = useState<Set<string>>(new Set()),
@@ -248,6 +255,22 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
       .map((m) => m.message);
     const { sanitized, violations } = moderate(trimmed, recentOwnMessages);
 
+    const tempId = `optimistic-${crypto.randomUUID()}`;
+    const optimisticMessage: ChatMessage = {
+      purchase_notification_id: tempId,
+      sent_by: user?.id ?? "",
+      sent_to: chat.other_user_id,
+      post_id: null,
+      purchase_notification_type_id: 2,
+      message: sanitized,
+      is_read: false,
+      created_at: new Date().toISOString(),
+      sender_name: user?.firstName ?? "",
+      post_name: null,
+      status: "sending",
+    };
+    setMessages((prev) => [...prev, optimisticMessage]);
+
     setSending(true);
     setText("");
     try {
@@ -255,9 +278,20 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
       if (violations.length > 0 && created?.purchase_notification_id) {
         void reportViolations(violations, created.purchase_notification_id);
       }
+      // Reemplaza toda la lista (incluye el optimista) por la real del server.
       await loadMessages();
     } catch {
-      setText(trimmed);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.purchase_notification_id === tempId
+            ? { ...m, status: "failed" }
+            : m,
+        ),
+      );
+      setToast({
+        mode: "error",
+        message: "No se pudo enviar el mensaje. Intenta de nuevo.",
+      });
     } finally {
       setSending(false);
       textareaRef.current?.focus();
@@ -311,7 +345,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
       const post = await postApi.getPostById(msg.post_id);
       setSelectedPost({
         post,
-        img: freshCardImages[msg.post_id] ?? card.img ?? null,
+        img: freshCardImages[msg.post_id]?.url ?? card.img ?? null,
         owner: card.owner,
       });
     } catch {
@@ -684,7 +718,7 @@ const ChatWindow: FC<ChatWindowProps> = ({ chat, onBack }) => {
                       isOwn
                         ? "bg-primary text-white rounded-br-sm"
                         : "bg-white text-gray-600 rounded-bl-sm border border-gray-200"
-                    }`}
+                    } ${msg.status === "failed" ? "border-2 border-red-500" : ""}`}
                   >
                     <p className="text-sm whitespace-pre-wrap wrap-break-words">
                       {msg.message}
