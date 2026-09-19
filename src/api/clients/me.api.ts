@@ -18,6 +18,9 @@ export type MePost = {
   // Vigencia: independiente de is_active, ver PostDetail.interface.ts.
   expires_at: string | null;
   renewal_count: number;
+  // Plan vigente de la última publicación/renovación — usado para resaltar,
+  // al renovar, qué plan mantiene la misma duración y califica al descuento.
+  posting_fee_id: string | null;
 };
 
 export type MeStat = {

@@ -12,6 +12,7 @@ import { usePostDeactivate } from "@/adapters/hooks/actions/usePostDeactivate";
 import { useCatalog } from "@/adapters/hooks/actions/useCatalog";
 import { activatePost } from "@/presentation/router/actions/post.actions";
 import { resolvePostStatus } from "@/shared/utils/resolvePostStatus";
+import { resolveRenewalDiscountPlanId } from "@/shared/utils/resolveRenewalDiscountPlanId";
 
 import Form from "../Form";
 import MediaCarousel from "../MediaCarousel";
@@ -247,6 +248,10 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
           postTitle={currentPost.post_name}
           plans={catalog.postingFees}
           planPrices={catalog.postingFeePrices}
+          recommendedPlanId={resolveRenewalDiscountPlanId(
+            currentPost,
+            catalog,
+          )}
           onConfirm={handleConfirmRenew}
           onClose={() => setShowRenewModal(false)}
           loading={isActivating}
