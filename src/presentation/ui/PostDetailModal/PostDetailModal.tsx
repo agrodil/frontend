@@ -9,10 +9,13 @@ import { useMediaFiles } from "@/adapters/hooks/actions/useMediaFiles";
 import { usePostEdit } from "@/adapters/hooks/actions/usePostEdit";
 import { usePostPurchase } from "@/adapters/hooks/actions/usePostPurchase";
 import { usePostDeactivate } from "@/adapters/hooks/actions/usePostDeactivate";
+import { useCatalog } from "@/adapters/hooks/actions/useCatalog";
 import { activatePost } from "@/presentation/router/actions/post.actions";
+import { resolvePostStatus } from "@/shared/utils/resolvePostStatus";
 
 import Form from "../Form";
 import MediaCarousel from "../MediaCarousel";
+import RenewPostModal from "../RenewPostModal";
 import { PostDetailContent } from "./PostDetailContent";
 import { PostDetailActions } from "./PostDetailActions";
 
@@ -33,6 +36,9 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [isActivating, setIsActivating] = useState(false);
+  const [showRenewModal, setShowRenewModal] = useState(false);
+  const [renewError, setRenewError] = useState<string | null>(null);
+  const catalog = useCatalog();
 
   // Custom hooks
   const { mediaFiles } = useMediaFiles(post.post_id);
@@ -95,7 +101,17 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
     }
   };
 
+  const isExpired = resolvePostStatus({
+    is_active: currentPost.is_active ?? true,
+    expires_at: currentPost.expires_at ?? null,
+  }) === "expired";
+
   const handleActivateClick = async () => {
+    if (isExpired) {
+      setRenewError(null);
+      setShowRenewModal(true);
+      return;
+    }
     setIsActivating(true);
     try {
       await activatePost(currentPost.post_id);
@@ -103,6 +119,24 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
       onClose();
     } catch {
       // silently ignore — parent reloads state on success only
+    } finally {
+      setIsActivating(false);
+    }
+  };
+
+  const handleConfirmRenew = async (postingFeeId: string) => {
+    setIsActivating(true);
+    setRenewError(null);
+    try {
+      const expectedCostUsd = catalog.postingFeePrices[postingFeeId] ?? 0;
+      await activatePost(currentPost.post_id, postingFeeId, expectedCostUsd);
+      setShowRenewModal(false);
+      onActivated?.(currentPost.post_id);
+      onClose();
+    } catch (err) {
+      setRenewError(
+        err instanceof Error ? err.message : "No se pudo renovar la publicación.",
+      );
     } finally {
       setIsActivating(false);
     }
@@ -184,6 +218,7 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
                   <PostDetailActions
                     isOwnPost={isOwnPost}
                     isActive={isActive}
+                    isExpired={isExpired}
                     buying={buying}
                     isDeactivating={isDeactivating}
                     isActivating={isActivating}
@@ -206,6 +241,18 @@ const PostDetailModal: FC<PostDetailModalProps> = ({
           </div>
         </motion.div>
       </motion.div>
+
+      {showRenewModal && (
+        <RenewPostModal
+          postTitle={currentPost.post_name}
+          plans={catalog.postingFees}
+          planPrices={catalog.postingFeePrices}
+          onConfirm={handleConfirmRenew}
+          onClose={() => setShowRenewModal(false)}
+          loading={isActivating}
+          error={renewError}
+        />
+      )}
     </AnimatePresence>
   );
 };

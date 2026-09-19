@@ -36,4 +36,10 @@ export interface PostDetail {
   updated_at: string;
   main_image_s3_key?: string | null;
   is_active?: boolean;
+  // Vigencia: is_active y expires_at son independientes (ver post.row.ts en
+  // el backend) — un post puede seguir is_active=true hasta que alguien lo
+  // consulte y la lectura lo apague. La UI decide "vencido" comparando
+  // expires_at contra el momento actual, no solo is_active.
+  expires_at?: string | null;
+  renewal_count?: number;
 }

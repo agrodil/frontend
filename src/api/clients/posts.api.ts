@@ -162,9 +162,15 @@ export const postApi = {
     return json.data;
   },
 
-  activatePost: async (id: string): Promise<PostDetail> => {
+  // postingFeeId solo hace falta si el post está vencido (renovación
+  // paga); si no, la reactivación es gratis y se omite del body.
+  activatePost: async (
+    id: string,
+    postingFeeId?: string,
+  ): Promise<PostDetail> => {
     const response = await fetchWithAuth(`/posts/${id}/activate`, {
       method: "PATCH",
+      body: postingFeeId ? JSON.stringify({ postingFeeId }) : undefined,
     });
     const json = await response.json();
     if (!response.ok) {

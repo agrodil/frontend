@@ -1,7 +1,7 @@
 ﻿import { useState, type FC } from "react";
 import { motion } from "framer-motion";
 import { LuMapPin } from "react-icons/lu";
-import { formatLocation } from "@/shared/utils/resolveLocation";
+import { resolveLocation } from "@/shared/utils/resolveLocation";
 import type { CardPostProps } from "@/presentation/interfaces/ui/CardPostProps";
 
 const SHADOW_DEFAULT = "0 4px 6px rgba(0,0,0,0.10)";
@@ -22,7 +22,7 @@ const CardPost: FC<CardPostProps> = ({
 }) => {
   const [hovered, setHovered] = useState(false);
   const isVideo = img ? isVideoUrl(img) : false;
-  const location = formatLocation(townshipId);
+  const location = resolveLocation(townshipId);
 
   return (
     <motion.div
@@ -58,9 +58,12 @@ const CardPost: FC<CardPostProps> = ({
       {(location || isVideo) && (
         <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-2 z-10">
           {location ? (
-            <div className="w-auto lg:min-w-[100px] flex justify-center px-2 py-1 lg:m-2 rounded-full bg-background text-primary border border-gray-300 text-[10px] lg:text-sm font-semibold flex items-center gap-1">
+            <div className="min-w-0 max-w-[70%] lg:max-w-[80%] lg:min-w-[100px] flex justify-center px-2 py-1 lg:m-2 rounded-full bg-background text-primary border border-gray-300 text-[10px] lg:text-sm font-semibold items-center gap-1">
               <LuMapPin size={10} className="shrink-0" />
-              <span className="truncate">{location}</span>
+              <span className="truncate lg:hidden">{location.state}</span>
+              <span className="truncate hidden lg:inline">
+                {location.township}, {location.state}
+              </span>
             </div>
           ) : (
             <span />

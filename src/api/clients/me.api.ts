@@ -15,6 +15,9 @@ export type MePost = {
   main_image_url: string | null;
   is_active: boolean;
   township_id: number | null;
+  // Vigencia: independiente de is_active, ver PostDetail.interface.ts.
+  expires_at: string | null;
+  renewal_count: number;
 };
 
 export type MeStat = {

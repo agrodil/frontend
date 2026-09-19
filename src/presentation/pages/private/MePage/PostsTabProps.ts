@@ -7,4 +7,9 @@ export interface PostsTabProps {
   displayName: string;
   onCardClick: (postId: string) => void;
   onActivate: (postId: string) => void;
+  onRenew: (
+    postId: string,
+    postingFeeId: string,
+    expectedCostUsd: number,
+  ) => Promise<void>;
 }

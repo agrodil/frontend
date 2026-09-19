@@ -4,6 +4,10 @@ import { LuPencil, LuTrash2, LuRefreshCw } from "react-icons/lu";
 interface PostDetailActionsProps {
   isOwnPost: boolean;
   isActive?: boolean;
+  // Post vencido (expires_at pasado): "Activar" pasa a ser "Renovar" (cobra a
+  // la cartera) — onActivate sigue siendo el mismo callback, el padre decide
+  // si dispara el flujo gratis o abre la confirmación de cobro.
+  isExpired?: boolean;
   buying: boolean;
   isDeactivating: boolean;
   isActivating?: boolean;
@@ -20,6 +24,7 @@ interface PostDetailActionsProps {
 export const PostDetailActions: FC<PostDetailActionsProps> = ({
   isOwnPost,
   isActive = true,
+  isExpired = false,
   buying,
   isDeactivating,
   isActivating = false,
@@ -49,10 +54,20 @@ export const PostDetailActions: FC<PostDetailActionsProps> = ({
               type="button"
               onClick={onActivate}
               disabled={isActivating}
-              className="flex-1 py-3 rounded-xl bg-white text-green-700 font-bold text-sm hover:bg-green-50 transition-colors cursor-pointer border border-green-300 inline-flex items-center justify-center gap-2 disabled:opacity-60"
+              className={`flex-1 py-3 rounded-xl bg-white font-bold text-sm transition-colors cursor-pointer border inline-flex items-center justify-center gap-2 disabled:opacity-60 ${
+                isExpired
+                  ? "text-amber-700 hover:bg-amber-50 border-amber-300"
+                  : "text-green-700 hover:bg-green-50 border-green-300"
+              }`}
             >
               <LuRefreshCw size={16} className={isActivating ? "animate-spin" : ""} />
-              {isActivating ? "Activando..." : "Activar"}
+              {isActivating
+                ? isExpired
+                  ? "Renovando..."
+                  : "Activando..."
+                : isExpired
+                  ? "Renovar"
+                  : "Activar"}
             </button>
           </div>
         ) : confirmDeactivate ? (

@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useState } from "react";
 import { walletApi, type DepositResult } from "@/api/clients/wallet.api";
+import { catalogApi } from "@/api/clients/catalog.api";
 import { compressImage } from "@/shared/utils/compressImage";
-import { WALLET_REFRESH_EVENT } from "./useWallet";
+import {
+  WALLET_REFRESH_EVENT,
+  dispatchWalletOptimistic,
+  dispatchWalletRefresh,
+} from "./useWallet";
 
 export interface CreateDepositInput {
   bankAccountId: string;
@@ -71,13 +76,40 @@ export const useCreateDeposit = () => {
       }
       fd.append("receipt_image", file);
 
-      const res = await walletApi.createDeposit(fd);
+      // Estimado en USD para acreditar optimistamente (el backend recalcula
+      // con la tasa exacta vigente al cobrar — puede diferir en centavos, se
+      // reconcilia con dispatchWalletRefresh({silent:true}) si se aprueba).
+      // Si no se puede obtener la tasa, sigue sin optimistic (0 = no-op).
+      let estimatedUsd = 0;
+      try {
+        const { usd_rate } = await catalogApi.getUsdRate();
+        const amountBs = Number(input.amountBs);
+        if (usd_rate > 0 && Number.isFinite(amountBs)) {
+          estimatedUsd = amountBs / usd_rate;
+        }
+      } catch {
+        // sin tasa disponible: se manda el depósito igual, sin optimistic.
+      }
+      if (estimatedUsd > 0) dispatchWalletOptimistic(estimatedUsd);
+
+      let res: DepositResult;
+      try {
+        res = await walletApi.createDeposit(fd);
+      } catch (error) {
+        if (estimatedUsd > 0) dispatchWalletOptimistic(-estimatedUsd);
+        throw error;
+      }
       setResult(res);
-      // Si el backend auto-aprobó, el saldo ya cambió: refresca la card.
+
       if (res.status === "completed") {
-        window.dispatchEvent(new CustomEvent(WALLET_REFRESH_EVENT));
+        // El backend ya acreditó: reconciliar en silencio con el monto exacto.
+        if (estimatedUsd > 0) dispatchWalletRefresh({ silent: true });
+        else window.dispatchEvent(new CustomEvent(WALLET_REFRESH_EVENT));
       } else {
-        // Aunque quede pending, refresca la lista de "en revisión".
+        // Queda "pending": el backend NO acreditó nada todavía — revertir el
+        // optimista (no es un error, pero tampoco hay crédito real aún).
+        if (estimatedUsd > 0) dispatchWalletOptimistic(-estimatedUsd);
+        // Igual refresca la lista de "en revisión" (useMyDeposits).
         window.dispatchEvent(new CustomEvent(WALLET_REFRESH_EVENT));
       }
     } catch (err) {
