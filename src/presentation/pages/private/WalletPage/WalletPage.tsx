@@ -46,7 +46,7 @@ const WalletPage: FC = () => {
             type="button"
             onClick={() => navigate("/me")}
             aria-label="Volver"
-            className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center
+            className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center
                        hover:bg-gray-50 transition-colors shrink-0 bg-white cursor-pointer"
           >
             <LuArrowLeft size={18} className="text-gray-600" />
@@ -55,9 +55,6 @@ const WalletPage: FC = () => {
             <h1 className="text-primary font-black text-[clamp(1.25rem,2.5vw,2rem)]">
               Mi billetera
             </h1>
-            <p className="text-gray-500 text-sm mt-0.5">
-              Saldo, movimientos y depósitos por pago móvil
-            </p>
           </div>
         </motion.div>
 
@@ -77,10 +74,10 @@ const WalletPage: FC = () => {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.35, ease: "easeOut", delay: 0.05 }}
-          className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 min-w-0 flex flex-col gap-4"
+          className="bg-white rounded-xl border border-gray-300 p-6 min-w-0 flex flex-col gap-4"
         >
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <h2 className="font-bold text-gray-900">
+            <h2 className="font-bold text-primary text-xl">
               Historial de movimientos
             </h2>
             <select
@@ -92,7 +89,7 @@ const WalletPage: FC = () => {
                     : null,
                 )
               }
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm cursor-pointer
+              className="rounded-xl border border-gray-200 px-3 py-2 text-sm cursor-pointer
                          focus:outline-none focus:ring-2 focus:ring-primary/30"
             >
               {WALLET_TRANSACTION_TYPE_OPTIONS.map((opt) => (

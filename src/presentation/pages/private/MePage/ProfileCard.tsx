@@ -34,7 +34,7 @@ const ProfileCard: FC<ProfileCardProps> = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
       className="bg-white rounded-xl border border-gray-300 flex items-center flex-col sm:flex-row w-full
-                   px-[clamp(1.25rem,4vw,2.5rem)] py-[clamp(1rem,2.5vw,1.75rem)]
+                   px-[clamp(1.25rem,4vw,2.5rem)] py-[clamp(1rem,1vw,2rem)]
                    gap-[clamp(0.75rem,2.5vw,2rem)]"
     >
       <div
