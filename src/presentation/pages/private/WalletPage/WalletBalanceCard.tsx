@@ -21,8 +21,8 @@ const WalletBalanceCard: FC<WalletBalanceCardProps> = ({
     initial={{ opacity: 0, y: 16 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, ease: "easeOut" }}
-    className="bg-white rounded-2xl border border-gray-200 shadow-sm
-               px-[clamp(1.25rem,4vw,2.5rem)] py-[clamp(1.25rem,3vw,2rem)]
+    className="bg-white rounded-xl border border-gray-300
+               px-[clamp(1rem,4vw,2.5rem)] py-[clamp(1rem,1vw,2rem)]
                flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
   >
     <div className="flex items-center gap-4">

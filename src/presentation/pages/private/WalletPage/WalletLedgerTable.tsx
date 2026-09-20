@@ -9,7 +9,7 @@ import {
   WALLET_DEBIT_KIND_LABELS,
   type WalletDebitKind,
 } from "@/shared/constants/wallet-debit-kind.catalog";
-import { formatUsd, formatBs, formatRate } from "@/shared/utils/formatMoney";
+import { formatUsd, formatBs } from "@/shared/utils/formatMoney";
 import { formatDateTime } from "@/shared/utils/formatDateTime";
 
 type WalletLedgerTableProps = {
@@ -22,7 +22,6 @@ type WalletLedgerTableProps = {
   onSelect: (row: WalletTransactionRow) => void;
 };
 
-// Signo con el que el movimiento afecta al saldo, para pintar el monto USD.
 function signedUsd(row: WalletTransactionRow): { text: string; cls: string } {
   const n = Number(row.usd_amount);
   if (row.transaction_type === "deposit") {
@@ -31,7 +30,6 @@ function signedUsd(row: WalletTransactionRow): { text: string; cls: string } {
   if (row.transaction_type === "debit") {
     return { text: `-${formatUsd(row.usd_amount)}`, cls: "text-red-600" };
   }
-  // adjustment: ya viene firmado
   if (n < 0) return { text: formatUsd(row.usd_amount), cls: "text-red-600" };
   return { text: `+${formatUsd(row.usd_amount)}`, cls: "text-green-600" };
 }
@@ -85,12 +83,9 @@ const WalletLedgerTable: FC<WalletLedgerTableProps> = ({
             <th className="font-semibold px-4 py-3 text-xs uppercase tracking-wide whitespace-nowrap">
               Monto Bs
             </th>
-            <th className="font-semibold px-4 py-3 text-xs uppercase tracking-wide whitespace-nowrap">
-              Tasa
-            </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
+        <tbody className="divide-y divide-gray-100 border border-gray-300">
           {items.map((row) => {
             const meta =
               WALLET_TRANSACTION_TYPE[
@@ -127,9 +122,6 @@ const WalletLedgerTable: FC<WalletLedgerTableProps> = ({
                 </td>
                 <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                   {formatBs(row.bs_amount)}
-                </td>
-                <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
-                  {formatRate(row.usd_rate)}
                 </td>
               </tr>
             );

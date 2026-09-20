@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FC, type KeyboardEvent } from "react"
 import { useLoaderData, useNavigate } from "react-router-dom";
 import { LuChevronLeft } from "react-icons/lu";
 import { useAuth } from "@/adapters/hooks/common/useAuth";
+import { useVisualViewport } from "@/adapters/hooks/common/useVisualViewport";
 import { useChatMessages } from "@/adapters/hooks/actions/useChatMessages";
 import { usePurchaseCardData } from "@/adapters/hooks/actions/usePurchaseCardData";
 import { usePurchaseSaleActions } from "@/adapters/hooks/actions/usePurchaseSaleActions";
@@ -21,6 +22,7 @@ const ChatPage: FC = () => {
   const chat = useLoaderData() as Chat;
   const navigate = useNavigate();
   const { user } = useAuth();
+  const viewport = useVisualViewport();
 
   const [text, setText] = useState("");
   const [toast, setToast] = useState<{
@@ -91,7 +93,10 @@ const ChatPage: FC = () => {
     .toUpperCase();
 
   return (
-    <div className="fixed inset-0 flex flex-col bg-background overflow-hidden">
+    <div
+      className="fixed left-0 right-0 flex flex-col bg-background overflow-hidden"
+      style={{ top: viewport?.offsetTop ?? 0, height: viewport?.height ?? "100dvh" }}
+    >
       <div className="flex flex-col h-full min-h-0">
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-200">
