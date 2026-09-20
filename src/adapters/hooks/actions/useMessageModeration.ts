@@ -14,7 +14,7 @@ export interface ModerationResult {
 }
 
 // Agregar un nuevo motivo (lenguaje soez, etc.) es sumar otro checker acá —
-// el call site en ChatWindow no cambia. `ban` debe devolver el mensaje sin
+// el call site en useChatMessages no cambia. `ban` debe devolver el mensaje sin
 // tocar si no detecta nada, o "*".repeat(length) si sí (mismo contrato que
 // banPhone/banEmail).
 const CHECKERS: { reason: IncidentReason; ban: (s: string) => string }[] = [

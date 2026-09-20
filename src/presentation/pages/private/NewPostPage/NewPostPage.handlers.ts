@@ -34,6 +34,8 @@ export const findMissingRequiredField = (
 ): string | null => {
   for (const field of fields) {
     if (!field.required) continue;
+    if (field.visibleWhen && !field.visibleWhen(data as Record<string, string>))
+      continue;
 
     const value = data[field.name];
     const isEmpty =

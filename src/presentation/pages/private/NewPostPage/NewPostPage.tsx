@@ -183,7 +183,12 @@ const NewPostPage: FC = () => {
 
   return (
     <section className="flex flex-col min-h-screen w-[90vw] mx-auto py-8">
-      <div className="w-full max-w-2xl mx-auto">
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+        className="w-full max-w-2xl mx-auto"
+      >
         <div className="flex items-center gap-3 mb-5">
           {step > 1 && (
             <button
@@ -219,8 +224,14 @@ const NewPostPage: FC = () => {
           </p>
         )}
 
-        <div className="p-4 sm:p-6 border border-gray-300 rounded-xl bg-white">
-          <div className={step === 1 ? "" : "hidden"}>
+        <div className="p-4 sm:p-6 border border-gray-300 rounded-xl bg-white relative">
+          <div
+            className={`transition-opacity duration-300 ease-out ${
+              step === 1
+                ? "opacity-100 relative"
+                : "opacity-0 absolute inset-0 pointer-events-none"
+            }`}
+          >
             {hasReachedStep2 && (
               <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2.5 mb-4">
                 Si cambias la categoría o el tipo de venta, se reiniciarán los
@@ -248,7 +259,13 @@ const NewPostPage: FC = () => {
           </div>
 
           {hasReachedStep2 && (
-            <div className={step === 2 ? "" : "hidden"}>
+            <div
+              className={`transition-opacity duration-300 ease-out ${
+                step === 2
+                  ? "opacity-100 relative"
+                  : "opacity-0 absolute inset-0 pointer-events-none"
+              }`}
+            >
               <Form
                 key={`step2-${postCategoryId}-${saleTypeId}`}
                 fields={step2Fields}
@@ -259,7 +276,12 @@ const NewPostPage: FC = () => {
           )}
 
           {step === 3 && (
-            <div className="flex flex-col gap-5">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="flex flex-col gap-5"
+            >
               <p className="text-sm text-gray-600">
                 Elige por cuánto tiempo quieres que tu publicación esté activa.
               </p>
@@ -276,10 +298,10 @@ const NewPostPage: FC = () => {
                 disabled={catalog.postingFees.length === 0}
                 className="w-full max-w-md mx-auto mt-2"
               />
-            </div>
+            </motion.div>
           )}
         </div>
-      </div>
+      </motion.div>
 
       {showConfirmModal && (
         <ConfirmPublishModal
