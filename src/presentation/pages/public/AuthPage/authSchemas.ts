@@ -48,7 +48,13 @@ export const registerSchema = z
       .string()
       .min(8, "La contraseña debe tener al menos 8 caracteres"),
     confirmPassword: z.string().min(1, "Confirma la contraseña"),
-    id_document: z.instanceof(File).optional(),
+    // Form.tsx siembra "" para todo campo no tocado, incluidos los ocultos
+    // por dependsOn (id_document no se renderiza para "J") — z.instanceof(File)
+    // solo acepta File|undefined, así que ese "" fallaba el parse base y
+    // bloqueaba el submit en silencio para cualquier document_type. El
+    // literal("") de relleno se filtra acá; la validación real de "requerido
+    // para V" sigue en el superRefine de abajo.
+    id_document: z.union([z.instanceof(File), z.literal("")]).optional(),
   })
   .superRefine((data, ctx) => {
     if (data.password !== data.confirmPassword) {
