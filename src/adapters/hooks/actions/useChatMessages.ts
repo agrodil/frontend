@@ -3,16 +3,12 @@ import { useAuth } from "@/adapters/hooks/common/useAuth";
 import { notificationsSocket } from "@/infrastructure/NotificationsSocket";
 import { notificationsApi } from "@/api/clients/notifications.api";
 import { useUnreadCount } from "@/adapters/hooks/actions/useUnreadCount";
-import { useMessageModeration } from "@/adapters/hooks/actions/useMessageModeration";
 import {
   sendMessage as sendMessageAction,
   markChatAsRead,
 } from "@/presentation/router/actions/notifications.actions";
 import type { Message } from "@/presentation/interfaces/pages/NotificationsPageLoaderData";
-import {
-  parsePurchaseCard,
-  parsePurchaseStatus,
-} from "@/shared/utils/parsePurchaseMessage";
+import { parsePurchaseStatus } from "@/shared/utils/parsePurchaseMessage";
 
 const MESSAGES_LIMIT = 50;
 
@@ -32,17 +28,16 @@ export interface UseChatMessagesResult {
 }
 
 // Maneja el historial de un chat: carga inicial, refresco por socket, envío
-// optimista (con censura previa de datos de contacto) y el mapa de estados de
-// solicitudes de compra derivado de los mensajes. `onIncomingStatusChange` se
-// dispara solo para cambios de estado del OTRO usuario, ya vistos por primera
-// vez — el componente decide cómo mostrarlos (toast).
+// optimista y el mapa de estados de solicitudes de compra derivado de los
+// mensajes. `onIncomingStatusChange` se dispara solo para cambios de estado
+// del OTRO usuario, ya vistos por primera vez — el componente decide cómo
+// mostrarlos (toast).
 export function useChatMessages(
   otherUserId: string,
   onIncomingStatusChange: (change: IncomingStatusChange) => void,
 ): UseChatMessagesResult {
   const { user } = useAuth();
   const { refresh: refreshUnreadCount } = useUnreadCount();
-  const { moderate, reportViolations } = useMessageModeration();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sending, setSending] = useState(false);
@@ -129,20 +124,6 @@ export function useChatMessages(
     const trimmed = text.trim();
     if (!trimmed || sending) return;
 
-    // Censura teléfonos ANTES de enviar: el número crudo nunca sale del cliente.
-    // Se chequea también contra los últimos mensajes propios (sin cards/status
-    // de compra) por si el número viene partido entre varios mensajes.
-    const recentOwnMessages = messages
-      .filter(
-        (m) =>
-          m.sent_by === user?.id &&
-          !parsePurchaseCard(m.message) &&
-          !parsePurchaseStatus(m.message),
-      )
-      .slice(-3)
-      .map((m) => m.message);
-    const { sanitized, violations } = moderate(trimmed, recentOwnMessages);
-
     const tempId = `optimistic-${crypto.randomUUID()}`;
     const optimisticMessage: ChatMessage = {
       purchase_notification_id: tempId,
@@ -150,7 +131,7 @@ export function useChatMessages(
       sent_to: otherUserId,
       post_id: null,
       purchase_notification_type_id: 2,
-      message: sanitized,
+      message: trimmed,
       is_read: false,
       created_at: new Date().toISOString(),
       sender_name: user?.firstName ?? "",
@@ -161,10 +142,7 @@ export function useChatMessages(
 
     setSending(true);
     try {
-      const created = await sendMessageAction(otherUserId, sanitized);
-      if (violations.length > 0 && created?.purchase_notification_id) {
-        void reportViolations(violations, created.purchase_notification_id);
-      }
+      await sendMessageAction(otherUserId, trimmed);
       // No recargar acá: el mensaje optimista ya está en pantalla con su
       // animación. Un reload ahora reemplazaría el id temporal por el real y
       // volvería a montar el nodo, re-disparando el slide/fade de entrada.
