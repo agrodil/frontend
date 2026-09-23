@@ -1,7 +1,7 @@
 import { useState, type FC } from "react";
 import { LuImageOff } from "react-icons/lu";
-import { sales } from "@/shared/constants/sale-types.catalog";
 import { formatChatTime } from "@/shared/utils/formatChatTime";
+import { resolvePostPricing } from "@/shared/utils/resolvePostPricing";
 import {
   PURCHASE_STATUS_APPROVED,
   PURCHASE_STATUS_REJECTED,
@@ -25,10 +25,14 @@ const PurchaseCard: FC<PurchaseCardProps> = ({
   const [imgBroken, setImgBroken] = useState(false);
 
   const displayTitle = freshPost?.post_name ?? card.title;
-  const displaySaleTypeId = freshPost?.sale_type_id ?? card.saleTypeId;
-  const displayPrice = freshPost
-    ? (freshPost.price_per_kg ?? freshPost.price_per_unit ?? card.price)
-    : card.price;
+  // resolvePostPricing conoce que Fincas cobra por hectárea y
+  // Maquinaria/Insumos tienen precio plano — con freshPost (post_category_id
+  // real) se recalcula fresco; sin él, el precio ya viene bien calculado
+  // desde la card (ver usePostPurchase.ts) así que no hace falta re-derivarlo
+  // con solo saleTypeId (eso daba $0 para Fincas, que no tiene sale_type_id).
+  const { price: displayPrice, priceLabel } = freshPost
+    ? resolvePostPricing(freshPost)
+    : { price: card.price, priceLabel: null };
   const imgSrc = freshMedia?.url || card.img || null;
   const imgIsVideo = freshMedia ? freshMedia.isVideo : false;
 
@@ -92,9 +96,11 @@ const PurchaseCard: FC<PurchaseCardProps> = ({
             )}
           </div>
           <div className="p-3">
-            <p className="text-[10px] text-gray-500 uppercase font-semibold">
-              {sales[displaySaleTypeId] ?? "—"}
-            </p>
+            {priceLabel && (
+              <p className="text-[10px] text-gray-500 uppercase font-semibold">
+                {priceLabel}
+              </p>
+            )}
             <p className="font-bold text-xs text-gray-900 truncate">
               {displayTitle}
             </p>
