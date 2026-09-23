@@ -104,7 +104,16 @@ const PostsCarousel: FC<PostsCarouselProps> = ({
                 animate="center"
                 exit="exit"
                 transition={{ duration: 0.35, ease: "easeInOut" }}
-                className="flex justify-between gap-8 p-8"
+                className="grid gap-8 p-8"
+                // Grid con `visibleCount` columnas fijas en vez de flex: con
+                // menos posts que `visibleCount` (última página, o el total
+                // completo cabe en una), flex+justify-between deja que el
+                // w-full de CardPost se estire a ocupar todo el ancho libre.
+                // Grid reserva las columnas igual aunque sobren celdas vacías,
+                // así cada card mantiene su ancho de "un tercio" siempre.
+                style={{
+                  gridTemplateColumns: `repeat(${visibleCount}, minmax(0, 1fr))`,
+                }}
               >
                 {currentPosts.map((post, i) => (
                   <CardPost
