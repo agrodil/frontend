@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createPurchaseRequest } from "@/presentation/router/actions/purchase.actions";
 import { notificationsApi } from "@/api/clients/notifications.api";
 import { fullName } from "@/shared/utils/fullName";
+import { resolvePostPricing } from "@/shared/utils/resolvePostPricing";
 import type { PostDetail } from "@/api/interfaces/responses/PostDetail.interface";
 import type { User } from "@/adapters/contexts/AuthProps";
 
@@ -20,8 +21,12 @@ export const usePostPurchase = () => {
     setBuying(true);
     setError(null);
     try {
-      const price =
-        post.sale_type_id === 1 ? post.price_per_kg : post.price_per_unit;
+      // sale_type_id (por kg / por unidad) solo existe para ganado — Fincas
+      // usa price_per_hectare, Maquinaria/Insumos usan price_per_unit como
+      // precio plano. resolvePostPricing ya conoce esa distinción por
+      // categoría (mismo resolver que usa la card de la lista); calcularlo a
+      // mano acá con solo sale_type_id daba $0 para Fincas.
+      const { price } = resolvePostPricing(post);
 
       const { purchaseRequestId } = await createPurchaseRequest({
         postId: post.post_id,
@@ -36,7 +41,7 @@ export const usePostPurchase = () => {
         postedBy: post.posted_by,
         title: post.post_name,
         saleTypeId: post.sale_type_id,
-        price: Number(price ?? 0),
+        price,
         owner: previewOwner ?? "",
         img: previewImg ?? "",
       });
