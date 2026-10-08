@@ -2,6 +2,8 @@
 import AuthPage from "@/presentation/pages/public/AuthPage/AuthPage";
 import LandingPage from "@/presentation/pages/public/LandingPage";
 import PostsPage from "@/presentation/pages/public/PostsPage/PostsPage";
+import FaqPage from "@/presentation/pages/public/FaqPage/FaqPage";
+import ManualPage from "@/presentation/pages/public/ManualPage/ManualPage";
 import LegalPage from "@/presentation/pages/public/LegalPage/LegalPage";
 import { termsDocument, privacyDocument } from "@/shared/constants/legal";
 import { getLandingData } from "../loaders/landing.loader";
@@ -16,6 +18,14 @@ export const routes = [
   {
     path: "/privacy-policy",
     element: <LegalPage {...privacyDocument} />,
+  },
+  {
+    path: "/faq",
+    element: <FaqPage />,
+  },
+  {
+    path: "/manual",
+    element: <ManualPage />,
   },
   {
     element: <RootLayout />,

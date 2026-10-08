@@ -15,7 +15,7 @@ export const DEFAULT_FOOTER_SECTIONS: FooterSection[] = [
     links: [
       { label: "Preguntas frecuentes", href: "/faq" },
       { label: "Reportar un problema", href: "/reportar-problema" },
-      { label: "Guía del vendedor", href: "/guia-vendedor" },
+      { label: "Manual de usuario", href: "/manual" },
     ],
   },
   {
