@@ -3,11 +3,18 @@ import type { UserWalletRow } from "@/api/clients/wallet.api";
 
 export type { User };
 
+// Partial<User> + los dos campos de cambio de contraseña, que nunca viven en
+// el User local (no se persisten en el estado del cliente).
+export type ProfileUpdatePayload = Partial<User> & {
+  password?: string;
+  currentPassword?: string;
+};
+
 export interface AuthContextType {
   user: User | null;
   login: (user: User, rememberMe?: boolean) => Promise<void>;
   logout: () => void;
-  updateUser: (data: Partial<User>) => Promise<void>;
+  updateUser: (data: ProfileUpdatePayload) => Promise<void>;
   checkSession: () => Promise<boolean>;
   isAuthenticated: boolean;
   loading: boolean;

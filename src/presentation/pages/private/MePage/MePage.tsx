@@ -10,6 +10,8 @@ import ProfileCard from "./ProfileCard";
 import PostsTab from "./PostsTab";
 import TransactionsTab from "./TransactionsTab";
 import PreferencesTab from "./PreferencesTab";
+import Toast from "@/presentation/ui/Toast";
+import type { ToastMode } from "@/presentation/interfaces/ui/ToastProps.interface";
 
 import { useMyPosts } from "@/adapters/hooks/actions/useMyPosts";
 import { useDeactivatedPosts } from "@/adapters/hooks/actions/useDeactivatedPosts";
@@ -43,6 +45,12 @@ const TAB_LIST: Tab[] = ["publicaciones", "transacciones", "preferencias"];
 
 const MePage: FC = () => {
   const [isEditing, setIsEditing] = useState(false);
+  const [toast, setToast] = useState<{
+    mode: ToastMode;
+    message: string;
+  } | null>(null);
+  const notify = (mode: ToastMode, message: string) =>
+    setToast({ mode, message });
   const loaderData = useLoaderData() as MePageLoaderData;
   const { user, updateUser, logout, loading } = useAuth();
   const navigate = useNavigate();
@@ -132,9 +140,18 @@ const MePage: FC = () => {
                 handleUpdateProfile(updateUser, data, () => setIsEditing(false))
               }
               onClose={() => setIsEditing(false)}
+              notify={notify}
             />
           )}
         </AnimatePresence>
+
+        {toast && (
+          <Toast
+            mode={toast.mode}
+            message={toast.message}
+            onClose={() => setToast(null)}
+          />
+        )}
 
         {/* ── Tabs ──────────────────────────────────────────────────────── */}
         <div className="flex flex-nowrap gap-4 border-b border-gray-200 overflow-x-auto overflow-y-hidden">

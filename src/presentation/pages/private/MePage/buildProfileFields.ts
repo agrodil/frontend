@@ -90,14 +90,22 @@ export const buildProfileFields = (
       defaultValue: user.email,
     },
     {
+      name: "currentPassword",
+      type: "password",
+      placeholder: "Contraseña actual",
+      required: true,
+    },
+    {
       name: "password",
       type: "password",
-      placeholder: "Nueva contraseña (opcional)",
+      placeholder: "Nueva contraseña",
+      required: true,
     },
     {
       name: "confirmPassword",
       type: "password",
       placeholder: "Confirmar nueva contraseña",
+      required: true,
     },
   ];
 

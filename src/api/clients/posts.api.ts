@@ -227,7 +227,6 @@ export const postApi = {
 
   getPostById: async (id: string): Promise<PostDetail> => {
     const response = await fetch(`${url}/posts/${id}`);
-    console.log(response);
     if (!response.ok) throw new Error("Failed to fetch post");
     const json = await response.json();
     return json.data;

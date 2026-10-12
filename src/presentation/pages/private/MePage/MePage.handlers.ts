@@ -1,5 +1,5 @@
 import type { NavigateFunction } from "react-router-dom";
-import type { User } from "@/entities/User.interface";
+import type { ProfileUpdatePayload } from "@/adapters/contexts/AuthProps";
 import type { PostDetail } from "@/api/interfaces/responses/PostDetail.interface";
 import type { UseMyPostsResult } from "@/adapters/hooks/actions/useMyPosts";
 import type { UseDeactivatedPostsResult } from "@/adapters/hooks/actions/useDeactivatedPosts";
@@ -83,27 +83,38 @@ export function handlePostActivatedFromModal(
   myPosts.refresh().catch(() => {});
 }
 
+// No atrapa errores: el caller (ProfileEditForm) necesita que el reject
+// llegue intacto para distinguir éxito de fallo y mostrar el toast correcto,
+// y para NO cerrar el form cuando el cambio de contraseña fue rechazado.
 export async function handleUpdateProfile(
-  updateUser: (data: Partial<User>) => Promise<void>,
+  updateUser: (data: ProfileUpdatePayload) => Promise<void>,
   data: Record<string, string | File | File[] | boolean>,
   onSuccess: () => void,
 ): Promise<void> {
-  try {
-    await updateUser({
-      firstName: data.firstName as string,
-      middleName: data.middleName as string,
-      lastName: data.lastName as string,
-      secondLastName: data.secondLastName as string,
-      documentType: data.documentType as string,
-      documentNumber: Number(data.documentNumber),
-      townshipId: Number(data.townshipId),
-      phone: data.phone as string,
-      email: data.email as string,
-    });
-    onSuccess();
-  } catch (error) {
-    console.error("Error updating profile:", error);
-  }
+  // El form de cambio de contraseña reusa este mismo handler y solo manda
+  // currentPassword/password/confirmPassword — los demás campos no vienen
+  // definidos en ese form, así que se detecta por la presencia de password.
+  const isPasswordChange = typeof data.password === "string" && data.password;
+
+  await updateUser(
+    isPasswordChange
+      ? {
+          password: data.password as string,
+          currentPassword: data.currentPassword as string,
+        }
+      : {
+          firstName: data.firstName as string,
+          middleName: data.middleName as string,
+          lastName: data.lastName as string,
+          secondLastName: data.secondLastName as string,
+          documentType: data.documentType as string,
+          documentNumber: Number(data.documentNumber),
+          townshipId: Number(data.townshipId),
+          phone: data.phone as string,
+          email: data.email as string,
+        },
+  );
+  onSuccess();
 }
 
 export function handleLogout(

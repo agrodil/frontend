@@ -62,7 +62,10 @@ export const usersApi = {
       method: "PATCH",
       body: JSON.stringify(data),
     });
-    if (!response.ok) throw new Error("Error updating user profile");
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.message ?? "Error al actualizar el perfil");
+    }
     return await response.json();
   },
 };
