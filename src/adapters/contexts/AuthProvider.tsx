@@ -5,7 +5,11 @@ import React, {
   useRef,
   type ReactNode,
 } from "react";
-import type { AuthContextType, User } from "@/adapters/contexts/AuthProps";
+import type {
+  AuthContextType,
+  ProfileUpdatePayload,
+  User,
+} from "@/adapters/contexts/AuthProps";
 import { AuthContext } from "./AuthContext";
 import { authApi, usersApi } from "@/api";
 import { AuthError } from "@/api/clients/auth.api";
@@ -206,13 +210,16 @@ export const AuthProvider: React.FC<Props> = ({ children }) => {
     setWallet(null);
   };
 
-  const updateUser = async (data: Partial<User>) => {
+  const updateUser = async (data: ProfileUpdatePayload) => {
     if (!user) return;
     try {
       await usersApi.update(
         data as Record<string, string | File | File[] | boolean>,
       );
-      setUser({ ...user, ...data });
+      // password/currentPassword nunca se guardan en el User local.
+      const { password: _password, currentPassword: _currentPassword, ...profileData } =
+        data;
+      setUser({ ...user, ...profileData });
     } catch (error) {
       console.error("Error updating user:", error);
       throw error;

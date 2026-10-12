@@ -119,7 +119,7 @@ body {
 }
 
 .hero-bg {
-  background-image: url("./presentation//assets/images/landscape.jpeg");
+  background-image: url("./presentation/assets/images/landscape.webp");
   background-size: cover;
   background-position: center;
 }
