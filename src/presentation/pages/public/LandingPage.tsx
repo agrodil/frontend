@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import SearchInput from "@/presentation/ui/SearchInput";
 import PostsCarousel from "@/presentation/ui/PostsCarousel";
 import CattlePriceAveragesRow from "@/presentation/ui/CattlePriceAveragesRow";
+import FederationEndorsement from "@/presentation/ui/FederationEndorsement";
 import PostDetailModal from "@/presentation/ui/PostDetailModal/PostDetailModal";
 
 import type { PostDetail } from "@/api/interfaces/responses/PostDetail.interface";
@@ -103,6 +104,16 @@ const LandingPage: FC = () => {
             />
           </motion.div>
         </motion.section>
+
+        <motion.div
+          className="max-w-[90vw] mx-auto my-8"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+        >
+          <FederationEndorsement />
+        </motion.div>
 
         {cattlePriceAverages.length > 0 && (
           <motion.section
