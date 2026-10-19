@@ -9,7 +9,7 @@ import {
 
 import ugaviLogo from "@/presentation/assets/images/ugavi.webp";
 
-const FEDERATION_NAME = "Unión de Ganaderos de La Villa del Rosario";
+const FEDERATION_NAME = "Unión de Ganaderos de La Villa del Rosario (UGAVI)";
 
 const SEAL_TEXT = `Aval institucional • ${FEDERATION_NAME} • `;
 
