@@ -1,10 +1,9 @@
 import { io, Socket } from "socket.io-client";
-import { url } from "@/api";
 import { authApi, AuthError } from "@/api/clients/auth.api";
 import { refreshSession, hasSessionFlag } from "@/api/refreshSession";
 
-const socketUrl =
-  import.meta.env.VITE_SOCKET_URL || url.replace(/\/api(\/v\d+)?\/?$/, "");
+// Vercel no hace proxy de WebSockets: el socket va directo al host del backend.
+const socketUrl = import.meta.env.VITE_API_URL;
 
 // El socket se conecta directo al backend, pero el tráfico HTTP pasa por el
 // proxy del frontend: la cookie access_token es host-only del dominio del
