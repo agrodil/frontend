@@ -10,49 +10,17 @@ interface ApiResponse<T> {
 }
 
 export const usersApi = {
-  checkEmail: async (
-    email: string,
-  ): Promise<{ email: string; exists: boolean }> => {
-    const response = await fetch(
-      `${url}/users/check/email/${encodeURIComponent(email)}`,
-      {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+  // AUT-07: POST con el email en el body (no en la URL) para que no quede en
+  // logs de acceso/proxy. Solo se valida el email en vivo; teléfono y
+  // documento se validan al enviar el registro.
+  checkEmail: async (email: string): Promise<{ exists: boolean }> => {
+    const response = await fetch(`${url}/auth/check-email`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
     if (!response.ok) throw new Error("Error checking email");
-    const json: ApiResponse<{ email: string; exists: boolean }> =
-      await response.json();
-    return json.data;
-  },
-  checkPhone: async (
-    phone: string,
-  ): Promise<{ phone: string; exists: boolean }> => {
-    const response = await fetch(
-      `${url}/users/check/phone/${encodeURIComponent(phone)}`,
-      {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-    if (!response.ok) throw new Error("Error checking phone");
-    const json: ApiResponse<{ phone: string; exists: boolean }> =
-      await response.json();
-    return json.data;
-  },
-  checkDocument: async (
-    document: string,
-  ): Promise<{ document: string; exists: boolean }> => {
-    const response = await fetch(
-      `${url}/users/check/document/${encodeURIComponent(document)}`,
-      {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-    if (!response.ok) throw new Error("Error checking document");
-    const json: ApiResponse<{ document: string; exists: boolean }> =
-      await response.json();
+    const json: ApiResponse<{ exists: boolean }> = await response.json();
     return json.data;
   },
   update: async (

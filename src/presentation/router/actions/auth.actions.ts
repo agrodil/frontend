@@ -37,3 +37,15 @@ export const verifyEmail = async (
 export const resendVerification = async (
   email: string,
 ): Promise<{ message: string }> => authApi.resendVerification({ email });
+
+
+export const forgotPassword = async (
+  email: string,
+): Promise<{ message: string }> => authApi.forgotPassword({ email });
+
+export const resetPassword = async (
+  email: string,
+  code: string,
+  newPassword: string,
+): Promise<{ message: string }> =>
+  authApi.resetPassword({ email, code, newPassword });
