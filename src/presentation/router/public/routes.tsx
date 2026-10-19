@@ -1,0 +1,58 @@
+﻿import RootLayout from "@/presentation/layout/RootLayout";
+import AuthPage from "@/presentation/pages/public/AuthPage/AuthPage";
+import LandingPage from "@/presentation/pages/public/LandingPage";
+import PostsPage from "@/presentation/pages/public/PostsPage/PostsPage";
+import FaqPage from "@/presentation/pages/public/FaqPage/FaqPage";
+import ManualPage from "@/presentation/pages/public/ManualPage/ManualPage";
+import LegalPage from "@/presentation/pages/public/LegalPage/LegalPage";
+import { termsDocument, privacyDocument } from "@/shared/constants/legal";
+import { getLandingData } from "../loaders/landing.loader";
+import { getPostsData } from "../loaders/posts.loader";
+
+export const routes = [
+  // Vistas legales: pantalla limpia, fuera del RootLayout (sin navbar/footer).
+  {
+    path: "/terms-and-conditions",
+    element: <LegalPage {...termsDocument} />,
+  },
+  {
+    path: "/privacy-policy",
+    element: <LegalPage {...privacyDocument} />,
+  },
+  {
+    path: "/faq",
+    element: <FaqPage />,
+  },
+  {
+    path: "/manual",
+    element: <ManualPage />,
+  },
+  {
+    element: <RootLayout />,
+    children: [
+      {
+        path: "/",
+        loader: getLandingData,
+        element: <LandingPage />,
+      },
+      {
+        path: "/login",
+        element: <AuthPage />,
+      },
+      {
+        path: "/posts",
+        loader: getPostsData,
+        element: <PostsPage />,
+      },
+
+      {
+        path: "*",
+        element: (
+          <h1 className="text-center mt-20 text-2xl">
+            404 - Página no encontrada
+          </h1>
+        ),
+      },
+    ],
+  },
+];

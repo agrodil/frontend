@@ -1,0 +1,556 @@
+﻿import { useState, type FC } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { LuChevronLeft } from "react-icons/lu";
+
+import Form from "@/presentation/ui/Form";
+import Button from "@/presentation/ui/Button";
+import Loader from "@/presentation/layout/Loader";
+
+import {
+  login as loginAction,
+  register as registerAction,
+  registerWithDocument,
+  verifyEmail,
+  resendVerification,
+  forgotPassword,
+  resetPassword,
+} from "@/presentation/router/actions/auth.actions";
+import { compressImage } from "@/shared/utils/compressImage";
+import { validateIdDocument } from "@/shared/utils/validateIdDocument";
+import { useAuth } from "@/adapters/hooks/common/useAuth";
+import { useCheckAvailability } from "@/adapters/hooks/actions/useCheckAvailability";
+import { checkEmailExistsAction } from "@/presentation/router/actions/users.actions";
+import { loginFields } from "./loginFields";
+import { registerFields } from "./registerFields";
+import { verifyFields } from "./verifyFields";
+import {
+  forgotPasswordFields,
+  resetPasswordFields,
+} from "./passwordRecoveryFields";
+import {
+  loginSchema,
+  registerSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from "./authSchemas";
+import { AuthError } from "@/api/clients/auth.api";
+
+import type { Login } from "@/api/interfaces/requests/Login.interface";
+import type { Register } from "@/api/interfaces/requests/Register.interface";
+import { formatPhone } from "@/shared/utils/formatPhone";
+
+type AuthView = "login" | "register" | "verify" | "forgot" | "reset";
+
+const AuthPage: FC = () => {
+  const [view, setView] = useState<AuthView>("login"),
+    [isLoading, setIsLoading] = useState(false),
+    [pendingUserId, setPendingUserId] = useState(""),
+    [pendingEmail, setPendingEmail] = useState(""),
+    [pendingRememberMe, setPendingRememberMe] = useState(false),
+    [loginErrors, setLoginErrors] = useState<Record<string, string>>({}),
+    [registerErrors, setRegisterErrors] = useState<Record<string, string>>({}),
+    [verifyErrors, setVerifyErrors] = useState<Record<string, string>>({}),
+    [forgotErrors, setForgotErrors] = useState<Record<string, string>>({}),
+    [resetErrors, setResetErrors] = useState<Record<string, string>>({}),
+    [resetEmail, setResetEmail] = useState(""),
+    [passwordWasReset, setPasswordWasReset] = useState(false);
+
+  // Validación de la cédula al SELECCIONAR la imagen (no en submit). Guarda el
+  // archivo ya comprimido+validado y contra qué número se validó, para no repetir
+  // el OCR en el submit y detectar si luego cambian el número.
+  const [idDoc, setIdDoc] = useState<{
+    isChecking: boolean;
+    error: string | null;
+    file: File | null;
+    validatedFor: string | null;
+  }>({ isChecking: false, error: null, file: null, validatedFor: null });
+
+  const { login } = useAuth();
+  const emailCheck = useCheckAvailability(
+    checkEmailExistsAction,
+    "Este correo electrónico ya está registrado",
+  );
+  const navigate = useNavigate(),
+    location = useLocation(),
+    from = (location.state as { from?: Location })?.from?.pathname ?? "/";
+
+  const handleLogin = async (
+    data: Record<string, string | File | File[] | boolean>,
+  ) => {
+    setIsLoading(true);
+    setLoginErrors({});
+    try {
+      const payload: Login = {
+        email: data.email as string,
+        password: data.password as string,
+        remember_me: !!data.remember_me,
+      };
+      const { user } = await loginAction(payload);
+      await login(user, !!data.remember_me);
+      navigate(from, { replace: true });
+    } catch (error) {
+      if (error instanceof AuthError && error.fieldErrors) {
+        setLoginErrors(error.fieldErrors);
+      } else {
+        const message =
+          error instanceof Error ? error.message : "Error during login";
+        setLoginErrors({ general: message });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Corre al seleccionar la imagen en el form: comprime (normaliza HEIC→JPEG) y
+  // valida (formato/nitidez + cross-check OCR del número de cédula tecleado).
+  const handleIdDocSelect = async (
+    file: File,
+    values: Record<string, string>,
+  ) => {
+    const docNumber = (values.document_number ?? "").trim();
+    if (!docNumber) {
+      setIdDoc({
+        isChecking: false,
+        error: "Ingresa tu número de cédula antes de subir la foto",
+        file: null,
+        validatedFor: null,
+      });
+      return;
+    }
+
+    setIdDoc({ isChecking: true, error: null, file: null, validatedFor: null });
+    try {
+      const compressed = await compressImage(file);
+      const check = await validateIdDocument(compressed, docNumber);
+      if (check.ok) {
+        setIdDoc({
+          isChecking: false,
+          error: null,
+          file: compressed,
+          validatedFor: docNumber,
+        });
+      } else {
+        // TODO DEBUG TEMPORAL: se anexa check.debug al mensaje visible para
+        // calibrar los umbrales de validación. Quitar la línea "DEBUG:" cuando
+        // ya no se necesite (dejar solo check.reason).
+        const message = check.debug
+          ? `${check.reason ?? "La imagen no es válida"} — DEBUG: ${check.debug}`
+          : (check.reason ?? "La imagen no es válida");
+        setIdDoc({
+          isChecking: false,
+          error: message,
+          file: null,
+          validatedFor: null,
+        });
+      }
+    } catch {
+      setIdDoc({
+        isChecking: false,
+        error: "No se pudo validar la imagen",
+        file: null,
+        validatedFor: null,
+      });
+    }
+  };
+
+  const handleRegister = async (
+    data: Record<string, string | File | File[] | boolean>,
+  ) => {
+    setIsLoading(true);
+    setRegisterErrors({});
+    try {
+      const rememberMe = !!data.remember_me;
+
+      const raw = { ...(data as Record<string, string>) };
+      delete raw.confirmPassword;
+      delete raw.remember_me;
+      delete raw.id_document;
+      // El estado solo filtra el select de municipios: township_id ya identifica
+      // al estado vía township.township_state_id, y el backend rechaza campos
+      // que no estén en el DTO.
+      delete raw.state_id;
+
+      if (raw.document_type === "J") {
+        delete raw.names;
+        delete raw.surnames;
+      } else {
+        delete raw.company_name;
+
+        const [firstName = "", middleName = ""] = raw.names.trim().split(/\s+/);
+        const [firstSurname = "", secondSurname = ""] = raw.surnames
+          .trim()
+          .split(/\s+/);
+        delete raw.names;
+        delete raw.surnames;
+
+        raw.first_name = firstName;
+        if (middleName) raw.middle_name = middleName;
+        raw.surname = firstSurname;
+        if (secondSurname) raw.second_surname = secondSurname;
+      }
+
+      const payload: Register = {
+        ...raw,
+        phone: `+58${formatPhone(raw.phone)}`,
+        document_number: Number(raw.document_number),
+        township_id: raw.township_id ? Number(raw.township_id) : undefined,
+      } as Register;
+
+      let userId: string;
+
+      // Persona natural (V): la imagen ya se validó al seleccionarla (ver
+      // handleIdDocSelect). Aquí solo reusamos el archivo comprimido/validado.
+      if (payload.document_type === "V") {
+        if (
+          !idDoc.file ||
+          idDoc.validatedFor !== String(payload.document_number)
+        ) {
+          setRegisterErrors({
+            id_document: idDoc.error ?? "Sube y valida la foto de tu cédula",
+          });
+          return;
+        }
+
+        const formData = new FormData();
+        Object.entries(payload).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            formData.append(key, String(value));
+          }
+        });
+        formData.append("id_document", idDoc.file);
+
+        ({ userId } = await registerWithDocument(formData));
+      } else {
+        ({ userId } = await registerAction(payload));
+      }
+
+      setPendingUserId(userId);
+      setPendingEmail(raw.email);
+      setPendingRememberMe(rememberMe);
+      setView("verify");
+    } catch (error) {
+      if (error instanceof AuthError && error.fieldErrors) {
+        setRegisterErrors(error.fieldErrors);
+      } else {
+        const message =
+          error instanceof Error ? error.message : "Error during registration";
+        setRegisterErrors({ general: message });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerify = async (
+    data: Record<string, string | File | File[] | boolean>,
+  ) => {
+    setIsLoading(true);
+    setVerifyErrors({});
+    try {
+      const { user } = await verifyEmail(
+        pendingUserId,
+        data.code as string,
+        pendingRememberMe,
+      );
+      await login(user, pendingRememberMe);
+      navigate(from, { replace: true });
+    } catch (error) {
+      if (error instanceof AuthError && error.fieldErrors) {
+        setVerifyErrors(error.fieldErrors);
+      } else {
+        const message =
+          error instanceof Error ? error.message : "Error during verification";
+        setVerifyErrors({ code: message });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResend = async () => {
+    setIsLoading(true);
+    try {
+      await resendVerification(pendingEmail);
+      setVerifyErrors({});
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error resending code";
+      setVerifyErrors({ email: message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // AUT-05: la respuesta es la misma exista o no la cuenta, así que se pasa
+  // siempre al paso del código.
+  const handleForgot = async (
+    data: Record<string, string | File | File[] | boolean>,
+  ) => {
+    setIsLoading(true);
+    setForgotErrors({});
+    try {
+      const email = (data.email as string).trim();
+      await forgotPassword(email);
+      setResetEmail(email);
+      setResetErrors({});
+      setView("reset");
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error al solicitar el código";
+      setForgotErrors({ email: message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleReset = async (
+    data: Record<string, string | File | File[] | boolean>,
+  ) => {
+    setIsLoading(true);
+    setResetErrors({});
+    try {
+      await resetPassword(
+        resetEmail,
+        data.code as string,
+        data.password as string,
+      );
+      setPasswordWasReset(true);
+      setView("login");
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Error al cambiar la contraseña";
+      const isPasswordError =
+        error instanceof AuthError &&
+        message.toLowerCase().includes("password");
+      setResetErrors(
+        isPasswordError ? { password: message } : { code: message },
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendResetCode = async () => {
+    setIsLoading(true);
+    try {
+      await forgotPassword(resetEmail);
+      setResetErrors({});
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Error al reenviar el código";
+      setResetErrors({ code: message });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (view === "reset") {
+      setView("forgot");
+      setResetErrors({});
+    } else if (view === "forgot") {
+      setView("login");
+      setForgotErrors({});
+    } else if (view === "verify") {
+      setView("register");
+      setVerifyErrors({});
+    } else if (view === "register") {
+      setView("login");
+      setRegisterErrors({});
+    } else {
+      navigate(-1);
+    }
+  };
+
+  const arrowBtn =
+    "absolute z-10 w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center shadow-md hover:bg-primary-hover transition-colors cursor-pointer border-0";
+
+  const viewConfig = {
+    login: {
+      title: "Iniciar Sesión",
+      fields: loginFields,
+      schema: loginSchema,
+      submitLabel: "Ingresar",
+      onSubmit: handleLogin,
+      backendErrors: loginErrors,
+      footer: (
+        <div className="flex flex-col gap-2">
+          {passwordWasReset && (
+            <p className="text-xs text-green-700">
+              Tu contraseña fue actualizada. Ya puedes iniciar sesión.
+            </p>
+          )}
+          <Button
+            label="¿Olvidaste tu contraseña?"
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setPasswordWasReset(false);
+              setView("forgot");
+            }}
+            className="w-full"
+          />
+          <p className="text-xs text-gray-500">
+            ¿Eres nuevo/a?
+            <Button
+              label="Regístrate aquí"
+              variant="secondary"
+              size="sm"
+              onClick={() => setView("register")}
+              className="mt-1 w-full"
+            />
+          </p>
+        </div>
+      ),
+    },
+    forgot: {
+      title: "Recuperar contraseña",
+      fields: forgotPasswordFields,
+      schema: forgotPasswordSchema,
+      submitLabel: "Enviar código",
+      onSubmit: handleForgot,
+      backendErrors: forgotErrors,
+      footer: (
+        <p className="text-xs text-gray-500">
+          Te enviaremos un código de 6 dígitos al correo si existe una cuenta.
+        </p>
+      ),
+    },
+    reset: {
+      title: "Nueva contraseña",
+      fields: resetPasswordFields,
+      schema: resetPasswordSchema,
+      submitLabel: "Cambiar contraseña",
+      onSubmit: handleReset,
+      backendErrors: resetErrors,
+      footer: (
+        <p className="text-xs text-gray-500">
+          ¿No recibiste el código?
+          <Button
+            label="Reenviar código"
+            variant="secondary"
+            size="sm"
+            onClick={handleResendResetCode}
+            className="mt-1 w-full"
+          />
+        </p>
+      ),
+    },
+    register: {
+      title: "Registrarse",
+      fields: registerFields.map((field) => {
+        if (field.name === "email") {
+          return {
+            ...field,
+            onAsyncCheck: emailCheck.check,
+            asyncError: emailCheck.error,
+            isChecking: emailCheck.isChecking,
+            asyncAvailable: emailCheck.isAvailable,
+          };
+        }
+        if (field.name === "id_document") {
+          return {
+            ...field,
+            onFileSelect: handleIdDocSelect,
+            asyncError: idDoc.error,
+            isChecking: idDoc.isChecking,
+            asyncAvailable: !!idDoc.file,
+          };
+        }
+        return field;
+      }),
+      schema: registerSchema,
+      submitLabel: "Crear cuenta",
+      onSubmit: handleRegister,
+      backendErrors: registerErrors,
+      footer: (
+        <p className="text-xs text-gray-500">
+          ¿Ya tienes cuenta?
+          <Button
+            label="Inicia sesión aquí"
+            variant="secondary"
+            size="sm"
+            onClick={() => setView("login")}
+            className="mt-1 w-full"
+          />
+        </p>
+      ),
+    },
+    verify: {
+      title: "Verificar correo",
+      fields: verifyFields,
+      submitLabel: "Verificar",
+      onSubmit: handleVerify,
+      backendErrors: verifyErrors,
+      footer: (
+        <p className="text-xs text-gray-500">
+          ¿No recibiste el código?
+          <Button
+            label="Reenviar código"
+            variant="secondary"
+            size="sm"
+            onClick={handleResend}
+            className="mt-1 w-full"
+          />
+        </p>
+      ),
+    },
+  };
+
+  const current = viewConfig[view];
+
+  return (
+    <>
+      <Loader visible={isLoading} />
+      <main className="flex-1 flex items-center justify-center min-h-screen p-4">
+        <div className="relative w-full max-w-lg mx-4">
+          <AnimatePresence>
+            <motion.button
+              key={view}
+              type="button"
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.6 }}
+              transition={{ duration: 0.2 }}
+              onClick={handleBack}
+              className={`${arrowBtn} -top-4 -left-4 shadow-sm`}
+              aria-label="Volver"
+            >
+              <LuChevronLeft size={20} />
+            </motion.button>
+          </AnimatePresence>
+
+          {/* Card */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={view}
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -40 }}
+              transition={{ duration: 0.28, ease: "easeInOut" }}
+              className="bg-white rounded-xl border border-gray-300 p-8 w-full overflow-y-auto max-h-[75vh]"
+            >
+              <Form
+                title={current.title}
+                fields={current.fields}
+                schema={"schema" in current ? current.schema : undefined}
+                submitLabel={current.submitLabel}
+                onSubmit={current.onSubmit}
+                isLoading={isLoading}
+                footer={current.footer}
+                singleColumn
+                backendErrors={current.backendErrors}
+                showLegalNotice={view === "register"}
+              />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+      </main>
+    </>
+  );
+};
+
+export default AuthPage;

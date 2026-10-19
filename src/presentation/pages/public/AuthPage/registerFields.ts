@@ -1,0 +1,111 @@
+﻿import type { FormField } from "@/presentation/interfaces/ui/FormProps";
+import { PASSWORD_HINT } from "@/shared/utils/passwordPolicy";
+import { states } from "@/shared/constants/state.catalog";
+import { townshipsByState } from "@/shared/constants/townships.catalog";
+
+export const registerFields: FormField[] = [
+  {
+    name: "document_type",
+    type: "select",
+    label: "Tipo de Documento",
+    options: [
+      { label: "V – Venezolano", value: "V" },
+      { label: "J – Jurídico", value: "J" },
+    ],
+    defaultValue: "V",
+    required: true,
+  },
+  {
+    name: "document_number",
+    type: "text",
+    label: "Número de Documento",
+    placeholder: "30217530",
+    required: true,
+  },
+  {
+    name: "names",
+    type: "text",
+    label: "Nombres",
+    placeholder: "Juan Carlos",
+    required: true,
+    dependsOn: { fieldName: "document_type", value: "V" },
+  },
+  {
+    name: "surnames",
+    type: "text",
+    label: "Apellidos",
+    placeholder: "Pérez Vera",
+    required: true,
+    dependsOn: { fieldName: "document_type", value: "V" },
+  },
+  {
+    name: "company_name",
+    type: "text",
+    label: "Nombre de la Empresa",
+    placeholder: "Mi Empresa S.A.",
+    required: true,
+    dependsOn: { fieldName: "document_type", value: "J" },
+  },
+  {
+    name: "id_document",
+    type: "image",
+    label: "Foto de tu cédula",
+    placeholder: "Sube una foto clara de tu cédula",
+    accept: "image/jpeg,image/png,image/webp",
+    required: true,
+    dependsOn: { fieldName: "document_type", value: "V" },
+  },
+  {
+    name: "state_id",
+    type: "select",
+    label: "Estado",
+    placeholder: "Selecciona tu estado",
+    options: states,
+    required: true,
+  },
+  {
+    name: "township_id",
+    type: "select",
+    label: "Municipio",
+    placeholder: "Selecciona tu municipio",
+    required: true,
+    optionsFrom: {
+      fieldName: "state_id",
+      getOptions: (stateId) => townshipsByState[Number(stateId)] ?? [],
+      emptyPlaceholder: "Selecciona primero un estado",
+    },
+  },
+  {
+    name: "phone",
+    type: "tel",
+    label: "Teléfono",
+    placeholder: "4129968751",
+    required: true,
+  },
+  {
+    name: "email",
+    type: "email",
+    label: "Correo Electrónico",
+    placeholder: "juan@email.com",
+    required: true,
+  },
+  {
+    name: "password",
+    type: "password",
+    label: "Contraseña",
+    placeholder: PASSWORD_HINT,
+    required: true,
+  },
+  {
+    name: "confirmPassword",
+    type: "password",
+    label: "Confirmar Contraseña",
+    placeholder: "••••••••",
+    required: true,
+  },
+  {
+    name: "remember_me",
+    type: "checkbox",
+    label: "Recordarme",
+  },
+];

@@ -1,0 +1,92 @@
+﻿import { useState, type FC } from "react";
+import { motion } from "framer-motion";
+import { LuMapPin } from "react-icons/lu";
+import { resolveLocation } from "@/shared/utils/resolveLocation";
+import type { CardPostProps } from "@/presentation/interfaces/ui/CardPostProps";
+
+const SHADOW_DEFAULT = "0 4px 6px rgba(0,0,0,0.10)";
+const SHADOW_HOVER = "0 10px 20px rgba(0,0,0,0.18)";
+
+const isVideoUrl = (src: string) => {
+  const path = src.split("?")[0].toLowerCase();
+  return /\.(mp4|webm|mov|m4v|ogg)$/i.test(path);
+};
+
+const CardPost: FC<CardPostProps> = ({
+  img,
+  title,
+  priceSuffix,
+  townshipId,
+  price,
+  onClick,
+}) => {
+  const [hovered, setHovered] = useState(false);
+  const isVideo = img ? isVideoUrl(img) : false;
+  const location = resolveLocation(townshipId);
+
+  return (
+    <motion.div
+      onClick={onClick}
+      className="relative rounded-2xl overflow-hidden cursor-pointer aspect-3/4 lg:aspect-7/8 w-full lg:h-96"
+      animate={{
+        scale: hovered ? 1.02 : 1,
+        boxShadow: hovered ? SHADOW_HOVER : SHADOW_DEFAULT,
+      }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {img && isVideo ? (
+        <video
+          src={img}
+          muted
+          playsInline
+          preload="metadata"
+          className="absolute inset-0 w-full h-full object-cover bg-black"
+        />
+      ) : img ? (
+        <img
+          src={img}
+          alt={title}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-primary/10" />
+      )}
+      <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent" />
+
+      {(location || isVideo) && (
+        <div className="absolute top-2 left-2 right-2 flex items-start justify-between gap-2 z-10">
+          {location ? (
+            <div className="min-w-0 max-w-[70%] lg:max-w-[80%] lg:min-w-[100px] flex justify-center px-2 py-1 lg:m-2 rounded-full bg-background text-primary border border-gray-300 text-[10px] lg:text-sm font-semibold items-center gap-1">
+              <LuMapPin size={10} className="shrink-0" />
+              <span className="truncate lg:hidden">{location.state}</span>
+              <span className="truncate hidden lg:inline">
+                {location.township}, {location.state}
+              </span>
+            </div>
+          ) : (
+            <span />
+          )}
+        </div>
+      )}
+      <div className="absolute p-1 bottom-0 left-0 right-0 backdrop-blur-xs">
+        <div className="p-2 text-white">
+          <p className="font-bold text-[8px] lg:text-sm uppercase leading-snug truncate">
+            {title}
+          </p>
+          <p className="font-bold text-white text-sm lg:text-xl">
+            ${Number.isInteger(price) ? price : price.toFixed(2)}
+            {priceSuffix && (
+              <span className="text-[10px] font-normal ml-0.5">
+                {priceSuffix}
+              </span>
+            )}
+          </p>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+export default CardPost;

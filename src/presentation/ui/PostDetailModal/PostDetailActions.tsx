@@ -1,0 +1,138 @@
+import type { FC } from "react";
+import { LuPencil, LuTrash2, LuRefreshCw } from "react-icons/lu";
+
+interface PostDetailActionsProps {
+  isOwnPost: boolean;
+  isActive?: boolean;
+  // Post vencido (expires_at pasado): "Activar" pasa a ser "Renovar" (cobra a
+  // la cartera) — onActivate sigue siendo el mismo callback, el padre decide
+  // si dispara el flujo gratis o abre la confirmación de cobro.
+  isExpired?: boolean;
+  buying: boolean;
+  isDeactivating: boolean;
+  isActivating?: boolean;
+  confirmDeactivate: boolean;
+  error: string | null;
+  onBuy: () => void;
+  onEditStart: () => void;
+  onDeactivateStart: () => void;
+  onDeactivateConfirm: () => void;
+  onDeactivateCancel: () => void;
+  onActivate?: () => void;
+}
+
+export const PostDetailActions: FC<PostDetailActionsProps> = ({
+  isOwnPost,
+  isActive = true,
+  isExpired = false,
+  buying,
+  isDeactivating,
+  isActivating = false,
+  confirmDeactivate,
+  error,
+  onBuy,
+  onEditStart,
+  onDeactivateStart,
+  onDeactivateConfirm,
+  onDeactivateCancel,
+  onActivate,
+}) => {
+  if (isOwnPost) {
+    return (
+      <div className="mt-auto shrink-0 flex flex-col gap-2">
+        {!isActive ? (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onEditStart}
+              className="flex-1 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-colors cursor-pointer border-0 inline-flex items-center justify-center gap-2"
+            >
+              <LuPencil size={16} />
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={onActivate}
+              disabled={isActivating}
+              className={`flex-1 py-3 rounded-xl bg-white font-bold text-sm transition-colors cursor-pointer border inline-flex items-center justify-center gap-2 disabled:opacity-60 ${
+                isExpired
+                  ? "text-amber-700 hover:bg-amber-50 border-amber-300"
+                  : "text-green-700 hover:bg-green-50 border-green-300"
+              }`}
+            >
+              <LuRefreshCw size={16} className={isActivating ? "animate-spin" : ""} />
+              {isActivating
+                ? isExpired
+                  ? "Renovando..."
+                  : "Activando..."
+                : isExpired
+                  ? "Renovar"
+                  : "Activar"}
+            </button>
+          </div>
+        ) : confirmDeactivate ? (
+          <div className="p-3 rounded-xl border border-red-200 bg-red-50">
+            <p className="text-sm text-red-700 font-semibold mb-2">
+              ¿Desactivar este post?
+            </p>
+            <p className="text-xs text-red-600 mb-3">
+              Dejará de estar visible para otros usuarios.
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={onDeactivateConfirm}
+                disabled={isDeactivating}
+                className="flex-1 py-2 rounded-lg bg-red-600 text-white font-semibold text-sm hover:bg-red-700 transition-colors cursor-pointer border-0 disabled:opacity-60"
+              >
+                {isDeactivating ? "Desactivando..." : "Sí, desactivar"}
+              </button>
+              <button
+                type="button"
+                onClick={onDeactivateCancel}
+                disabled={isDeactivating}
+                className="flex-1 py-2 rounded-lg bg-white text-gray-700 font-semibold text-sm hover:bg-gray-100 transition-colors cursor-pointer border border-gray-200"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={onEditStart}
+              className="flex-1 py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-colors cursor-pointer border-0 inline-flex items-center justify-center gap-2"
+            >
+              <LuPencil size={16} />
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={onDeactivateStart}
+              className="flex-1 py-3 rounded-xl bg-white text-red-600 font-bold text-sm hover:bg-red-50 transition-colors cursor-pointer border border-red-200 inline-flex items-center justify-center gap-2"
+            >
+              <LuTrash2 size={16} />
+              Desactivar
+            </button>
+          </div>
+        )}
+        {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={onBuy}
+        disabled={buying}
+        className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm hover:bg-primary-hover transition-colors cursor-pointer border-0 disabled:opacity-60 disabled:cursor-not-allowed mt-auto shrink-0"
+      >
+        {buying ? "Enviando solicitud..." : "Solicitar compra"}
+      </button>
+      {error && <p className="text-xs text-red-500 text-center">{error}</p>}
+    </>
+  );
+};

@@ -1,0 +1,121 @@
+﻿import { formatPhone } from "@/shared/utils/formatPhone";
+import { z } from "zod";
+import { passwordSchema } from "@/shared/utils/passwordPolicy";
+
+export const loginSchema = z.object({
+  email: z
+    .string()
+    .min(1, "El correo es requerido")
+    .email("Correo electrónico inválido"),
+  password: z.string().min(1, "La contraseña es requerida"),
+});
+
+export const registerSchema = z
+  .object({
+    names: z
+      .string()
+      .max(101, "Máximo 100 caracteres")
+      .optional()
+      .or(z.literal("")),
+    surnames: z
+      .string()
+      .max(101, "Máximo 100 caracteres")
+      .optional()
+      .or(z.literal("")),
+    company_name: z
+      .string()
+      .max(50, "Máximo 50 caracteres")
+      .optional()
+      .or(z.literal("")),
+    document_type: z.string().min(1, "Selecciona el tipo de documento"),
+    document_number: z
+      .string()
+      .min(1, "El número de documento es requerido")
+      .regex(/^\d+$/, "Solo se permiten números"),
+    state_id: z.string().min(1, "Selecciona un estado"),
+    township_id: z.string().min(1, "Selecciona un municipio"),
+    phone: z
+      .string()
+      .min(1, "El teléfono es requerido")
+      .refine(
+        (val) => /^\d{10}$/.test(formatPhone(val)),
+        "Ingresa 10 dígitos sin código de país (ej: 4129968751)",
+      ),
+    email: z
+      .string()
+      .min(1, "El correo es requerido")
+      .email("Correo electrónico inválido"),
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, "Confirma la contraseña"),
+    // Form.tsx siembra "" para todo campo no tocado, incluidos los ocultos
+    // por dependsOn (id_document no se renderiza para "J") — z.instanceof(File)
+    // solo acepta File|undefined, así que ese "" fallaba el parse base y
+    // bloqueaba el submit en silencio para cualquier document_type. El
+    // literal("") de relleno se filtra acá; la validación real de "requerido
+    // para V" sigue en el superRefine de abajo.
+    id_document: z.union([z.instanceof(File), z.literal("")]).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Las contraseñas no coinciden",
+        path: ["confirmPassword"],
+      });
+    }
+
+    if (data.document_type === "J") {
+      if (!data.company_name || data.company_name.trim() === "") {
+        ctx.addIssue({
+          code: "custom",
+          message: "El nombre de la empresa es requerido",
+          path: ["company_name"],
+        });
+      }
+    } else if (data.document_type === "V") {
+      if (!data.names || data.names.trim() === "") {
+        ctx.addIssue({
+          code: "custom",
+          message: "El nombre es requerido",
+          path: ["names"],
+        });
+      }
+      if (!data.surnames || data.surnames.trim() === "") {
+        ctx.addIssue({
+          code: "custom",
+          message: "El apellido es requerido",
+          path: ["surnames"],
+        });
+      }
+      if (!(data.id_document instanceof File)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Sube una foto de tu cédula",
+          path: ["id_document"],
+        });
+      }
+    }
+  });
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, "El correo es requerido")
+    .email("Correo electrónico inválido"),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    code: z.string().regex(/^\d{6}$/, "El código tiene 6 dígitos"),
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, "Confirma la contraseña"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Las contraseñas no coinciden",
+        path: ["confirmPassword"],
+      });
+    }
+  });
