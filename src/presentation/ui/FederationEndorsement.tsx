@@ -1,17 +1,19 @@
 import type { FC } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { LuBadgeCheck, LuHandshake, LuShieldCheck, LuUsers } from "react-icons/lu";
+import {
+  LuBadgeCheck,
+  LuHandshake,
+  LuShieldCheck,
+  LuUsers,
+} from "react-icons/lu";
 
 import ugaviLogo from "@/presentation/assets/images/ugavi.webp";
 
-const FEDERATION_NAME = "Unión de Ganaderos de La Villa-Perijá";
+const FEDERATION_NAME = "Unión de Ganaderos de La Villa del Rosario";
 
 const SEAL_TEXT = `Aval institucional • ${FEDERATION_NAME} • `;
 
-// Círculo de r=88 centrado en (100,100) — sirve de trazado para el texto
-// del anillo exterior del sello.
-const RING_PATH =
-  "M 100,100 m -88,0 a 88,88 0 1,1 176,0 a 88,88 0 1,1 -176,0";
+const RING_PATH = "M 100,100 m -88,0 a 88,88 0 1,1 176,0 a 88,88 0 1,1 -176,0";
 
 const TRUST_POINTS = [
   {
@@ -139,7 +141,10 @@ const FederationEndorsement: FC = () => {
 
           <ul className="mt-6 grid gap-3 text-left max-w-2xl mx-auto lg:mx-0">
             {TRUST_POINTS.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-start gap-3 text-background/90">
+              <li
+                key={text}
+                className="flex items-start gap-3 text-background/90"
+              >
                 <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-300/15 text-amber-300">
                   <Icon className="size-5" aria-hidden="true" />
                 </span>
