@@ -1,4 +1,5 @@
 ﻿import type { FormField } from "@/presentation/interfaces/ui/FormProps";
+import { PASSWORD_HINT } from "@/shared/utils/passwordPolicy";
 import { states } from "@/shared/constants/state.catalog";
 import { townshipsByState } from "@/shared/constants/townships.catalog";
 
@@ -92,7 +93,7 @@ export const registerFields: FormField[] = [
     name: "password",
     type: "password",
     label: "Contraseña",
-    placeholder: "••••••••",
+    placeholder: PASSWORD_HINT,
     required: true,
   },
   {

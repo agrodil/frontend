@@ -1,5 +1,6 @@
 ﻿import { formatPhone } from "@/shared/utils/formatPhone";
 import { z } from "zod";
+import { passwordSchema } from "@/shared/utils/passwordPolicy";
 
 export const loginSchema = z.object({
   email: z
@@ -44,9 +45,7 @@ export const registerSchema = z
       .string()
       .min(1, "El correo es requerido")
       .email("Correo electrónico inválido"),
-    password: z
-      .string()
-      .min(8, "La contraseña debe tener al menos 8 caracteres"),
+    password: passwordSchema,
     confirmPassword: z.string().min(1, "Confirma la contraseña"),
     // Form.tsx siembra "" para todo campo no tocado, incluidos los ocultos
     // por dependsOn (id_document no se renderiza para "J") — z.instanceof(File)
@@ -95,5 +94,28 @@ export const registerSchema = z
           path: ["id_document"],
         });
       }
+    }
+  });
+
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, "El correo es requerido")
+    .email("Correo electrónico inválido"),
+});
+
+export const resetPasswordSchema = z
+  .object({
+    code: z.string().regex(/^\d{6}$/, "El código tiene 6 dígitos"),
+    password: passwordSchema,
+    confirmPassword: z.string().min(1, "Confirma la contraseña"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Las contraseñas no coinciden",
+        path: ["confirmPassword"],
+      });
     }
   });

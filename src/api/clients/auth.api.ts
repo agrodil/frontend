@@ -90,7 +90,11 @@ const throwAuthError = async (response: Response): Promise<never> => {
   const fieldErrors: Record<string, string> = {};
   const message = error.message ?? "Error de autenticación";
 
-  if (message.includes("email")) fieldErrors.email = message;
+  // AUT-07: teléfono e identificación duplicados se detectan al registrar.
+  if (message.includes("teléfono")) fieldErrors.phone = message;
+  else if (message.includes("identificación"))
+    fieldErrors.document_number = message;
+  else if (message.includes("email")) fieldErrors.email = message;
   else if (message.includes("password")) fieldErrors.password = message;
   else if (message.includes("already exists")) fieldErrors.email = message;
   else if (message.includes("verified")) fieldErrors.email = message;
@@ -144,6 +148,10 @@ export const authApi = {
   }) => authFetch("/auth/verify-email", data),
   resendVerification: (data: { email: string }) =>
     authFetch("/auth/resend-verification", data),
+  forgotPassword: (data: { email: string }) =>
+    authFetch("/auth/forgot-password", data),
+  resetPassword: (data: { email: string; code: string; newPassword: string }) =>
+    authFetch("/auth/reset-password", data),
   // Rota el refresh token. Timeout largo de un solo intento (ver arriba); un
   // AbortError/red se propaga como error nativo (transitorio), un no-ok lanza
   // AuthError con el status real para que el caller discrimine 401 definitivo.
