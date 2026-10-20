@@ -13,6 +13,7 @@ import type {
   FooterSection as FooterSectionData,
   FooterSocialLinks,
 } from "@/presentation/interfaces/ui/FooterProps";
+import FederationSeal from "@/presentation/ui/FederationSeal";
 import { DEFAULT_FOOTER_SECTIONS } from "@/shared/constants/footer-sections.constant";
 
 const FooterSocials: FC<{ socialLinks: FooterSocialLinks }> = ({
@@ -158,7 +159,7 @@ const Footer: FC<FooterProps> = ({
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut", delay: 0.6 }}
     >
-      <div className="max-w-[90vw] mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div className="max-w-[90vw] mx-auto px-6 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8">
         <FooterBrand
           contactEmail={contactEmail}
           contactPhone={contactPhone}
@@ -167,6 +168,9 @@ const Footer: FC<FooterProps> = ({
         {sections.map((section) => (
           <FooterSection key={section.title} section={section} />
         ))}
+        <div className="flex justify-center sm:col-span-2 lg:col-span-1 lg:justify-end">
+          <FederationSeal className="size-32" />
+        </div>
       </div>
 
       <FooterBottomBar />

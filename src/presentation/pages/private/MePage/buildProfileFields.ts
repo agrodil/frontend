@@ -28,7 +28,16 @@ export const buildProfileFields = (
 ): FormField[] => {
   const location = getLocationSelectValues(user);
 
+  const isCompany = user.documentType === "J";
+
   const fields: FormField[] = [
+    {
+      name: "companyName",
+      type: "text",
+      placeholder: "Razón social",
+      required: true,
+      defaultValue: user.companyName ?? "",
+    },
     {
       name: "firstName",
       type: "text",
@@ -109,5 +118,13 @@ export const buildProfileFields = (
     },
   ];
 
-  return fields.filter((field) => !filters || !filters.includes(field.name));
+  // Persona jurídica: solo razón social; persona natural: campos de person.
+  const personOnly = ["firstName", "middleName", "lastName", "secondLastName"];
+  return fields.filter(
+    (field) =>
+      (!filters || !filters.includes(field.name)) &&
+      (isCompany
+        ? !personOnly.includes(field.name)
+        : field.name !== "companyName"),
+  );
 };

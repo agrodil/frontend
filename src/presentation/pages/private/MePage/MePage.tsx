@@ -24,6 +24,7 @@ import type { PurchaseRequest } from "@/api/interfaces/responses/PurchaseRequest
 
 import { getAvatarColor } from "@/shared/utils/getAvatarColor.ts";
 import { getInitials } from "@/shared/utils/getInitials.ts";
+import { fullName } from "@/shared/utils/fullName";
 import { resolvePostStatus } from "@/shared/utils/resolvePostStatus";
 import { ADMIN_ROLE_ID } from "@/shared/constants/roles.catalog";
 
@@ -83,8 +84,8 @@ const MePage: FC = () => {
 
   if (loading || !user) return null;
 
-  const displayName = user.firstName + " " + user.lastName,
-    initials = getInitials(user.firstName + " " + user.lastName),
+  const displayName = fullName(user),
+    initials = getInitials(displayName),
     avatarColor = getAvatarColor(user.email);
 
   const selectedPost =

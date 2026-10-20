@@ -43,7 +43,12 @@ import { formatPhone } from "@/shared/utils/formatPhone";
 type AuthView = "login" | "register" | "verify" | "forgot" | "reset";
 
 const AuthPage: FC = () => {
-  const [view, setView] = useState<AuthView>("login"),
+  const navigate = useNavigate(),
+    location = useLocation(),
+    from = (location.state as { from?: Location })?.from?.pathname ?? "/",
+    initialView = (location.state as { view?: AuthView })?.view ?? "login";
+
+  const [view, setView] = useState<AuthView>(initialView),
     [isLoading, setIsLoading] = useState(false),
     [pendingUserId, setPendingUserId] = useState(""),
     [pendingEmail, setPendingEmail] = useState(""),
@@ -71,10 +76,6 @@ const AuthPage: FC = () => {
     checkEmailExistsAction,
     "Este correo electrónico ya está registrado",
   );
-  const navigate = useNavigate(),
-    location = useLocation(),
-    from = (location.state as { from?: Location })?.from?.pathname ?? "/";
-
   const handleLogin = async (
     data: Record<string, string | File | File[] | boolean>,
   ) => {

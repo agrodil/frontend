@@ -9,6 +9,7 @@ export function mapUser(raw: Record<string, unknown>): User {
     middleName: (raw.middle_name as string) ?? undefined,
     lastName: (raw.surname as string) ?? undefined,
     secondLastName: (raw.second_surname as string) ?? undefined,
+    companyName: (raw.company_name as string) ?? undefined,
     documentType: (raw.document_type as string) ?? undefined,
     documentNumber:
       raw.document_number != null ? String(raw.document_number) : undefined,

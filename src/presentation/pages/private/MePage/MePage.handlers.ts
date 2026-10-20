@@ -103,10 +103,15 @@ export async function handleUpdateProfile(
           currentPassword: data.currentPassword as string,
         }
       : {
-          firstName: data.firstName as string,
-          middleName: data.middleName as string,
-          lastName: data.lastName as string,
-          secondLastName: data.secondLastName as string,
+          // companyName solo existe en el form de personas jurídicas (J).
+          ...(typeof data.companyName === "string"
+            ? { companyName: data.companyName as string }
+            : {
+                firstName: data.firstName as string,
+                middleName: data.middleName as string,
+                lastName: data.lastName as string,
+                secondLastName: data.secondLastName as string,
+              }),
           documentType: data.documentType as string,
           documentNumber: Number(data.documentNumber),
           townshipId: Number(data.townshipId),
