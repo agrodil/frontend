@@ -9,6 +9,7 @@ import {
 } from "@/presentation/router/actions/notifications.actions";
 import type { Message } from "@/presentation/interfaces/pages/NotificationsPageLoaderData";
 import { parsePurchaseStatus } from "@/shared/utils/parsePurchaseMessage";
+import { fullName } from "@/shared/utils/fullName";
 
 const MESSAGES_LIMIT = 50;
 
@@ -134,7 +135,7 @@ export function useChatMessages(
       message: trimmed,
       is_read: false,
       created_at: new Date().toISOString(),
-      sender_name: user?.firstName ?? "",
+      sender_name: user ? fullName(user) : "",
       post_name: null,
       status: "sending",
     };
