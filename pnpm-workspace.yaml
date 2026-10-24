@@ -1,7 +1,17 @@
 allowBuilds:
-  '@swc/core': true
+  "@swc/core": true
   esbuild: true
   tesseract.js: true
 minimumReleaseAgeExclude:
-  - '@minusui/form@1.0.0'
-  - '@minusui/utils@0.0.1'
+  - "@minusui/form@1.0.0"
+  - "@minusui/utils@0.0.1"
+catalog:
+  vite: npm:@voidzero-dev/vite-plus-core@1.4.0
+  vite-plus: 1.4.0
+overrides:
+  vite@*: "catalog:"
+peerDependencyRules:
+  allowAny:
+    - vite
+  allowedVersions:
+    vite: "*"

@@ -57,11 +57,7 @@ export function useChatMessages(
 
   const reloadMessages = useCallback(async () => {
     try {
-      const data = await notificationsApi.getAllMessagesByChat(
-        otherUserId,
-        MESSAGES_LIMIT,
-        0,
-      );
+      const data = await notificationsApi.getAllMessagesByChat(otherUserId, MESSAGES_LIMIT, 0);
       setMessages(Array.isArray(data) ? data : []);
     } catch {
       setMessages([]);
@@ -95,9 +91,7 @@ export function useChatMessages(
 
     // Primera carga: marca todo lo histórico como visto sin notificar.
     if (!statusToastsInit.current) {
-      statusMsgs.forEach((m) =>
-        seenStatusIds.current.add(m.purchase_notification_id),
-      );
+      statusMsgs.forEach((m) => seenStatusIds.current.add(m.purchase_notification_id));
       statusToastsInit.current = true;
       return;
     }
@@ -109,7 +103,7 @@ export function useChatMessages(
       const s = parsePurchaseStatus(m.message)!;
       onIncomingStatusChange({ status: s.status, title: s.title });
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, user?.id]);
 
   useEffect(() => {
@@ -148,19 +142,11 @@ export function useChatMessages(
       // animación. Un reload ahora reemplazaría el id temporal por el real y
       // volvería a montar el nodo, re-disparando el slide/fade de entrada.
       setMessages((prev) =>
-        prev.map((m) =>
-          m.purchase_notification_id === tempId
-            ? { ...m, status: undefined }
-            : m,
-        ),
+        prev.map((m) => (m.purchase_notification_id === tempId ? { ...m, status: undefined } : m)),
       );
     } catch (error) {
       setMessages((prev) =>
-        prev.map((m) =>
-          m.purchase_notification_id === tempId
-            ? { ...m, status: "failed" }
-            : m,
-        ),
+        prev.map((m) => (m.purchase_notification_id === tempId ? { ...m, status: "failed" } : m)),
       );
       throw error;
     } finally {
