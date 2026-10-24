@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { adminApi } from "@/api/clients/admin.api";
-import type { Chat, Message, ChatPagination } from "@/presentation/interfaces/pages/NotificationsPageLoaderData";
+import type {
+  Chat,
+  Message,
+  ChatPagination,
+} from "@/presentation/interfaces/pages/NotificationsPageLoaderData";
 
 const MESSAGES_LIMIT = 30;
 const FILTER_DEBOUNCE_MS = 400;
@@ -38,13 +42,7 @@ export const useAdminChatMessages = () => {
   const fetchMessages = useCallback(
     async (userId2: string, q: string, offset: number) => {
       if (!userId1) throw new Error("No chat is open");
-      return adminApi.getChatMessages(
-        userId1,
-        userId2,
-        MESSAGES_LIMIT,
-        offset,
-        q || undefined,
-      );
+      return adminApi.getChatMessages(userId1, userId2, MESSAGES_LIMIT, offset, q || undefined);
     },
     [userId1],
   );
@@ -93,7 +91,7 @@ export const useAdminChatMessages = () => {
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [messageFilterDebounced, userId1, selectedChat?.other_user_id]);
 
   // Scroll + resalta brevemente el mensaje puntual de una incidencia, una vez
@@ -106,11 +104,7 @@ export const useAdminChatMessages = () => {
     return () => clearTimeout(timer);
   }, [focusMessageId, messagesLoading, messages]);
 
-  const openChat = (
-    openUserId1: string,
-    chat: Chat,
-    opts?: OpenChatOptions,
-  ) => {
+  const openChat = (openUserId1: string, chat: Chat, opts?: OpenChatOptions) => {
     setUserId1(openUserId1);
     setSelectedChat(chat);
     setMessages([]);
@@ -158,17 +152,13 @@ export const useAdminChatMessages = () => {
     setDeletingId(messageId);
     try {
       await adminApi.deleteMessage(messageId);
-      setMessages((prev) =>
-        prev.filter((m) => m.purchase_notification_id !== messageId),
-      );
+      setMessages((prev) => prev.filter((m) => m.purchase_notification_id !== messageId));
       setSelectedIds((prev) => {
         const s = new Set(prev);
         s.delete(messageId);
         return s;
       });
-      setPagination((prev) =>
-        prev ? { ...prev, total: prev.total - 1 } : prev,
-      );
+      setPagination((prev) => (prev ? { ...prev, total: prev.total - 1 } : prev));
     } catch {
       /* silently ignore */
     } finally {
@@ -182,9 +172,7 @@ export const useAdminChatMessages = () => {
     const ids = Array.from(selectedIds);
     try {
       await Promise.all(ids.map((id) => adminApi.deleteMessage(id)));
-      setMessages((prev) =>
-        prev.filter((m) => !ids.includes(m.purchase_notification_id)),
-      );
+      setMessages((prev) => prev.filter((m) => !ids.includes(m.purchase_notification_id)));
       setPagination((prev) =>
         prev ? { ...prev, total: Math.max(0, prev.total - ids.length) } : prev,
       );

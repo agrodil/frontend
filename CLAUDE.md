@@ -42,23 +42,23 @@ Data fetching follows React Router's **loader/action** pattern — routes declar
 
 ### Folder Purposes
 
-| Path                                      | Purpose                                                              |
-| ----------------------------------------- | -------------------------------------------------------------------- |
-| `src/presentation/pages/`                 | Page-level components (split into `public/` and `private/`)          |
-| `src/presentation/ui/`                    | Reusable UI components (Button, Form, CardPost, etc.)                |
-| `src/presentation/layout/`               | App shell components (Navbar, Footer, RootLayout)                    |
-| `src/presentation/router/`               | Router config, loaders, and actions                                  |
-| `src/presentation/interfaces/`           | Props interfaces for presentation-layer components                   |
-| `src/api/clients/`                        | API client modules (one per backend controller)                      |
-| `src/api/fetchWithAuth.ts`               | Authenticated fetch wrapper with token refresh + request queuing     |
-| `src/api/interfaces/`                     | Request DTOs (`requests/`) and response DTOs (`responses/`)          |
-| `src/entities/`                           | Domain entity interfaces mirroring DB models                         |
-| `src/adapters/contexts/`                  | React Context definitions and providers                              |
-| `src/adapters/hooks/actions/`             | Action hooks that handle backend use cases (call `api/clients/`)     |
-| `src/adapters/hooks/common/`              | Utility hooks with no backend coupling (useAuth, etc.)               |
-| `src/infrastructure/`                     | Third-party SDK integrations (Socket.IO client)                      |
-| `src/shared/constants/`                   | Static lookup data (`*.catalog.ts` — sale types, townships, etc.)    |
-| `src/shared/utils/`                       | Pure helper functions                                                |
+| Path                           | Purpose                                                           |
+| ------------------------------ | ----------------------------------------------------------------- |
+| `src/presentation/pages/`      | Page-level components (split into `public/` and `private/`)       |
+| `src/presentation/ui/`         | Reusable UI components (Button, Form, CardPost, etc.)             |
+| `src/presentation/layout/`     | App shell components (Navbar, Footer, RootLayout)                 |
+| `src/presentation/router/`     | Router config, loaders, and actions                               |
+| `src/presentation/interfaces/` | Props interfaces for presentation-layer components                |
+| `src/api/clients/`             | API client modules (one per backend controller)                   |
+| `src/api/fetchWithAuth.ts`     | Authenticated fetch wrapper with token refresh + request queuing  |
+| `src/api/interfaces/`          | Request DTOs (`requests/`) and response DTOs (`responses/`)       |
+| `src/entities/`                | Domain entity interfaces mirroring DB models                      |
+| `src/adapters/contexts/`       | React Context definitions and providers                           |
+| `src/adapters/hooks/actions/`  | Action hooks that handle backend use cases (call `api/clients/`)  |
+| `src/adapters/hooks/common/`   | Utility hooks with no backend coupling (useAuth, etc.)            |
+| `src/infrastructure/`          | Third-party SDK integrations (Socket.IO client)                   |
+| `src/shared/constants/`        | Static lookup data (`*.catalog.ts` — sale types, townships, etc.) |
+| `src/shared/utils/`            | Pure helper functions                                             |
 
 ### Environment Variables
 
@@ -67,3 +67,35 @@ Use `import.meta.env.VITE_*` for environment variables (Vite convention). The ba
 ### Styling
 
 Tailwind CSS 4 with a custom ITC Avant Garde font family loaded via `@font-face` in `src/index.css`. Custom font classes are available as Tailwind utilities.
+
+<!--VITE PLUS START-->
+
+# Using Vite+, the Unified Toolchain for the Web
+
+This project is using Vite+, a unified toolchain built on top of Vite, Rolldown, Vitest, tsdown, Oxlint, Oxfmt, and Vite Task. Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite, and it invokes Vite through `vp dev` and `vp build`. Run `vp help` to print a list of commands and `vp <command> --help` for information about a specific command.
+
+Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.dev/guide/.
+
+## Built-in Commands vs Scripts
+
+`vp <name>` runs a built-in command. `vp run <name>` runs a `package.json` script or a `vite.config.ts` task. Scripts cannot overwrite built-ins, so `vp dev` and `vp run dev` may do different things. Check `package.json` and `vite.config.ts` first, and run `vp run <name>` when the project defines a script or task with that name.
+
+## Running Scripts
+
+Run TypeScript and JavaScript files with `vpx <file>`, for example `vpx ./scripts/seed.ts --dry-run`. It handles enums, decorators, JSX, and tsconfig `paths`, so do not add `tsx` or `ts-node` to run scripts. `vpx --watch <file>` reruns the file when a file it uses changes, in place of `tsx watch`. `vp node <file>` runs plain Node.js.
+
+## Tool Versions
+
+Run `vp toolchain` to show versions and relationships in the active Vite+
+release. Add a tool name to select part of the graph. For example, run
+`vp toolchain vite`. Use `--global` to ignore the local `vite-plus` package. Use
+`vp why <package>` to show the package-manager dependency graph.
+
+## Review Checklist
+
+- [ ] Run `vp install` after pulling remote changes and before getting started.
+- [ ] Run `vp check` and `vp test` to format, lint, type check and test changes.
+- [ ] Check if there are `vite.config.ts` tasks or `package.json` scripts necessary for validation, run via `vp run <script>`.
+- [ ] If setup, runtime, or package-manager behavior looks wrong, run `vp env doctor` and include its output when asking for help.
+
+<!--VITE PLUS END-->
